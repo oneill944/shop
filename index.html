@@ -3,71 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart List</title>
+    <title>Mini Shop List</title>
     <style>
         :root {
-            --bg: #1a1a1d; --card: #2c2c2e; --text: #efeff4;
-            --primary: #af52de; --success: #28a745; --danger: #dc3545;
-            --grey-btn: #48484a; --modal-bg: rgba(0,0,0,0.95);
+            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
+            --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #3a3a3c;
         }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 10px; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 8px; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-row { display: flex; gap: 6px; margin-bottom: 10px; }
-        .main-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; color: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .btn-row { display: flex; gap: 4px; margin-bottom: 8px; }
+        .main-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; color: white; text-transform: uppercase; }
         
-        /* Modal */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--modal-bg); justify-content: center; padding-top: 50px; z-index: 1000;
+            background: rgba(0,0,0,0.9); justify-content: center; padding-top: 20px; z-index: 1000;
         }
-        .modal-content { background: var(--card); padding: 15px; border-radius: 15px; width: 85%; max-width: 320px; height: fit-content; text-align: center; }
+        .modal-content { background: var(--card); padding: 12px; border-radius: 12px; width: 80%; max-width: 300px; text-align: center; }
         .modal-content input {
-            width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444;
-            background: #3a3a3c; color: white; font-size: 18px; outline: none;
+            width: 90%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #444;
+            background: #2a2a2a; color: white; font-size: 16px; outline: none;
         }
 
-        /* Kisebb sorok és ikonok */
-        .list-container { display: flex; flex-direction: column; gap: 5px; }
+        .list-container { display: flex; flex-direction: column; gap: 4px; }
         .item { 
-            background: var(--card); padding: 8px 10px; border-radius: 8px; 
-            display: flex; align-items: center; gap: 8px; touch-action: none;
+            background: var(--card); padding: 6px 10px; border-radius: 6px; 
+            display: flex; align-items: center; gap: 6px; touch-action: none;
         }
-        .item.checked { background: var(--success); }
-        .item.cancelled { background: var(--danger); }
-        .item.dragging { opacity: 0.5; transform: scale(1.02); }
+        .item.checked { background: var(--success) !important; }
+        .item.cancelled { background: var(--danger) !important; }
+        .item.dragging { opacity: 0.4; transform: scale(0.98); border: 1px dashed #fff; }
         
-        .item-text { flex-grow: 1; font-size: 15px; pointer-events: none; }
+        .item-text { flex-grow: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Kisebb gombok */
-        .btn-sm { border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; color: white; }
-        .btn-check { background: #34c759; }
-        .btn-x { background: #ff3b30; } 
-        .btn-grey { background: var(--grey-btn); }
+        .actions { display: flex; gap: 3px; }
+        .btn-sm { border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; }
+        .btn-check { background: #4caf50; }
+        .btn-x { background: #f44336; } 
+        .btn-grey { background: var(--grey); }
         
-        .summary-title { margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; font-size: 11px; color: #888; text-transform: uppercase; }
-        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 15px; width: 100%; padding: 8px; font-size: 12px; }
+        .summary-title { margin-top: 15px; border-top: 1px solid #333; padding-top: 8px; font-size: 10px; color: #777; letter-spacing: 1px; }
+        .clear-all { background: none; color: #ff5252; border: 1px solid #ff5252; margin-top: 10px; width: 100%; padding: 6px; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <div class="header"><h3 style="margin:0">Bevásárlás</h3></div>
+    <div class="header"><h4 style="margin:0">LISTA</h4></div>
 
     <div class="btn-row">
-        <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 Hang</button>
-        <button class="main-btn" style="background: #3a3a3c;" onclick="openModal()">⌨️ Írás</button>
+        <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 HANG</button>
+        <button class="main-btn" style="background: var(--grey);" onclick="openModal()">⌨️ ÍRÁS</button>
     </div>
 
     <div id="activeItems" class="list-container"></div>
-    <div class="summary-title">Összesítés</div>
+    <div class="summary-title">ÖSSZESÍTÉS</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="main-btn clear-all" onclick="clearAll()">🗑️ Lista ürítése</button>
+    <button class="main-btn clear-all" onclick="clearAll()">🗑️ TÖRLÉS</button>
 
     <div id="inputModal">
         <div class="modal-content">
-            <input type="text" id="manualInput" placeholder="Írd ide..." autocomplete="off">
+            <input type="text" id="manualInput" placeholder="..." autocomplete="off">
             <div class="btn-row">
-                <button class="main-btn" style="background:#48484a;" onclick="closeModal()">Mégse</button>
+                <button class="main-btn" style="background:#444;" onclick="closeModal()">MÉGSE</button>
                 <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
@@ -75,15 +72,14 @@
 
     <script>
         let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
-        const micBtn = document.getElementById('micBtn');
+        let isRecording = false;
+        let recognition;
 
         window.onload = renderAll;
 
-        // --- MANUÁLIS BEVITEL ---
         function openModal() {
             document.getElementById('inputModal').style.display = 'flex';
-            const input = document.getElementById('manualInput');
-            input.focus(); 
+            setTimeout(() => document.getElementById('manualInput').focus(), 150);
         }
 
         function closeModal() {
@@ -98,24 +94,30 @@
 
         document.getElementById('manualInput').addEventListener("keypress", (e) => { if (e.key === "Enter") handleManualAdd(); });
 
-        // --- HANGFELISMERÉS (Javított) ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
+            recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
-            
-            micBtn.onclick = () => {
+            recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopRecording(); };
+            recognition.onend = () => { if(isRecording) stopRecording(); };
+        }
+
+        document.getElementById('micBtn').onclick = () => {
+            if (!isRecording) {
+                isRecording = true;
                 recognition.start();
-                micBtn.innerText = "🛑 Hallgatom...";
-            };
+                document.getElementById('micBtn').innerText = "🛑 STOP";
+                document.getElementById('micBtn').style.background = "#ff5252";
+            } else {
+                stopRecording();
+            }
+        };
 
-            recognition.onresult = (e) => {
-                addItem(e.results[0][0].transcript);
-                micBtn.innerText = "🎤 Hang";
-            };
-
-            recognition.onerror = () => { micBtn.innerText = "🎤 Hang"; };
-            recognition.onend = () => { micBtn.innerText = "🎤 Hang"; };
+        function stopRecording() {
+            isRecording = false;
+            recognition.stop();
+            document.getElementById('micBtn').innerText = "🎤 HANG";
+            document.getElementById('micBtn').style.background = "var(--primary)";
         }
 
         function addItem(text) {
@@ -138,7 +140,6 @@
             renderAll();
         }
 
-        // --- MEGJELENÍTÉS ÉS MOZGATÁS ---
         function renderAll() {
             const act = document.getElementById('activeItems');
             const don = document.getElementById('doneItems');
@@ -162,19 +163,17 @@
                     </div>
                 `;
 
-                // Mobilbarát mozgatás (Drag)
+                // Drag and drop érintésre
                 div.addEventListener('touchstart', (e) => {
-                    if(item.status === 'active' && e.target.className === 'item-text') {
-                        div.classList.add('dragging');
-                    }
+                    if(item.status === 'active') div.classList.add('dragging');
                 }, {passive: true});
 
                 div.addEventListener('touchmove', (e) => {
                     if(!div.classList.contains('dragging')) return;
                     const touch = e.touches[0];
-                    const afterElement = getDragAfterElement(act, touch.clientY);
-                    if (afterElement == null) act.appendChild(div);
-                    else act.insertBefore(div, afterElement);
+                    const target = getDragAfterElement(act, touch.clientY);
+                    if (!target) act.appendChild(div);
+                    else act.insertBefore(div, target);
                 }, {passive: false});
 
                 div.addEventListener('touchend', () => {
