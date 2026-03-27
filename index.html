@@ -1,1 +1,68 @@
 
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okos Bevásárlólista</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 10px; background: #f4f4f9; }
+        h1 { text-align: center; color: #333; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #micBtn { background: #ff4b2b; color: white; flex: 2; }
+        #addBtn { background: #4caf50; color: white; flex: 1; }
+        ul { list-style: none; padding: 0; }
+        li { background: white; margin-bottom: 8px; padding: 15px; display: flex; align-items: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        li.done { opacity: 0.5; text-decoration: line-through; background: #e0e0e0; }
+        input[type="checkbox"] { margin-right: 15px; transform: scale(1.5); }
+        .item-text { flex-grow: 1; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <h1>🛒 Bevásárlólista</h1>
+
+    <div class="controls">
+        <button id="micBtn">🎤 Diktálás</button>
+        <button id="addBtn">Hozzáad</button>
+    </div>
+
+    <ul id="shoppingList"></ul>
+
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const list = document.getElementById('shoppingList');
+        
+        // Hangfelismerés beállítása
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'hu-HU';
+
+            micBtn.onclick = () => recognition.start();
+
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                addItem(text);
+            };
+        } else {
+            micBtn.innerText = "A hangfelismerés nem támogatott";
+        }
+
+        function addItem(text) {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <input type="checkbox" onchange="this.parentElement.classList.toggle('done')">
+                <span class="item-text">${text}</span>
+            `;
+            list.appendChild(li);
+        }
+
+        document.getElementById('addBtn').onclick = () => {
+            const termek = prompt("Mit vegyünk?");
+            if (termek) addItem(termek);
+        };
+    </script>
+</body>
+</html>
