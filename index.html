@@ -3,41 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bevásárló Lista</title>
+    <title>Profi Bevásárlólista</title>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-            --primary: #bb86fc; --success: #4caf50; --danger: #cf6679;
+            --primary: #bb86fc; --success: #2e7d32; --danger: #c62828;
         }
         body.light {
             --bg: #f5f5f5; --card: #ffffff; --text: #212121;
             --primary: #6200ee;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; transition: 0.3s; margin: 0; padding: 20px; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; transition: 0.3s; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .theme-toggle { font-size: 24px; cursor: pointer; border: none; background: none; }
 
-        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 16px; }
+        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 16px; transition: 0.2s; }
         #micBtn { background: var(--primary); color: white; }
-        #micBtn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+        #micBtn.recording { background: #ff5252; animation: pulse 1.5s infinite; }
         
-        .list-container { display: flex; flex-direction: column; gap: 10px; }
-        .item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .item.checked { border-left: 5px solid var(--success); opacity: 0.7; }
-        .item.cancelled { border-left: 5px solid var(--danger); opacity: 0.7; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
+        .item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.3s; }
         
-        .item-text { flex-grow: 1; font-size: 18px; }
-        .actions { display: flex; gap: 5px; }
-        .btn-sm { border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-check { background: var(--success); }
-        .btn-x { background: #ff9800; }
-        .btn-del { background: var(--danger); }
+        /* Állapot színek az összesítőben */
+        .item.checked { background: var(--success); color: white; }
+        .item.cancelled { background: var(--danger); color: white; }
         
-        .summary-title { margin-top: 30px; border-top: 1px solid #444; padding-top: 15px; font-size: 14px; color: #888; text-transform: uppercase; }
-        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; }
+        .item-text { flex-grow: 1; font-size: 18px; font-weight: 500; }
+        .actions { display: flex; gap: 8px; }
+        
+        .btn-sm { border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .btn-check { background: #4caf50; color: white; }
+        .btn-x { background: #f44336; color: white; }
+        .btn-del { background: #ffffff; color: #333; }
+        
+        .summary-title { margin-top: 30px; border-top: 1px solid #444; padding-top: 15px; font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .clear-all { background: none; color: #cf6679; border: 1px solid #cf6679; margin-top: 20px; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body class="dark">
@@ -48,11 +51,11 @@
     </div>
 
     <button id="micBtn" class="main-btn">🎤 Diktálás indítása</button>
-    <button class="main-btn" style="background: #333; color: white;" onclick="addItem(prompt('Termék neve:'))">⌨️ Kézi hozzáadás</button>
+    <button class="main-btn" style="background: #333; color: white;" onclick="promptAdd()">⌨️ Kézi hozzáadás</button>
 
     <div id="activeItems" class="list-container"></div>
     
-    <div class="summary-title">Összesítés (Megvéve / Elmaradt)</div>
+    <div class="summary-title">Összesítés</div>
     <div id="doneItems" class="list-container"></div>
 
     <button class="main-btn clear-all" onclick="clearAll()">🗑️ Teljes lista törlése</button>
@@ -60,85 +63,112 @@
     <script>
         let isRecording = false;
         let recognition;
+        let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
 
-        // Téma váltás
+        // Betöltés indításkor
+        window.onload = () => {
+            renderAll();
+        };
+
         function toggleTheme() {
             document.body.classList.toggle('light');
-            const isLight = document.body.classList.contains('light');
-            document.getElementById('themeIcon').innerText = isLight ? '☀️' : '🌙';
+            document.getElementById('themeIcon').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
         }
 
-        // Hangfelismerés setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
-            recognition.continuous = true;
+            recognition.continuous = false;
 
             recognition.onresult = (event) => {
-                const text = event.results[event.results.length - 1][0].transcript;
+                const text = event.results[0][0].transcript;
                 addItem(text.trim());
+                stopMic();
             };
-
-            recognition.onend = () => {
-                if (isRecording) recognition.start(); // Automatikus újraindulás ha nem mi állítottuk le
-            };
+            recognition.onend = () => { if(isRecording) stopMic(); };
         }
 
-        document.getElementById('micBtn').onclick = function() {
-            if (!isRecording) {
-                recognition.start();
-                this.innerText = "🛑 Diktálás leállítása...";
-                this.classList.add('recording');
-                isRecording = true;
-            } else {
-                recognition.stop();
-                this.innerText = "🎤 Diktálás indítása";
-                this.classList.remove('recording');
-                isRecording = false;
-            }
+        document.getElementById('micBtn').onclick = () => {
+            if (!isRecording) startMic(); else stopMic();
         };
 
-        function addItem(text) {
-            if (!text) return;
-            const item = { id: Date.now(), text: text, status: 'active' };
-            renderItem(item);
+        function startMic() {
+            recognition.start();
+            const btn = document.getElementById('micBtn');
+            btn.innerText = "🛑 Hallgatom...";
+            btn.classList.add('recording');
+            isRecording = true;
         }
 
-        function renderItem(item) {
-            const div = document.createElement('div');
-            div.className = `item ${item.status === 'done' ? 'checked' : ''} ${item.status === 'x' ? 'cancelled' : ''}`;
-            div.id = item.id;
-            
-            div.innerHTML = `
-                <span class="item-text">${item.text}</span>
-                <div class="actions">
-                    ${item.status === 'active' ? `
-                        <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
-                        <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
-                    ` : ''}
-                    <button class="btn-sm btn-del" onclick="this.parentElement.parentElement.remove()">🗑</button>
-                </div>
-            `;
+        function stopMic() {
+            recognition.stop();
+            const btn = document.getElementById('micBtn');
+            btn.innerText = "🎤 Diktálás indítása";
+            btn.classList.remove('recording');
+            isRecording = false;
+        }
 
-            if (item.status === 'active') {
-                document.getElementById('activeItems').prepend(div);
-            } else {
-                document.getElementById('doneItems').appendChild(div);
-            }
+        function promptAdd() {
+            const t = prompt("Mit vegyünk?");
+            if(t) addItem(t);
+        }
+
+        function addItem(text) {
+            const item = { id: Date.now(), text: text, status: 'active' };
+            shoppingList.push(item);
+            saveAndRender();
         }
 
         function updateStatus(id, newStatus) {
-            const el = document.getElementById(id);
-            const text = el.querySelector('.item-text').innerText;
-            el.remove();
-            renderItem({ id: id, text: text, status: newStatus });
+            const index = shoppingList.findIndex(i => i.id === id);
+            if(index !== -1) {
+                shoppingList[index].status = newStatus;
+                saveAndRender();
+            }
+        }
+
+        function deleteItem(id) {
+            shoppingList = shoppingList.filter(i => i.id !== id);
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
+            renderAll();
+        }
+
+        function renderAll() {
+            document.getElementById('activeItems').innerHTML = '';
+            document.getElementById('doneItems').innerHTML = '';
+
+            shoppingList.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `item ${item.status === 'done' ? 'checked' : ''} ${item.status === 'x' ? 'cancelled' : ''}`;
+                
+                div.innerHTML = `
+                    <span class="item-text">${item.text}</span>
+                    <div class="actions">
+                        ${item.status === 'active' ? `
+                            <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
+                            <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
+                        ` : ''}
+                        <button class="btn-sm btn-del" onclick="deleteItem(${item.id})">🗑</button>
+                    </div>
+                `;
+
+                if (item.status === 'active') {
+                    document.getElementById('activeItems').appendChild(div);
+                } else {
+                    document.getElementById('doneItems').appendChild(div);
+                }
+            });
         }
 
         function clearAll() {
-            if(confirm("Biztosan törlöd a teljes listát?")) {
-                document.getElementById('activeItems').innerHTML = '';
-                document.getElementById('doneItems').innerHTML = '';
+            if(confirm("Töröljük az egész listát?")) {
+                shoppingList = [];
+                saveAndRender();
             }
         }
     </script>
