@@ -3,79 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mini Shop List</title>
+    <title>Micro Shop List</title>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
             --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #3a3a3c;
         }
-        /* SZÖVEGKIJELÖLÉS ÉS MENÜ TILTÁSA */
         * {
             -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Letiltja a kék kijelölést */
-            -webkit-user-select: none;
-            -webkit-touch-callout: none; /* Letiltja a hosszú nyomásra felugró menüt */
+            user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
         
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 8px; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 6px; overflow: hidden; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .btn-row { display: flex; gap: 4px; margin-bottom: 8px; }
-        .main-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; color: white; text-transform: uppercase; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .btn-row { display: flex; gap: 4px; margin-bottom: 6px; }
+        .main-btn { flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; color: white; text-transform: uppercase; }
         
+        /* MÉG KISEBB MODAL */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); justify-content: center; padding-top: 20px; z-index: 1000;
+            background: rgba(0,0,0,0.85); justify-content: center; padding-top: 15px; z-index: 1000;
         }
-        .modal-content { background: var(--card); padding: 12px; border-radius: 12px; width: 85%; max-width: 300px; text-align: center; }
+        .modal-content { 
+            background: var(--card); padding: 8px; border-radius: 10px; width: 75%; max-width: 260px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #333;
+        }
         .modal-content input {
-            width: 90%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #444;
-            background: #2a2a2a; color: white; font-size: 18px; outline: none; display: block; margin-left: auto; margin-right: auto;
-            user-select: text !important; -webkit-user-select: text !important; /* Az inputban lehessen írni */
+            width: 85%; padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #444;
+            background: #2a2a2a; color: white; font-size: 16px; outline: none; display: block; margin-left: auto; margin-right: auto;
+            user-select: text !important; -webkit-user-select: text !important;
         }
 
-        .list-container { display: flex; flex-direction: column; gap: 4px; }
+        .list-container { display: flex; flex-direction: column; gap: 3px; }
         .item { 
-            background: var(--card); padding: 6px 10px; border-radius: 6px; 
-            display: flex; align-items: center; gap: 6px; touch-action: none;
-            border: 1px solid transparent;
+            background: var(--card); padding: 5px 8px; border-radius: 5px; 
+            display: flex; align-items: center; gap: 5px; touch-action: none;
         }
         .item.checked { background: var(--success) !important; }
         .item.cancelled { background: var(--danger) !important; }
-        .item.dragging { opacity: 0.4; border: 1px dashed #fff; background: #333; }
+        .item.dragging { opacity: 0.3; border: 1px dashed #fff; }
         
-        .item-text { flex-grow: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+        .item-text { flex-grow: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
         
-        .actions { display: flex; gap: 3px; pointer-events: auto; }
-        .btn-sm { border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; }
+        .actions { display: flex; gap: 2px; }
+        .btn-sm { border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; color: white; }
         .btn-check { background: #4caf50; }
         .btn-x { background: #f44336; } 
         .btn-grey { background: var(--grey); }
         
-        .summary-title { margin-top: 15px; border-top: 1px solid #333; padding-top: 8px; font-size: 10px; color: #777; letter-spacing: 1px; }
-        .clear-all { background: none; color: #ff5252; border: 1px solid #ff5252; margin-top: 10px; width: 100%; padding: 6px; font-size: 11px; }
+        .summary-title { margin-top: 10px; border-top: 1px solid #333; padding-top: 5px; font-size: 9px; color: #666; letter-spacing: 1px; }
+        .clear-all { background: none; color: #ff5252; border: 1px solid #ff5252; margin-top: 8px; width: 100%; padding: 4px; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header"><h4 style="margin:0">BEVÁSÁRLÓLISTA</h4></div>
+    <div class="header"><h5 style="margin:0">LISTA</h5></div>
 
     <div class="btn-row">
         <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 HANG</button>
-        <button id="writeBtn" class="main-btn" style="background: var(--grey);" onclick="openModal()">⌨️ ÍRÁS</button>
+        <button id="writeBtn" class="main-btn" style="background: var(--grey);" onmousedown="quickOpen()" ontouchstart="quickOpen()">⌨️ ÍRÁS</button>
     </div>
 
     <div id="activeItems" class="list-container"></div>
     <div class="summary-title">ÖSSZESÍTÉS</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="main-btn clear-all" onclick="clearAll()">🗑️ LISTA ÜRÍTÉSE</button>
+    <button class="main-btn clear-all" onclick="clearAll()">🗑️ ÜRÍTÉS</button>
 
     <div id="inputModal">
         <div class="modal-content">
-            <input type="text" id="manualInput" placeholder="Írj ide..." autocomplete="off">
-            <div class="btn-row">
-                <button class="main-btn" style="background:#444;" onclick="closeModal()">MÉGSE</button>
-                <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
+            <input type="text" id="manualInput" placeholder="..." autocomplete="off">
+            <div class="btn-row" style="margin-bottom:0">
+                <button class="main-btn" style="background:#444; padding:5px" onclick="closeModal()">MÉGSE</button>
+                <button class="main-btn" style="background:var(--primary); padding:5px" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
     </div>
@@ -87,14 +88,12 @@
 
         window.onload = renderAll;
 
-        function openModal() {
+        // TRÜKKÖS NYITÁS: Azonnali fókusz az érintés pillanatában
+        function quickOpen() {
             const modal = document.getElementById('inputModal');
             const input = document.getElementById('manualInput');
             modal.style.display = 'flex';
-            setTimeout(() => {
-                input.focus();
-                input.click();
-            }, 100);
+            input.focus();
         }
 
         function closeModal() {
@@ -123,9 +122,7 @@
                 recognition.start();
                 document.getElementById('micBtn').innerText = "🛑 STOP";
                 document.getElementById('micBtn').style.background = "#ff5252";
-            } else {
-                stopRecording();
-            }
+            } else { stopRecording(); }
         };
 
         function stopRecording() {
@@ -178,25 +175,16 @@
                     </div>
                 `;
 
-                // TOUCH EVENTEK A MOZGATÁSHOZ
                 if(item.status === 'active') {
-                    div.addEventListener('touchstart', (e) => {
-                        div.classList.add('dragging');
-                    }, {passive: true});
-
+                    div.addEventListener('touchstart', (e) => { div.classList.add('dragging'); }, {passive: true});
                     div.addEventListener('touchmove', (e) => {
                         if(!div.classList.contains('dragging')) return;
-                        const touch = e.touches[0];
-                        const target = getDragAfterElement(act, touch.clientY);
+                        const target = getDragAfterElement(act, e.touches[0].clientY);
                         if (!target) act.appendChild(div);
                         else act.insertBefore(div, target);
-                        e.preventDefault(); // Megakadályozza az oldal görgetését mozgatás közben
+                        e.preventDefault();
                     }, {passive: false});
-
-                    div.addEventListener('touchend', () => {
-                        div.classList.remove('dragging');
-                        reorderList();
-                    });
+                    div.addEventListener('touchend', () => { div.classList.remove('dragging'); reorderList(); });
                 }
 
                 (item.status === 'active' ? act : don).appendChild(div);
@@ -222,7 +210,7 @@
             localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
         }
 
-        function clearAll() { if(confirm("Üríted a listát?")) { shoppingList = []; saveAndRender(); } }
+        function clearAll() { if(confirm("Üríted?")) { shoppingList = []; saveAndRender(); } }
     </script>
 </body>
 </html>
