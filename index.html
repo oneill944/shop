@@ -3,80 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profi Bevásárlólista</title>
+    <title>Smart Shop List</title>
     <style>
         :root {
-            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-            --primary: #bb86fc; --success: #2e7d32; --danger: #c62828;
-            --modal-bg: rgba(0,0,0,0.8);
+            --bg: #1a1a1d; --card: #2c2c2e; --text: #efeff4;
+            --primary: #af52de; --success: #28a745; --danger: #dc3545;
+            --modal-bg: rgba(0,0,0,0.85);
         }
         body.light {
-            --bg: #f5f5f5; --card: #ffffff; --text: #212121;
-            --primary: #6200ee;
+            --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e;
+            --primary: #5856d6;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; transition: 0.3s; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; transition: 0.3s; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .theme-toggle { font-size: 24px; cursor: pointer; border: none; background: none; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .theme-toggle { font-size: 22px; cursor: pointer; border: none; background: none; padding: 5px; }
 
-        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 16px; transition: 0.2s; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
+        .main-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; transition: 0.2s; }
         #micBtn { background: var(--primary); color: white; }
-        #micBtn.recording { background: #ff5252; animation: pulse 1.5s infinite; }
+        #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
         
-        /* Felugró ablak (Modal) */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content {
-            background: var(--card); padding: 25px; border-radius: 20px; width: 80%; max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+            background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 350px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); text-align: center;
         }
         .modal-content input {
             width: 90%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #444;
-            background: #2a2a2a; color: white; font-size: 18px; outline: none;
+            background: #3a3a3c; color: white; font-size: 16px; outline: none;
         }
-        .modal-btns { display: flex; gap: 10px; }
 
-        /* Lista stílusok */
-        .list-container { display: flex; flex-direction: column; gap: 8px; }
-        .item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .list-container { display: flex; flex-direction: column; gap: 6px; }
+        .item { background: var(--card); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .item.checked { background: var(--success); color: white; }
         .item.cancelled { background: var(--danger); color: white; }
         
-        .item-text { flex-grow: 1; font-size: 18px; font-weight: 500; }
-        .btn-sm { border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        .btn-check { background: #4caf50; color: white; }
-        .btn-x { background: #f44336; color: white; }
-        .btn-del { background: #ffffff; color: #333; }
+        .item-text { flex-grow: 1; font-size: 16px; }
+        .actions { display: flex; gap: 4px; }
         
-        .summary-title { margin-top: 30px; border-top: 1px solid #444; padding-top: 15px; font-size: 14px; color: #888; text-transform: uppercase; }
-        .clear-all { background: none; color: #cf6679; border: 1px solid #cf6679; margin-top: 20px; }
+        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .btn-check { background: #34c759; color: white; }
+        .btn-x { background: #ff9500; color: white; }
+        .btn-undo { background: #5856d6; color: white; } /* Visszaállítás gomb */
+        .btn-del { background: #f2f2f7; color: #333; }
+        
+        .summary-title { margin-top: 25px; border-top: 1px solid #3a3a3c; padding-top: 10px; font-size: 12px; color: #8e8e93; text-transform: uppercase; }
+        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 20px; font-size: 12px; padding: 8px; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body class="dark">
 
     <div class="header">
-        <h1>Bevásárlás</h1>
+        <h2 style="margin:0">Bevásárlás</h2>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</button>
     </div>
 
-    <button id="micBtn" class="main-btn">🎤 Diktálás indítása</button>
-    <button class="main-btn" style="background: #333; color: white;" onclick="openModal()">⌨️ Kézi hozzáadás</button>
+    <div class="btn-row">
+        <button id="micBtn" class="main-btn">🎤 Hang</button>
+        <button class="main-btn" style="background: #3a3a3c; color: white;" onclick="openModal()">⌨️ Írás</button>
+    </div>
 
     <div id="activeItems" class="list-container"></div>
     <div class="summary-title">Összesítés</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="main-btn clear-all" onclick="clearAll()">🗑️ Teljes lista törlése</button>
+    <button class="main-btn clear-all" onclick="clearAll()">🗑️ Lista ürítése</button>
 
     <div id="inputModal">
         <div class="modal-content">
-            <h2 style="margin:0">Új tétel</h2>
-            <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér..." autocomplete="off">
-            <div class="modal-btns">
-                <button class="main-btn" style="background:#444; color:white" onclick="closeModal()">Mégse</button>
+            <h3 style="margin:0">Új tétel</h3>
+            <input type="text" id="manualInput" placeholder="Mit vegyünk?" autocomplete="off">
+            <div class="btn-row">
+                <button class="main-btn" style="background:#48484a; color:white" onclick="closeModal()">Mégse</button>
                 <button class="main-btn" style="background:var(--primary); color:white" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
@@ -93,48 +96,37 @@
             document.getElementById('themeIcon').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
         }
 
-        // MODAL FUNKCIÓK
-        const modal = document.getElementById('inputModal');
-        const mInput = document.getElementById('manualInput');
-
         function openModal() {
-            modal.style.display = 'flex';
-            mInput.focus(); // Azonnal bele tudsz írni
+            document.getElementById('inputModal').style.display = 'flex';
+            const input = document.getElementById('manualInput');
+            setTimeout(() => input.focus(), 50); 
         }
 
         function closeModal() {
-            modal.style.display = 'none';
-            mInput.value = '';
+            document.getElementById('inputModal').style.display = 'none';
+            document.getElementById('manualInput').value = '';
         }
 
         function handleManualAdd() {
-            if(mInput.value.trim()) {
-                addItem(mInput.value.trim());
-                closeModal();
-            }
+            const val = document.getElementById('manualInput').value.trim();
+            if(val) { addItem(val); closeModal(); }
         }
 
-        // Enter gombra elmentés
-        mInput.addEventListener("keypress", (e) => {
+        document.getElementById('manualInput').addEventListener("keypress", (e) => {
             if (e.key === "Enter") handleManualAdd();
         });
 
-        // Kívülre kattintva bezárul
-        window.onclick = (e) => { if(e.target == modal) closeModal(); };
-
-        // HANGFELISMERÉS
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
             recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopMic(); };
-            recognition.onend = () => { if(isRecording) stopMic(); };
         }
 
         document.getElementById('micBtn').onclick = () => { if(!isRecording) startMic(); else stopMic(); };
-        function startMic() { recognition.start(); document.getElementById('micBtn').innerText = "🛑 Hallgatom..."; isRecording = true; }
-        function stopMic() { recognition.stop(); document.getElementById('micBtn').innerText = "🎤 Diktálás indítása"; isRecording = false; }
+        function startMic() { recognition.start(); document.getElementById('micBtn').innerText = "🛑 Hallgatom..."; document.getElementById('micBtn').classList.add('recording'); isRecording = true; }
+        function stopMic() { recognition.stop(); document.getElementById('micBtn').innerText = "🎤 Hang"; document.getElementById('micBtn').classList.remove('recording'); isRecording = false; }
 
         function addItem(text) {
             shoppingList.push({ id: Date.now(), text: text, status: 'active' });
@@ -157,26 +149,31 @@
         }
 
         function renderAll() {
-            document.getElementById('activeItems').innerHTML = '';
-            document.getElementById('doneItems').innerHTML = '';
+            const activeCont = document.getElementById('activeItems');
+            const doneCont = document.getElementById('doneItems');
+            activeCont.innerHTML = ''; doneCont.innerHTML = '';
+
             shoppingList.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `item ${item.status === 'done' ? 'checked' : ''} ${item.status === 'x' ? 'cancelled' : ''}`;
+                
                 div.innerHTML = `
                     <span class="item-text">${item.text}</span>
                     <div class="actions">
                         ${item.status === 'active' ? `
-                            <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
-                            <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
-                        ` : ''}
-                        <button class="btn-sm btn-del" onclick="deleteItem(${item.id})">🗑</button>
+                            <button class="btn-sm btn-check" title="Megvettem" onclick="updateStatus(${item.id}, 'done')">✔</button>
+                            <button class="btn-sm btn-x" title="Nincs/Nem kell" onclick="updateStatus(${item.id}, 'x')">✖</button>
+                        ` : `
+                            <button class="btn-sm btn-undo" title="Vissza a listába" onclick="updateStatus(${item.id}, 'active')">↩</button>
+                        `}
+                        <button class="btn-sm btn-del" title="Törlés" onclick="deleteItem(${item.id})">🗑</button>
                     </div>
                 `;
-                document.getElementById(item.status === 'active' ? 'activeItems' : 'doneItems').appendChild(div);
+                (item.status === 'active' ? activeCont : doneCont).appendChild(div);
             });
         }
 
-        function clearAll() { if(confirm("Töröljük az egészet?")) { shoppingList = []; saveAndRender(); } }
+        function clearAll() { if(confirm("Biztosan üríted a listát?")) { shoppingList = []; saveAndRender(); } }
     </script>
 </body>
 </html>
