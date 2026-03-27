@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Micro Shop</title>
+    <title>Smart Micro Shop</title>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
@@ -13,9 +13,8 @@
             --bg: #f0f0f7; --card: #ffffff; --text: #1c1c1e;
             --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea;
         }
-        * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-        
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 5px; transition: 0.2s; overflow: hidden; }
+        * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 5px; transition: 0.2s; }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding: 2px 5px; }
         .theme-btn { font-size: 18px; cursor: pointer; border: none; background: none; color: var(--text); }
@@ -23,43 +22,38 @@
         .btn-row { display: flex; gap: 3px; margin-bottom: 5px; }
         .main-btn { flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 11px; color: white; text-transform: uppercase; }
         
-        /* MINI BEVITELI SÁV */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); justify-content: center; padding-top: 10px; z-index: 1000;
         }
-        .modal-content { 
-            background: var(--card); padding: 10px; border-radius: 12px; width: 90%; max-width: 300px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); height: fit-content;
-        }
+        .modal-content { background: var(--card); padding: 10px; border-radius: 12px; width: 90%; max-width: 300px; height: fit-content; }
         .modal-content input {
             width: 90%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #555;
-            background: var(--bg); color: var(--text); font-size: 16px; outline: none; display: block; margin-left: auto; margin-right: auto;
+            background: var(--bg); color: var(--text); font-size: 16px; outline: none; display: block; margin: auto;
             user-select: text !important; -webkit-user-select: text !important;
         }
 
-        .list-container { display: flex; flex-direction: column; gap: 3px; max-height: 70vh; overflow-y: auto; }
-        .item { background: var(--card); padding: 5px 8px; border-radius: 5px; display: flex; align-items: center; gap: 5px; touch-action: none; }
+        .list-container { display: flex; flex-direction: column; gap: 3px; }
+        .cat-title { font-size: 9px; color: var(--primary); font-weight: bold; text-transform: uppercase; margin: 4px 0 2px 4px; opacity: 0.8; }
+        .item { background: var(--card); padding: 5px 8px; border-radius: 5px; display: flex; align-items: center; gap: 5px; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
-        .item.dragging { opacity: 0.3; background: #555; }
         
-        .item-text { flex-grow: 1; font-size: 13px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
+        .item-text { flex-grow: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .actions { display: flex; gap: 2px; }
         .btn-sm { border: none; width: 26px; height: 26px; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: center; color: white; }
         .btn-check { background: #4caf50; }
         .btn-x { background: #f44336; } 
         .btn-grey { background: var(--grey); color: var(--text); }
         
-        .summary-title { margin-top: 8px; border-top: 1px solid #444; padding-top: 5px; font-size: 9px; color: #888; text-transform: uppercase; }
+        .summary-title { margin-top: 10px; border-top: 1px solid #444; padding-top: 5px; font-size: 9px; color: #888; text-transform: uppercase; }
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 5px; width: 100%; padding: 4px; font-size: 10px; border-radius: 4px; }
     </style>
 </head>
 <body class="dark">
 
     <div class="header">
-        <h5 style="margin:0">BOLTOS LISTA</h5>
+        <h5 style="margin:0">OKOS LISTA</h5>
         <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
     </div>
 
@@ -69,13 +63,13 @@
     </div>
 
     <div id="activeItems" class="list-container"></div>
-    <div class="summary-title">Megvéve / Elmaradt</div>
+    <div class="summary-title">ÖSSZESÍTÉS</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="clear-all" onclick="clearAll()">LISTA TÖRLÉSE</button>
+    <button class="clear-all" onclick="clearAll()">TÖRLÉS</button>
 
     <div id="inputModal">
         <div class="modal-content">
-            <input type="text" id="manualInput" placeholder="Termék neve..." autocomplete="off">
+            <input type="text" id="manualInput" placeholder="..." autocomplete="off">
             <div class="btn-row" style="margin-bottom:0">
                 <button class="main-btn" style="background:#666; padding:5px" onclick="closeModal()">MÉGSE</button>
                 <button class="main-btn" style="background:var(--primary); padding:5px" onclick="handleManualAdd()">OK</button>
@@ -88,6 +82,15 @@
         let isRecording = false;
         let recognition;
 
+        // KATEGÓRIA SZÓTÁR
+        const categories = {
+            "ZÖLDSÉG/GYÜMÖLCS": ["alma", "banán", "hagyma", "paprika", "paradicsom", "krumpli", "répa", "uborka", "saláta", "citrom", "narancs", "eper", "szőlő", "fokhagyma", "burgonya"],
+            "HÚS/FELVÁGOTT": ["hús", "csirke", "sertés", "marha", "szalámi", "sonka", "parizer", "virsli", "kolbász", "szalonna", "darálthús"],
+            "TEJTERMÉK": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "kefir", "margarin", "tejszín"],
+            "ITALOK": ["víz", "üdítő", "kóla", "sör", "bor", "pálinka", "lé", "tea", "kávé", "ásványvíz", "szörp"],
+            "PÉKÁRU": ["kenyér", "kifli", "zsemle", "pékáru", "kalács", "kifli", "bagett"]
+        };
+
         window.onload = renderAll;
 
         function toggleTheme() {
@@ -97,8 +100,7 @@
 
         function quickOpen() {
             document.getElementById('inputModal').style.display = 'flex';
-            const input = document.getElementById('manualInput');
-            setTimeout(() => { input.focus(); }, 50);
+            setTimeout(() => { document.getElementById('manualInput').focus(); }, 100);
         }
 
         function closeModal() {
@@ -124,7 +126,7 @@
         document.getElementById('micBtn').onclick = () => {
             if (!isRecording) {
                 isRecording = true; recognition.start();
-                document.getElementById('micBtn').innerText = "🛑 STOP";
+                document.getElementById('micBtn').innerText = "🛑";
                 document.getElementById('micBtn').style.background = "#ff3b30";
             } else { stopRecording(); }
         };
@@ -136,7 +138,12 @@
         }
 
         function addItem(text) {
-            shoppingList.push({ id: Date.now(), text: text, status: 'active' });
+            let cat = "EGYÉB";
+            const lowText = text.toLowerCase();
+            for (const [key, list] of Object.entries(categories)) {
+                if (list.some(word => lowText.includes(word))) { cat = key; break; }
+            }
+            shoppingList.push({ id: Date.now(), text: text, status: 'active', cat: cat });
             saveAndRender();
         }
 
@@ -160,57 +167,49 @@
             const don = document.getElementById('doneItems');
             act.innerHTML = ''; don.innerHTML = '';
 
-            shoppingList.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
-                div.dataset.id = item.id;
-                div.innerHTML = `
-                    <span class="item-text">${item.text}</span>
-                    <div class="actions">
-                        ${item.status === 'active' ? `
-                            <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
-                            <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
-                        ` : `
-                            <button class="btn-sm btn-grey" onclick="updateStatus(${item.id}, 'active')">↩</button>
-                        `}
-                        <button class="btn-sm btn-grey" onclick="deleteItem(${item.id})">🗑</button>
-                    </div>
-                `;
+            const activeItems = shoppingList.filter(i => i.status === 'active');
+            const doneItems = shoppingList.filter(i => i.status !== 'active');
 
-                if(item.status === 'active') {
-                    div.addEventListener('touchstart', () => { div.classList.add('dragging'); }, {passive: true});
-                    div.addEventListener('touchmove', (e) => {
-                        if(!div.classList.contains('dragging')) return;
-                        const target = getDragAfterElement(act, e.touches[0].clientY);
-                        if (!target) act.appendChild(div); else act.insertBefore(div, target);
-                        e.preventDefault();
-                    }, {passive: false});
-                    div.addEventListener('touchend', () => { div.classList.remove('dragging'); reorderList(); });
-                }
-                (item.status === 'active' ? act : don).appendChild(div);
+            // Csoportosítás kategória szerint az aktívaknál
+            const grouped = activeItems.reduce((acc, item) => {
+                if (!acc[item.cat]) acc[item.cat] = [];
+                acc[item.cat].push(item);
+                return acc;
+            }, {});
+
+            // Aktív tételek kirajzolása kategóriánként
+            Object.keys(grouped).sort().forEach(cat => {
+                const title = document.createElement('div');
+                title.className = 'cat-title';
+                title.innerText = cat;
+                act.appendChild(title);
+                
+                grouped[cat].forEach(item => act.appendChild(createItemEl(item)));
             });
+
+            // Összesített tételek
+            doneItems.forEach(item => don.appendChild(createItemEl(item)));
         }
 
-        function getDragAfterElement(container, y) {
-            const draggables = [...container.querySelectorAll('.item:not(.dragging)')];
-            return draggables.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
-                else return closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        function createItemEl(item) {
+            const div = document.createElement('div');
+            div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
+            div.innerHTML = `
+                <span class="item-text">${item.text}</span>
+                <div class="actions">
+                    ${item.status === 'active' ? `
+                        <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
+                        <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
+                    ` : `
+                        <button class="btn-sm btn-grey" onclick="updateStatus(${item.id}, 'active')">↩</button>
+                    `}
+                    <button class="btn-sm btn-grey" onclick="deleteItem(${item.id})">🗑</button>
+                </div>
+            `;
+            return div;
         }
 
-        function reorderList() {
-            const newOrder = [];
-            document.querySelectorAll('#activeItems .item').forEach(el => {
-                newOrder.push(shoppingList.find(x => x.id == el.dataset.id));
-            });
-            shoppingList = [...newOrder, ...shoppingList.filter(x => x.status !== 'active')];
-            localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
-        }
-
-        function clearAll() { if(confirm("Üríted a listát?")) { shoppingList = []; saveAndRender(); } }
+        function clearAll() { if(confirm("Üríted?")) { shoppingList = []; saveAndRender(); } }
     </script>
 </body>
 </html>
