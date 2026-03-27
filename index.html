@@ -8,67 +8,60 @@
         :root {
             --bg: #1a1a1d; --card: #2c2c2e; --text: #efeff4;
             --primary: #af52de; --success: #28a745; --danger: #dc3545;
-            --undo-btn: #007aff; /* Kék a vissza nyílnak */
-            --delete-btn: #48484a; /* Szürke a kukanak */
-            --modal-bg: rgba(0,0,0,0.85);
+            --grey-btn: #48484a; 
+            --modal-bg: rgba(0,0,0,0.9);
         }
-        body.light {
-            --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e;
-            --primary: #5856d6; --undo-btn: #0040dd; --delete-btn: #d1d1d6;
-        }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; transition: 0.3s; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; user-select: none; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .theme-toggle { font-size: 22px; cursor: pointer; border: none; background: none; }
-
         .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
-        .main-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
-        #micBtn { background: var(--primary); color: white; }
-        #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
+        .main-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; color: white; }
         
+        /* Modal */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000;
         }
-        .modal-content {
-            background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
-        }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
         .modal-content input {
-            width: 90%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #444;
-            background: #3a3a3c; color: white; font-size: 16px; outline: none;
+            width: 90%; padding: 15px; margin: 15px 0; border-radius: 10px; border: 1px solid #444;
+            background: #3a3a3c; color: white; font-size: 18px; outline: none;
         }
 
-        .list-container { display: flex; flex-direction: column; gap: 6px; }
-        .item { background: var(--card); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
-        
+        /* Lista */
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
+        .item { 
+            background: var(--card); padding: 12px; border-radius: 12px; 
+            display: flex; align-items: center; gap: 10px; 
+            touch-action: none; cursor: grab;
+        }
+        .item.dragging { opacity: 0.5; background: #3a3a3c; }
         .item.checked { background: var(--success); color: white; }
         .item.cancelled { background: var(--danger); color: white; }
         
-        .item-text { flex-grow: 1; font-size: 16px; }
-        .actions { display: flex; gap: 5px; }
+        .item-text { flex-grow: 1; font-size: 17px; pointer-events: none; }
+        .actions { display: flex; gap: 6px; }
         
-        .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: white; }
+        .btn-sm { border: none; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: white; }
         .btn-check { background: #34c759; }
         .btn-x { background: #ff3b30; } 
-        .btn-undo { background: var(--undo-btn); } /* Kék vissza gomb */
-        .btn-del { background: var(--delete-btn); } /* Szürke kuka */
+        .btn-grey { background: var(--grey-btn); } /* Kuka és Vissza nyíl színe */
         
-        .summary-title { margin-top: 25px; border-top: 1px solid #3a3a3c; padding-top: 10px; font-size: 12px; color: #8e8e93; text-transform: uppercase; }
-        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 20px; font-size: 12px; }
+        .summary-title { margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; font-size: 12px; color: #888; text-transform: uppercase; }
+        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 20px; width: 100%; }
 
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
-<body class="dark">
+<body>
 
     <div class="header">
         <h2 style="margin:0">Bevásárlás</h2>
-        <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</button>
     </div>
 
     <div class="btn-row">
-        <button id="micBtn" class="main-btn">🎤 Hang</button>
-        <button class="main-btn" style="background: #3a3a3c; color: white;" onclick="openModal()">⌨️ Írás</button>
+        <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 Hang</button>
+        <button class="main-btn" style="background: #3a3a3c;" onclick="openModal()">⌨️ Írás</button>
     </div>
 
     <div id="activeItems" class="list-container"></div>
@@ -79,28 +72,28 @@
     <div id="inputModal">
         <div class="modal-content">
             <h3 style="margin:0">Új tétel</h3>
-            <input type="text" id="manualInput" placeholder="Mit vegyünk?" autocomplete="off">
+            <input type="text" id="manualInput" placeholder="Írd ide..." autocomplete="off">
             <div class="btn-row">
-                <button class="main-btn" style="background:#48484a; color:white" onclick="closeModal()">Mégse</button>
-                <button class="main-btn" style="background:var(--primary); color:white" onclick="handleManualAdd()">OK</button>
+                <button class="main-btn" style="background:#48484a;" onclick="closeModal()">Mégse</button>
+                <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
     </div>
 
     <script>
-        let isRecording = false;
         let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
 
         window.onload = renderAll;
 
-        function toggleTheme() {
-            document.body.classList.toggle('light');
-            document.getElementById('themeIcon').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
-        }
-
         function openModal() {
-            document.getElementById('inputModal').style.display = 'flex';
-            setTimeout(() => document.getElementById('manualInput').focus(), 50); 
+            const modal = document.getElementById('inputModal');
+            const input = document.getElementById('manualInput');
+            modal.style.display = 'flex';
+            // Trükk az azonnali fókuszhoz telefonon
+            setTimeout(() => {
+                input.focus();
+                input.click();
+            }, 100);
         }
 
         function closeModal() {
@@ -114,18 +107,6 @@
         }
 
         document.getElementById('manualInput').addEventListener("keypress", (e) => { if (e.key === "Enter") handleManualAdd(); });
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'hu-HU';
-            recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopMic(); };
-        }
-
-        document.getElementById('micBtn').onclick = () => { if(!isRecording) startMic(); else stopMic(); };
-        function startMic() { if(recognition) { recognition.start(); document.getElementById('micBtn').innerText = "🛑..."; document.getElementById('micBtn').classList.add('recording'); isRecording = true; } }
-        function stopMic() { if(recognition) { recognition.stop(); document.getElementById('micBtn').innerText = "🎤 Hang"; document.getElementById('micBtn').classList.remove('recording'); isRecording = false; } }
 
         function addItem(text) {
             shoppingList.push({ id: Date.now(), text: text, status: 'active' });
@@ -148,13 +129,14 @@
         }
 
         function renderAll() {
-            const activeCont = document.getElementById('activeItems');
-            const doneCont = document.getElementById('doneItems');
-            activeCont.innerHTML = ''; doneCont.innerHTML = '';
+            const containers = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems') };
+            containers.active.innerHTML = ''; containers.done.innerHTML = '';
 
             shoppingList.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `item ${item.status === 'done' ? 'checked' : ''} ${item.status === 'x' ? 'cancelled' : ''}`;
+                div.draggable = item.status === 'active';
+                div.dataset.id = item.id;
                 
                 div.innerHTML = `
                     <span class="item-text">${item.text}</span>
@@ -163,16 +145,62 @@
                             <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
                             <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
                         ` : `
-                            <button class="btn-sm btn-undo" onclick="updateStatus(${item.id}, 'active')">↩</button>
+                            <button class="btn-sm btn-grey" onclick="updateStatus(${item.id}, 'active')">⟲</button>
                         `}
-                        <button class="btn-sm btn-del" onclick="deleteItem(${item.id})">🗑</button>
+                        <button class="btn-sm btn-grey" onclick="deleteItem(${item.id})">🗑</button>
                     </div>
                 `;
-                (item.status === 'active' ? activeCont : doneCont).appendChild(div);
+                
+                // Drag and Drop események (egér és érintés)
+                div.addEventListener('dragstart', () => div.classList.add('dragging'));
+                div.addEventListener('dragend', () => {
+                    div.classList.remove('dragging');
+                    reorderList();
+                });
+
+                (item.status === 'active' ? containers.active : containers.done).appendChild(div);
             });
         }
 
-        function clearAll() { if(confirm("Biztosan üríted a listát?")) { shoppingList = []; saveAndRender(); } }
+        // Lista újrarendezése mozgatás után
+        function reorderList() {
+            const newOrder = [];
+            document.querySelectorAll('#activeItems .item').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                const item = shoppingList.find(x => x.id === id);
+                if(item) newOrder.push(item);
+            });
+            // Hozzáadjuk a már befejezetteket a végéhez
+            shoppingList = [...newOrder, ...shoppingList.filter(x => x.status !== 'active')];
+            localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
+        }
+
+        // Dragover logika
+        document.getElementById('activeItems').addEventListener('dragover', e => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(e.clientY);
+            const dragging = document.querySelector('.dragging');
+            if (afterElement == null) {
+                document.getElementById('activeItems').appendChild(dragging);
+            } else {
+                document.getElementById('activeItems').insertBefore(dragging, afterElement);
+            }
+        });
+
+        function getDragAfterElement(y) {
+            const elements = [...document.querySelectorAll('#activeItems .item:not(.dragging)')];
+            return elements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function clearAll() { if(confirm("Üríted a listát?")) { shoppingList = []; saveAndRender(); } }
     </script>
 </body>
 </html>
