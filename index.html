@@ -8,19 +8,21 @@
         :root {
             --bg: #1a1a1d; --card: #2c2c2e; --text: #efeff4;
             --primary: #af52de; --success: #28a745; --danger: #dc3545;
+            --undo-btn: #007aff; /* Kék a vissza nyílnak */
+            --delete-btn: #48484a; /* Szürke a kukanak */
             --modal-bg: rgba(0,0,0,0.85);
         }
         body.light {
             --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e;
-            --primary: #5856d6;
+            --primary: #5856d6; --undo-btn: #0040dd; --delete-btn: #d1d1d6;
         }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 15px; transition: 0.3s; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .theme-toggle { font-size: 22px; cursor: pointer; border: none; background: none; padding: 5px; }
+        .theme-toggle { font-size: 22px; cursor: pointer; border: none; background: none; }
 
         .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
-        .main-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .main-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
         #micBtn { background: var(--primary); color: white; }
         #micBtn.recording { background: #ff3b30; animation: pulse 1s infinite; }
         
@@ -29,8 +31,7 @@
             background: var(--modal-bg); justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content {
-            background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 350px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4); text-align: center;
+            background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
         }
         .modal-content input {
             width: 90%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #444;
@@ -38,21 +39,22 @@
         }
 
         .list-container { display: flex; flex-direction: column; gap: 6px; }
-        .item { background: var(--card); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .item { background: var(--card); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
+        
         .item.checked { background: var(--success); color: white; }
         .item.cancelled { background: var(--danger); color: white; }
         
         .item-text { flex-grow: 1; font-size: 16px; }
-        .actions { display: flex; gap: 4px; }
+        .actions { display: flex; gap: 5px; }
         
-        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-        .btn-check { background: #34c759; color: white; }
-        .btn-x { background: #ff9500; color: white; }
-        .btn-undo { background: #5856d6; color: white; } /* Visszaállítás gomb */
-        .btn-del { background: #f2f2f7; color: #333; }
+        .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: white; }
+        .btn-check { background: #34c759; }
+        .btn-x { background: #ff3b30; } 
+        .btn-undo { background: var(--undo-btn); } /* Kék vissza gomb */
+        .btn-del { background: var(--delete-btn); } /* Szürke kuka */
         
         .summary-title { margin-top: 25px; border-top: 1px solid #3a3a3c; padding-top: 10px; font-size: 12px; color: #8e8e93; text-transform: uppercase; }
-        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 20px; font-size: 12px; padding: 8px; }
+        .clear-all { background: none; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 20px; font-size: 12px; }
 
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
@@ -98,8 +100,7 @@
 
         function openModal() {
             document.getElementById('inputModal').style.display = 'flex';
-            const input = document.getElementById('manualInput');
-            setTimeout(() => input.focus(), 50); 
+            setTimeout(() => document.getElementById('manualInput').focus(), 50); 
         }
 
         function closeModal() {
@@ -112,9 +113,7 @@
             if(val) { addItem(val); closeModal(); }
         }
 
-        document.getElementById('manualInput').addEventListener("keypress", (e) => {
-            if (e.key === "Enter") handleManualAdd();
-        });
+        document.getElementById('manualInput').addEventListener("keypress", (e) => { if (e.key === "Enter") handleManualAdd(); });
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
@@ -125,8 +124,8 @@
         }
 
         document.getElementById('micBtn').onclick = () => { if(!isRecording) startMic(); else stopMic(); };
-        function startMic() { recognition.start(); document.getElementById('micBtn').innerText = "🛑 Hallgatom..."; document.getElementById('micBtn').classList.add('recording'); isRecording = true; }
-        function stopMic() { recognition.stop(); document.getElementById('micBtn').innerText = "🎤 Hang"; document.getElementById('micBtn').classList.remove('recording'); isRecording = false; }
+        function startMic() { if(recognition) { recognition.start(); document.getElementById('micBtn').innerText = "🛑..."; document.getElementById('micBtn').classList.add('recording'); isRecording = true; } }
+        function stopMic() { if(recognition) { recognition.stop(); document.getElementById('micBtn').innerText = "🎤 Hang"; document.getElementById('micBtn').classList.remove('recording'); isRecording = false; } }
 
         function addItem(text) {
             shoppingList.push({ id: Date.now(), text: text, status: 'active' });
@@ -161,12 +160,12 @@
                     <span class="item-text">${item.text}</span>
                     <div class="actions">
                         ${item.status === 'active' ? `
-                            <button class="btn-sm btn-check" title="Megvettem" onclick="updateStatus(${item.id}, 'done')">✔</button>
-                            <button class="btn-sm btn-x" title="Nincs/Nem kell" onclick="updateStatus(${item.id}, 'x')">✖</button>
+                            <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
+                            <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
                         ` : `
-                            <button class="btn-sm btn-undo" title="Vissza a listába" onclick="updateStatus(${item.id}, 'active')">↩</button>
+                            <button class="btn-sm btn-undo" onclick="updateStatus(${item.id}, 'active')">↩</button>
                         `}
-                        <button class="btn-sm btn-del" title="Törlés" onclick="deleteItem(${item.id})">🗑</button>
+                        <button class="btn-sm btn-del" onclick="deleteItem(${item.id})">🗑</button>
                     </div>
                 `;
                 (item.status === 'active' ? activeCont : doneCont).appendChild(div);
