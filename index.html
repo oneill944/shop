@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Drag List</title>
+    <title>Smart Compact List</title>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
@@ -22,18 +22,18 @@
         .btn-row { display: flex; gap: 5px; margin-bottom: 10px; }
         .main-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 12px; color: white; text-transform: uppercase; }
         
-        /* MODAL: Kényelmes magasságban */
+        /* JAVÍTOTT COMPACT MODAL */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); justify-content: center; padding-top: 15vh; z-index: 1000;
+            background: rgba(0,0,0,0.7); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000;
         }
         .modal-content { 
-            background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 340px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            background: var(--card); padding: 12px; border-radius: 12px; width: 90%; max-width: 320px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #444;
         }
         .modal-content input {
-            width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555;
-            background: var(--bg); color: var(--text); font-size: 20px; outline: none; display: block;
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #555;
+            background: var(--bg); color: var(--text); font-size: 18px; outline: none; display: block;
             user-select: text !important; -webkit-user-select: text !important;
         }
 
@@ -41,9 +41,8 @@
         .item { 
             background: var(--card); padding: 10px; border-radius: 8px; 
             display: flex; align-items: center; gap: 8px; touch-action: none;
-            transition: transform 0.1s;
         }
-        .item.dragging { opacity: 0.5; background: #444; transform: scale(1.02); z-index: 10; }
+        .item.dragging { opacity: 0.5; background: #444; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
         
@@ -61,7 +60,7 @@
 <body class="dark">
 
     <div class="header">
-        <h4 style="margin:0">BEVÁSÁRLÁS</h4>
+        <h4 style="margin:0">BOLTOS</h4>
         <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
     </div>
 
@@ -71,16 +70,16 @@
     </div>
 
     <div id="activeItems" class="list-container"></div>
-    <div class="summary-title">VÉGEZTEM</div>
+    <div class="summary-title">PIPA / X</div>
     <div id="doneItems" class="list-container"></div>
     <button class="clear-all" onclick="clearAll()">LISTA ÜRÍTÉSE</button>
 
     <div id="inputModal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
-            <input type="text" id="manualInput" placeholder="Írd be..." autocomplete="off">
+            <input type="text" id="manualInput" placeholder="Termék..." autocomplete="off">
             <div class="btn-row" style="margin-bottom:0">
-                <button class="main-btn" style="background:#666;" onclick="closeModal()">MÉGSE</button>
-                <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
+                <button class="main-btn" style="background:#666; padding:8px;" onclick="closeModal()">MÉGSE</button>
+                <button class="main-btn" style="background:var(--primary); padding:8px;" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
     </div>
@@ -91,11 +90,11 @@
         let recognition;
 
         const categories = {
-            "1": ["alma", "banán", "hagyma", "paprika", "paradicsom", "krumpli", "répa", "uborka", "citrom", "zöldség", "gyümölcs"],
-            "2": ["hús", "szalámi", "sonka", "parizer", "virsli", "kolbász", "szalonna", "csirke"],
-            "3": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "tojás"],
-            "4": ["víz", "üdítő", "kóla", "sör", "bor", "kávé", "ásványvíz"],
-            "5": ["kenyér", "kifli", "zsemle", "pékáru", "zsömle"]
+            "1": ["alma", "banán", "hagyma", "paprika", "paradicsom", "krumpli", "répa", "uborka", "citrom", "narancs", "zöldség", "gyümölcs"],
+            "2": ["hús", "szalámi", "sonka", "parizer", "virsli", "kolbász", "szalonna", "csirke", "májkrém"],
+            "3": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "tojás", "tejszín"],
+            "4": ["víz", "üdítő", "kóla", "sör", "bor", "kávé", "ásványvíz", "energiaital"],
+            "5": ["kenyér", "kifli", "zsemle", "pékáru", "zsömle", "bagett"]
         };
 
         window.onload = renderAll;
@@ -110,6 +109,7 @@
             document.getElementById('inputModal').style.display = 'flex';
             const input = document.getElementById('manualInput');
             input.focus();
+            // Mobil fókusz kényszerítése
             setTimeout(() => { input.focus(); input.click(); }, 50);
         }
 
@@ -154,7 +154,6 @@
                 if (list.some(word => lowText.includes(word))) { order = parseInt(key); break; }
             }
             shoppingList.push({ id: Date.now(), text: text, status: 'active', order: order });
-            // Új elem esetén kategória szerint rendezünk, de csak az aktívakat
             shoppingList.sort((a, b) => (a.status === 'active' && b.status === 'active') ? a.order - b.order : 0);
             saveAndRender();
         }
@@ -203,8 +202,7 @@
 
                     div.addEventListener('touchmove', (e) => {
                         if(!div.classList.contains('dragging')) return;
-                        const touch = e.touches[0];
-                        const target = getDragAfterElement(act, touch.clientY);
+                        const target = getDragAfterElement(act, e.touches[0].clientY);
                         if (!target) act.appendChild(div);
                         else act.insertBefore(div, target);
                         e.preventDefault();
@@ -212,13 +210,11 @@
 
                     div.addEventListener('touchend', () => {
                         div.classList.remove('dragging');
-                        // KÉZI RENDEZÉS MENTÉSE
                         const newOrder = [];
                         document.querySelectorAll('#activeItems .item').forEach(el => {
                             newOrder.push(shoppingList.find(x => x.id == el.dataset.id));
                         });
-                        const doneOnes = shoppingList.filter(x => x.status !== 'active');
-                        shoppingList = [...newOrder, ...doneOnes];
+                        shoppingList = [...newOrder, ...shoppingList.filter(x => x.status !== 'active')];
                         localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
                     });
                 }
@@ -236,7 +232,7 @@
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
-        function clearAll() { if(confirm("Üríted a listát?")) { shoppingList = []; saveAndRender(); } }
+        function clearAll() { if(confirm("Törlöd az egész listát?")) { shoppingList = []; saveAndRender(); } }
     </script>
 </body>
 </html>
