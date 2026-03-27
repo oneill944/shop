@@ -1,68 +1,146 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Okos Bevásárlólista</title>
+    <title>Bevásárló Lista</title>
     <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 10px; background: #f4f4f9; }
-        h1 { text-align: center; color: #333; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        #micBtn { background: #ff4b2b; color: white; flex: 2; }
-        #addBtn { background: #4caf50; color: white; flex: 1; }
-        ul { list-style: none; padding: 0; }
-        li { background: white; margin-bottom: 8px; padding: 15px; display: flex; align-items: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        li.done { opacity: 0.5; text-decoration: line-through; background: #e0e0e0; }
-        input[type="checkbox"] { margin-right: 15px; transform: scale(1.5); }
+        :root {
+            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
+            --primary: #bb86fc; --success: #4caf50; --danger: #cf6679;
+        }
+        body.light {
+            --bg: #f5f5f5; --card: #ffffff; --text: #212121;
+            --primary: #6200ee;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; transition: 0.3s; margin: 0; padding: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .theme-toggle { font-size: 24px; cursor: pointer; border: none; background: none; }
+
+        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 16px; }
+        #micBtn { background: var(--primary); color: white; }
+        #micBtn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+        
+        .list-container { display: flex; flex-direction: column; gap: 10px; }
+        .item { background: var(--card); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .item.checked { border-left: 5px solid var(--success); opacity: 0.7; }
+        .item.cancelled { border-left: 5px solid var(--danger); opacity: 0.7; }
+        
         .item-text { flex-grow: 1; font-size: 18px; }
+        .actions { display: flex; gap: 5px; }
+        .btn-sm { border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-check { background: var(--success); }
+        .btn-x { background: #ff9800; }
+        .btn-del { background: var(--danger); }
+        
+        .summary-title { margin-top: 30px; border-top: 1px solid #444; padding-top: 15px; font-size: 14px; color: #888; text-transform: uppercase; }
+        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
     </style>
 </head>
-<body>
+<body class="dark">
 
-    <h1>🛒 Bevásárlólista</h1>
-
-    <div class="controls">
-        <button id="micBtn">🎤 Diktálás</button>
-        <button id="addBtn">Hozzáad</button>
+    <div class="header">
+        <h1>Bevásárlás</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</button>
     </div>
 
-    <ul id="shoppingList"></ul>
+    <button id="micBtn" class="main-btn">🎤 Diktálás indítása</button>
+    <button class="main-btn" style="background: #333; color: white;" onclick="addItem(prompt('Termék neve:'))">⌨️ Kézi hozzáadás</button>
+
+    <div id="activeItems" class="list-container"></div>
+    
+    <div class="summary-title">Összesítés (Megvéve / Elmaradt)</div>
+    <div id="doneItems" class="list-container"></div>
+
+    <button class="main-btn clear-all" onclick="clearAll()">🗑️ Teljes lista törlése</button>
 
     <script>
-        const micBtn = document.getElementById('micBtn');
-        const list = document.getElementById('shoppingList');
-        
-        // Hangfelismerés beállítása
+        let isRecording = false;
+        let recognition;
+
+        // Téma váltás
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            const isLight = document.body.classList.contains('light');
+            document.getElementById('themeIcon').innerText = isLight ? '☀️' : '🌙';
+        }
+
+        // Hangfelismerés setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
+            recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
-
-            micBtn.onclick = () => recognition.start();
+            recognition.continuous = true;
 
             recognition.onresult = (event) => {
-                const text = event.results[0][0].transcript;
-                addItem(text);
+                const text = event.results[event.results.length - 1][0].transcript;
+                addItem(text.trim());
             };
-        } else {
-            micBtn.innerText = "A hangfelismerés nem támogatott";
+
+            recognition.onend = () => {
+                if (isRecording) recognition.start(); // Automatikus újraindulás ha nem mi állítottuk le
+            };
         }
+
+        document.getElementById('micBtn').onclick = function() {
+            if (!isRecording) {
+                recognition.start();
+                this.innerText = "🛑 Diktálás leállítása...";
+                this.classList.add('recording');
+                isRecording = true;
+            } else {
+                recognition.stop();
+                this.innerText = "🎤 Diktálás indítása";
+                this.classList.remove('recording');
+                isRecording = false;
+            }
+        };
 
         function addItem(text) {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <input type="checkbox" onchange="this.parentElement.classList.toggle('done')">
-                <span class="item-text">${text}</span>
-            `;
-            list.appendChild(li);
+            if (!text) return;
+            const item = { id: Date.now(), text: text, status: 'active' };
+            renderItem(item);
         }
 
-        document.getElementById('addBtn').onclick = () => {
-            const termek = prompt("Mit vegyünk?");
-            if (termek) addItem(termek);
-        };
+        function renderItem(item) {
+            const div = document.createElement('div');
+            div.className = `item ${item.status === 'done' ? 'checked' : ''} ${item.status === 'x' ? 'cancelled' : ''}`;
+            div.id = item.id;
+            
+            div.innerHTML = `
+                <span class="item-text">${item.text}</span>
+                <div class="actions">
+                    ${item.status === 'active' ? `
+                        <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
+                        <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
+                    ` : ''}
+                    <button class="btn-sm btn-del" onclick="this.parentElement.parentElement.remove()">🗑</button>
+                </div>
+            `;
+
+            if (item.status === 'active') {
+                document.getElementById('activeItems').prepend(div);
+            } else {
+                document.getElementById('doneItems').appendChild(div);
+            }
+        }
+
+        function updateStatus(id, newStatus) {
+            const el = document.getElementById(id);
+            const text = el.querySelector('.item-text').innerText;
+            el.remove();
+            renderItem({ id: id, text: text, status: newStatus });
+        }
+
+        function clearAll() {
+            if(confirm("Biztosan törlöd a teljes listát?")) {
+                document.getElementById('activeItems').innerHTML = '';
+                document.getElementById('doneItems').innerHTML = '';
+            }
+        }
     </script>
 </body>
 </html>
