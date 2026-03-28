@@ -10,7 +10,7 @@
         :root { --bg: #000000; --card-bg: #121212; --item-bg: #1e1e1e; --text: #e0e0e0; --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #252525; --note: #ffa000; }
         body.light { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea; --note: #e67e22; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; user-select: none !important; -webkit-user-select: none !important; }
-        input, textarea { user-select: text !important; -webkit-user-select: text !important; }
+        input { user-select: text !important; -webkit-user-select: text !important; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 5px; display: flex; justify-content: center; min-height: 100vh; }
         .app-card { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 15px; padding: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); position: relative; align-self: flex-start; }
         .version { position: absolute; top: 6px; left: 12px; font-size: 8px; color: #444; }
@@ -26,30 +26,30 @@
         
         .item-wrapper { display: flex; flex-direction: column; gap: 1px; }
         .item { background: var(--item-bg); padding: 3px 8px; border-radius: 5px; display: flex; align-items: center; justify-content: space-between; gap: 5px; min-height: 34px; }
-        .item.dragging { opacity: 0.5; background: #444; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
         .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; pointer-events: none; }
         
-        .note-area { background: #2a2a2a; margin: 0 5px; padding: 8px; border-radius: 0 0 8px 8px; display: none; border: 1px solid #444; border-top: none; }
-        body.light .note-area { background: #f9f9fb; }
-        .note-input { width: 100%; background: transparent; border: 1px solid #555; color: var(--text); padding: 5px; font-size: 12px; border-radius: 4px; outline: none; margin-bottom: 5px; display: block; }
+        .note-area-inline { background: #2a2a2a; margin: 0 5px; padding: 8px; border-radius: 0 0 8px 8px; display: none; border: 1px solid #444; border-top: none; }
+        body.light .note-area-inline { background: #f9f9fb; }
+        .note-input-inline { width: 100%; background: transparent; border: 1px solid #555; color: var(--text); padding: 5px; font-size: 12px; border-radius: 4px; outline: none; margin-bottom: 5px; display: block; }
         
         .actions { display: flex; gap: 3px; flex-shrink: 0; }
         .btn-sm { border: none; width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.12); font-size: 12px; }
-        .has-note { color: var(--note) !important; }
+        .has-note { color: var(--note) !important; font-weight: bold; }
 
-        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000; }
+        /* MODAL STÍLUSOK */
+        .custom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 2000; }
         .modal-content { background: var(--item-bg); padding: 15px; border-radius: 12px; width: 85%; max-width: 280px; border: 1px solid #333; }
-        .modal-content input { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #444; background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
-        .modal-content label { font-size: 10px; color: #888; margin-bottom: 3px; display: block; padding-left: 5px; }
-        
+        .modal-content input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #444; background: var(--bg); color: var(--text); font-size: 16px; outline: none; }
+        .modal-content label { font-size: 10px; color: #888; margin-bottom: 4px; display: block; padding-left: 5px; }
+
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; width: 100%; padding: 8px; font-size: 9px; border-radius: 6px; font-weight: bold; opacity: 0.4; }
     </style>
 </head>
 <body class="dark">
 <div class="app-card">
-    <div class="version">v2.2</div>
+    <div class="version">v2.3</div>
     <button class="theme-btn" id="themeIcon" onclick="toggleTheme()">☀️</button>
     <div class="header">
         <h2 style="margin:0; font-size: 16px; letter-spacing: 1px;">BEVÁSÁRLÓ LISTA</h2>
@@ -67,15 +67,27 @@
     <button class="clear-all" onclick="clearAll()">LISTA TÖRLÉSE</button>
 </div>
 
-<div id="inputModal">
+<div id="inputModal" class="custom-modal">
     <div class="modal-content">
         <label>Termék neve</label>
         <input type="text" id="manualInput" placeholder="pl. Tej" autocomplete="off">
         <label>Megjegyzés (opcionális)</label>
-        <input type="text" id="noteInput" placeholder="pl. 2.8-as, 2db" autocomplete="off">
-        <div class="btn-row" style="margin-bottom:0; margin-top:10px;">
-            <button class="main-btn" style="background:#444;" onclick="closeModal()">MÉGSE</button>
+        <input type="text" id="noteInput" placeholder="pl. 2.8-as" autocomplete="off">
+        <div class="btn-row" style="margin-bottom:0">
+            <button class="main-btn" style="background:#444;" onclick="closeMainModal()">MÉGSE</button>
             <button class="main-btn" style="background:var(--primary);" id="confirmBtn">OK</button>
+        </div>
+    </div>
+</div>
+
+<div id="editNoteModal" class="custom-modal">
+    <div class="modal-content">
+        <label id="editNoteTitle">Megjegyzés módosítása</label>
+        <input type="text" id="editNoteValue" autocomplete="off">
+        <input type="hidden" id="editNoteId">
+        <div class="btn-row" style="margin-bottom:0">
+            <button class="main-btn" style="background:#444;" onclick="closeEditModal()">MÉGSE</button>
+            <button class="main-btn" style="background:var(--primary);" onclick="saveModalNote()">MENTÉS</button>
         </div>
     </div>
 </div>
@@ -90,41 +102,34 @@
     let notifsEnabled = localStorage.getItem('notifsEnabled') === 'true';
 
     const writeBtn = document.getElementById('writeBtn');
+    const mainModal = document.getElementById('inputModal');
     const inputField = document.getElementById('manualInput');
     const noteField = document.getElementById('noteInput');
-    const modal = document.getElementById('inputModal');
 
     const openInput = (e) => {
         e.preventDefault();
-        modal.style.display = 'flex';
+        mainModal.style.display = 'flex';
         inputField.focus();
         setTimeout(() => inputField.focus(), 50);
     };
-
     writeBtn.addEventListener('touchstart', openInput);
     writeBtn.addEventListener('click', openInput);
 
-    function closeModal() { modal.style.display = 'none'; inputField.value = ''; noteField.value = ''; }
+    function closeMainModal() { mainModal.style.display = 'none'; inputField.value = ''; noteField.value = ''; }
+    function closeEditModal() { document.getElementById('editNoteModal').style.display = 'none'; }
+
     function handleManualAdd() { 
         const val = inputField.value.trim(); 
         const note = noteField.value.trim();
-        if(val) { addItem(val, note); closeModal(); } 
+        if(val) { addItem(val, note); closeMainModal(); } 
     }
     document.getElementById('confirmBtn').onclick = handleManualAdd;
-    inputField.onkeypress = (e) => { if(e.key === 'Enter') noteField.focus(); };
-    noteField.onkeypress = (e) => { if(e.key === 'Enter') handleManualAdd(); };
 
     function addItem(t, n = "") { listRef.push({ text: t, note: n, status: 'active', order: Date.now(), time: Date.now() }); }
-    
+
     listRef.on('value', (snapshot) => {
         const data = snapshot.val();
         const newList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-        if (!isFirstLoad && newList.length > shoppingList.length) {
-            const newest = newList[newList.length - 1];
-            if (newest.status === 'active' && notifsEnabled && Notification.permission === "granted") {
-                new Notification("Bevásárló Lista", { body: "Új termék: " + newest.text });
-            }
-        }
         shoppingList = newList; isFirstLoad = false; renderAll();
     });
 
@@ -134,15 +139,12 @@
         shoppingList.sort((a, b) => (a.order || 0) - (b.order || 0)).forEach(item => {
             const wrapper = document.createElement('div');
             wrapper.className = 'item-wrapper';
-            
             const div = document.createElement('div');
             div.className = `item ${item.status === 'done' ? 'checked' : (item.status === 'x' ? 'cancelled' : '')}`;
-            div.dataset.id = item.id;
             
             div.innerHTML = `
                 <span class="item-text">${item.text}</span>
                 <div class="actions">
-                    <button class="btn-sm ${item.note ? 'has-note' : ''}" onclick="toggleNoteEditor('${item.id}')">ℹ️</button>
                     ${item.status === 'active' ? `
                         <button class="btn-sm" style="background:#4caf50" onclick="updateStatus('${item.id}','done')">✔</button>
                         <button class="btn-sm" style="background:#f44336" onclick="updateStatus('${item.id}','x')">✖</button>
@@ -150,40 +152,49 @@
                         <button class="btn-sm" style="background:#555" onclick="updateStatus('${item.id}','active')">↩</button>
                     `}
                     <button class="btn-sm" style="background:#444" onclick="deleteItem('${item.id}')">🗑</button>
+                    <button class="btn-sm ${item.note ? 'has-note' : ''}" onclick="handleInfoClick('${item.id}', '${item.note || ''}', '${item.text}')">ℹ️</button>
                 </div>`;
             
-            const noteDiv = document.createElement('div');
-            noteDiv.id = `note-${item.id}`;
-            noteDiv.className = 'note-area';
-            noteDiv.innerHTML = `
-                <input type="text" class="note-input" id="edit-note-${item.id}" value="${item.note || ''}" placeholder="Megjegyzés írása...">
-                <button class="main-btn" style="background:var(--primary); padding:5px; font-size:9px" onclick="saveNote('${item.id}')">MENTÉS</button>
+            const noteArea = document.createElement('div');
+            noteArea.id = `inline-note-${item.id}`;
+            noteArea.className = 'note-area-inline';
+            noteArea.innerHTML = `
+                <input type="text" class="note-input-inline" id="inline-input-${item.id}" placeholder="Megjegyzés...">
+                <button class="main-btn" style="background:var(--primary); padding:5px; font-size:9px" onclick="saveInlineNote('${item.id}')">MENTÉS</button>
             `;
 
-            if(item.status === 'active') { 
-                div.addEventListener('touchstart', startDrag, {passive: true}); 
-                div.addEventListener('touchmove', moveDrag, {passive: false}); 
-                div.addEventListener('touchend', endDrag); 
-            }
-            
             wrapper.appendChild(div);
-            wrapper.appendChild(noteDiv);
+            wrapper.appendChild(noteArea);
             containers[item.status === 'active' ? 'active' : (item.status === 'done' ? 'done' : 'x')].appendChild(wrapper);
         });
     }
 
-    function toggleNoteEditor(id) {
-        const el = document.getElementById(`note-${id}`);
-        const allNotes = document.querySelectorAll('.note-area');
-        allNotes.forEach(n => { if(n.id !== `note-${id}`) n.style.display = 'none'; });
-        el.style.display = el.style.display === 'block' ? 'none' : 'block';
-        if(el.style.display === 'block') document.getElementById(`edit-note-${id}`).focus();
+    function handleInfoClick(id, note, title) {
+        if (!note) {
+            // HA NINCS MEGJEGYZÉS -> Lenyílik az inline szerkesztő
+            const el = document.getElementById(`inline-note-${id}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            if(el.style.display === 'block') document.getElementById(`inline-input-${id}`).focus();
+        } else {
+            // HA VAN MEGJEGYZÉS -> Feldobja a középső kockát
+            document.getElementById('editNoteTitle').innerText = title;
+            document.getElementById('editNoteValue').value = note;
+            document.getElementById('editNoteId').value = id;
+            document.getElementById('editNoteModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('editNoteValue').focus(), 50);
+        }
     }
 
-    function saveNote(id) {
-        const newNote = document.getElementById(`edit-note-${id}`).value.trim();
-        listRef.child(id).update({ note: newNote });
-        document.getElementById(`note-${id}`).style.display = 'none';
+    function saveInlineNote(id) {
+        const val = document.getElementById(`inline-input-${id}`).value.trim();
+        listRef.child(id).update({ note: val });
+    }
+
+    function saveModalNote() {
+        const id = document.getElementById('editNoteId').value;
+        const val = document.getElementById('editNoteValue').value.trim();
+        listRef.child(id).update({ note: val });
+        closeEditModal();
     }
 
     function updateStatus(id, s) { listRef.child(id).update({ status: s, time: Date.now() }); }
@@ -200,22 +211,6 @@
         if (!notifsEnabled) { Notification.requestPermission().then(p => { if(p==="granted") { notifsEnabled=true; localStorage.setItem('notifsEnabled','true'); } updateNotifButton(); }); }
         else { notifsEnabled=false; localStorage.setItem('notifsEnabled','false'); updateNotifButton(); }
     }
-
-    // DRAG
-    let dragTimer;
-    function startDrag(e) { if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return; const el = e.currentTarget; dragTimer = setTimeout(() => { el.classList.add('dragging'); if("vibrate" in navigator) navigator.vibrate(40); }, 350); }
-    function moveDrag(e) { const el = document.querySelector('.dragging'); if(!el) return; e.preventDefault(); const container = document.getElementById('activeItems'); const touch = e.touches[0]; const afterElement = [...container.querySelectorAll('.item:not(.dragging)')].reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = touch.clientY - box.top - box.height / 2; if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest; }, { offset: Number.NEGATIVE_INFINITY }).element; if (afterElement == null) container.appendChild(el); else container.insertBefore(el, afterElement); }
-    function endDrag() { clearTimeout(dragTimer); const el = document.querySelector('.dragging'); if(!el) return; el.classList.remove('dragging'); const updates = {}; document.querySelectorAll('#activeItems .item').forEach((item, index) => { updates[`${item.dataset.id}/order`] = index; }); listRef.update(updates); }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition(); recognition.lang = 'hu-HU';
-        recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopMic(); };
-        recognition.onerror = stopMic; recognition.onend = stopMic;
-    }
-    function stopMic() { document.getElementById('micBtn').innerText = "🎤 HANG"; document.getElementById('micBtn').style.background = "var(--primary)"; }
-    document.getElementById('micBtn').onclick = () => { try { recognition.start(); document.getElementById('micBtn').innerText = "🛑 FIGYELEK..."; document.getElementById('micBtn').style.background = "#ff3b30"; } catch(e) { recognition.stop(); stopMic(); } };
-
     updateNotifButton();
 </script>
 </body>
