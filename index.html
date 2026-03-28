@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.9</title>
+    <title>Lista Pro v3.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -38,7 +38,8 @@
 
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; }
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 75px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
-        
+        .col-label { text-align: center; font-size: 10px; color: #666; font-weight: bold; margin-bottom: 5px; margin-top: 15px; }
+
         @keyframes pulse { 50% { background: red; } }
         .recording { animation: pulse 1s infinite; }
     </style>
@@ -47,10 +48,10 @@
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="v-num">v0.9</div>
+        <div class="v-num">v3.3</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
-            <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
+            <span onclick="if(confirm('Törlöd a TELJES listát?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
         </div>
     </div>
     
@@ -66,9 +67,9 @@
 
     <div id="activeItems" class="list-container"></div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:25px;">
-        <div id="doneItems" class="list-container"></div>
-        <div id="missingItems" class="list-container"></div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+        <div><div class="col-label">MEGVAN</div><div id="doneItems" class="list-container"></div></div>
+        <div><div class="col-label">NINCS</div><div id="missingItems" class="list-container"></div></div>
     </div>
 </div>
 
@@ -76,12 +77,12 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('addModal')">✕</div>
         <input type="text" id="addInput" placeholder="Termék neve...">
-        <textarea id="addNote" placeholder="Megjegyzés (opcionális)..."></textarea>
+        <textarea id="addNote" placeholder="Megjegyzés..."></textarea>
         <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:10px; cursor:pointer; font-size:13px; margin-bottom:10px;">
-            📷 Fotó hozzáadása <input type="file" accept="image/*" style="display:none" onchange="previewImg(this)">
+            📷 Fotó csatolása <input type="file" accept="image/*" style="display:none" onchange="previewImg(this)">
         </label>
         <img id="addPreview" style="width:100%; border-radius:10px; display:none; margin-bottom:10px;">
-        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">HOZZÁADÁS</button>
+        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">MENTÉS</button>
     </div>
 </div>
 
@@ -89,12 +90,12 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">✕</div>
         <h3 id="infoTitle" style="margin-top:0; text-align:center;"></h3>
-        <textarea id="infoNote" placeholder="Megjegyzés..."></textarea>
+        <textarea id="infoNote" placeholder="Megjegyzés módosítása..."></textarea>
         <div id="imgCont" style="display:none; position:relative;">
             <img id="infoImg" style="width:100%; border-radius:10px; margin-bottom:10px;">
             <button onclick="delImg()" style="position:absolute; top:5px; right:5px; background:red; border:none; color:white; border-radius:50%; width:25px; height:25px;">×</button>
         </div>
-        <button onclick="saveInfo()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:10px;">MENTÉS</button>
+        <button onclick="saveInfo()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:10px;">FRISSÍTÉS</button>
     </div>
 </div>
 
@@ -121,8 +122,8 @@
                 canvas.width = w; canvas.height = h;
                 canvas.getContext('2d').drawImage(img,0,0,w,h);
                 tempPhoto = canvas.toDataURL('image/jpeg', 0.6);
-                const prev = document.getElementById('addPreview');
-                prev.src = tempPhoto; prev.style.display = 'block';
+                document.getElementById('addPreview').src = tempPhoto;
+                document.getElementById('addPreview').style.display = 'block';
             };
             img.src = e.target.result;
         };
@@ -135,10 +136,8 @@
         if(text) {
             listRef.push({ text, note, photo: tempPhoto, status: 'active', order: Date.now() });
             closeModal('addModal');
-            document.getElementById('addInput').value = "";
-            document.getElementById('addNote').value = "";
-            document.getElementById('addPreview').style.display = 'none';
-            tempPhoto = "";
+            document.getElementById('addInput').value = ""; document.getElementById('addNote').value = "";
+            document.getElementById('addPreview').style.display = 'none'; tempPhoto = "";
         }
     }
 
@@ -147,10 +146,9 @@
         const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
         Object.values(conts).forEach(c => c.innerHTML = '');
 
-        const allItems = Object.keys(data).map(id => ({ id, ...data[id] }));
-        allItems.sort((a,b) => (a.order || 0) - (b.order || 0));
+        const items = Object.keys(data).map(id => ({ id, ...data[id] })).sort((a,b) => (a.order || 0) - (b.order || 0));
 
-        allItems.forEach(it => {
+        items.forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
             wrap.innerHTML = `<div class="delete-reveal" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
@@ -221,6 +219,7 @@
 
     function initDrag(el, wrap) {
         const h = el.querySelector('.drag-handle');
+        if(!h) return;
         h.addEventListener('pointerdown', e => {
             const cont = document.getElementById('activeItems');
             el.setPointerCapture(e.pointerId);
