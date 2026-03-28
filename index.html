@@ -15,80 +15,57 @@
             --bg: #f0f0f7; --card: #ffffff; --text: #1c1c1e;
             --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea;
         }
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none !important; 
-            -webkit-user-select: none !important; 
-            box-sizing: border-box; 
-        }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 8px; transition: 0.2s; overflow-x: hidden; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px; }
-        .theme-btn { font-size: 20px; cursor: pointer; border: none; background: none; color: var(--text); }
-        .btn-row { display: flex; gap: 5px; margin-bottom: 10px; }
-        .main-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 12px; color: white; text-transform: uppercase; cursor: pointer; }
+        * { -webkit-tap-highlight-color: transparent; user-select: none !important; -webkit-user-select: none !important; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; transition: 0.2s; }
         
-        /* MODAL */
-        #inputModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000;
-        }
-        .modal-content { 
-            background: var(--card); padding: 15px; border-radius: 12px; width: 90%; max-width: 320px; border: 1px solid #444;
-        }
-        .modal-content input {
-            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #555;
-            background: var(--bg); color: var(--text); font-size: 18px; outline: none; 
-            user-select: text !important; -webkit-user-select: text !important;
-        }
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .theme-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; border: none; background: none; color: var(--text); cursor: pointer; }
+
+        .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
+        .main-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 13px; color: white; text-transform: uppercase; cursor: pointer; }
 
         /* LISTÁK */
-        .list-container { display: flex; flex-direction: column; gap: 6px; min-height: 50px; }
-        
-        /* ALSÓ LISTA KÉT OSZLOPBAN */
-        #doneItems {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
+        .section-title { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; margin: 15px 0 8px 5px; letter-spacing: 1px; }
+        .list-container { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
+
+        /* ALSÓ KÉT OSZLOP */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .column-label { text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; padding: 4px; border-radius: 4px; color: white; }
+        .label-green { background: var(--success); }
+        .label-red { background: var(--danger); }
 
         .item { 
             background: var(--card); padding: 10px; border-radius: 8px; 
             display: flex; align-items: center; gap: 8px; touch-action: none; 
-            border: 1px solid transparent; transition: transform 0.1s;
+            border: 1px solid transparent; 
         }
+        .item.dragging { opacity: 0.7; background: #333; border: 1px dashed var(--primary); transform: scale(1.02); z-index: 100; }
         
-        /* Rendezés közben */
-        .item.dragging { 
-            opacity: 0.8; 
-            background: #333; 
-            border: 1px dashed var(--primary);
-            transform: scale(1.02);
-            z-index: 100;
-        }
+        /* Színkódolt állapotok az alsó oszlopokban */
+        .item.checked { background: var(--success) !important; color: white; border: none; font-size: 13px; padding: 8px; }
+        .item.cancelled { background: var(--danger) !important; color: white; border: none; font-size: 13px; padding: 8px; }
         
-        .item.checked { background: var(--success) !important; color: white; border: none; }
-        .item.cancelled { background: var(--danger) !important; color: white; border: none; }
-        
-        /* Szöveg kezelése */
-        .item-text { flex-grow: 1; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        #doneItems .item-text { font-size: 13px; }
-
+        .item-text { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .actions { display: flex; gap: 4px; }
-        .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
+        .btn-sm { border: none; width: 30px; height: 30px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
         .btn-check { background: #4caf50; }
         .btn-x { background: #f44336; } 
-        .btn-grey { background: var(--grey); color: var(--text); opacity: 0.8; }
-        
-        .summary-title { margin-top: 20px; border-top: 1px solid #444; padding-top: 10px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; width: 100%; padding: 12px; font-size: 12px; border-radius: 8px; font-weight: bold; }
-        #loading { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
+        .btn-grey { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* MODAL */
+        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 1000; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 320px; border: 1px solid #444; }
+        .modal-content input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background: var(--bg); color: var(--text); font-size: 18px; outline: none; user-select: text !important; -webkit-user-select: text !important; }
+
+        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 30px; width: 100%; padding: 12px; font-size: 11px; border-radius: 8px; font-weight: bold; opacity: 0.6; }
     </style>
 </head>
 <body class="dark">
 
+    <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
+
     <div class="header">
-        <h4 style="margin:0">KÖZÖS BOLT PRO</h4>
-        <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
+        <h2 style="margin:0; letter-spacing: 2px;">BEVÁSÁRLÓ LISTA</h2>
     </div>
 
     <div class="btn-row">
@@ -96,19 +73,26 @@
         <button class="main-btn" style="background: var(--grey); color: var(--text);" ontouchstart="quickOpen(event)">⌨️ ÍRÁS</button>
     </div>
 
-    <div id="loading">Csatlakozás...</div>
     <div id="activeItems" class="list-container"></div>
     
-    <div class="summary-title">KÉSZ / NINCS (2 OSZLOP)</div>
-    <div id="doneItems" class="list-container"></div>
+    <div class="bottom-grid">
+        <div>
+            <div class="column-label label-green">TALÁLTAM</div>
+            <div id="doneItems" class="list-container"></div>
+        </div>
+        <div>
+            <div class="column-label label-red">NINCS</div>
+            <div id="missingItems" class="list-container"></div>
+        </div>
+    </div>
     
-    <button class="clear-all" onclick="clearAll()">LISTA TELJES ÜRÍTÉSE</button>
+    <button class="clear-all" onclick="clearAll()">LISTA TÖRLÉSE</button>
 
     <div id="inputModal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
-            <input type="text" id="manualInput" placeholder="Termék..." autocomplete="off">
+            <input type="text" id="manualInput" placeholder="Termék neve..." autocomplete="off">
             <div class="btn-row" style="margin-bottom:0">
-                <button class="main-btn" style="background:#666;" onclick="closeModal()">MÉGSE</button>
+                <button class="main-btn" style="background:#555;" onclick="closeModal()">MÉGSE</button>
                 <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
@@ -132,7 +116,6 @@
 
         listRef.on('value', (snapshot) => {
             const data = snapshot.val();
-            document.getElementById('loading').style.display = 'none';
             shoppingList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             renderAll();
         });
@@ -145,20 +128,11 @@
         function quickOpen(e) {
             if(e) e.preventDefault();
             document.getElementById('inputModal').style.display = 'flex';
-            const input = document.getElementById('manualInput');
-            setTimeout(() => { input.focus(); }, 150);
+            document.getElementById('manualInput').focus();
         }
 
-        function closeModal() {
-            document.getElementById('inputModal').style.display = 'none';
-            document.getElementById('manualInput').value = '';
-        }
-
-        function handleManualAdd() {
-            const val = document.getElementById('manualInput').value.trim();
-            if(val) { addItem(val); closeModal(); }
-        }
-
+        function closeModal() { document.getElementById('inputModal').style.display = 'none'; document.getElementById('manualInput').value = ''; }
+        function handleManualAdd() { const val = document.getElementById('manualInput').value.trim(); if(val) { addItem(val); closeModal(); } }
         document.getElementById('manualInput').onkeypress = (e) => { if (e.key === "Enter") handleManualAdd(); };
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -182,28 +156,28 @@
             document.getElementById('micBtn').style.background = "var(--primary)";
         }
 
-        function addItem(text) {
-            listRef.push({ text: text, status: 'active', order: 999, time: Date.now() });
-        }
-
-        function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus }); }
+        function addItem(text) { listRef.push({ text: text, status: 'active', order: 999, time: Date.now() }); }
+        function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus, time: Date.now() }); }
         function deleteItem(id) { listRef.child(id).remove(); }
 
         function renderAll() {
             const act = document.getElementById('activeItems');
             const don = document.getElementById('doneItems');
-            act.innerHTML = ''; don.innerHTML = '';
+            const mis = document.getElementById('missingItems');
+            act.innerHTML = ''; don.innerHTML = ''; mis.innerHTML = '';
 
             const activeItems = shoppingList.filter(i => i.status === 'active').sort((a, b) => a.order - b.order);
-            const doneItems = shoppingList.filter(i => i.status !== 'active').sort((a,b) => b.time - a.time);
+            const doneItems = shoppingList.filter(i => i.status === 'done').sort((a,b) => b.time - a.time);
+            const missingItems = shoppingList.filter(i => i.status === 'x').sort((a,b) => b.time - a.time);
 
             activeItems.forEach(item => act.appendChild(createItemEl(item, true)));
             doneItems.forEach(item => don.appendChild(createItemEl(item, false)));
+            missingItems.forEach(item => mis.appendChild(createItemEl(item, false)));
         }
 
         function createItemEl(item, isActive) {
             const div = document.createElement('div');
-            div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
+            div.className = `item ${item.status === 'done' ? 'checked' : (item.status === 'x' ? 'cancelled' : '')}`;
             div.dataset.id = item.id;
             
             div.innerHTML = `
@@ -220,15 +194,13 @@
             `;
 
             if(isActive) {
-                // HOSSZÚ NYOMÁS ÉS REZGÉS LOGIKA
                 div.ontouchstart = (e) => {
                     if(e.target.tagName === 'BUTTON') return;
                     dragTimer = setTimeout(() => {
-                        if (window.navigator.vibrate) window.navigator.vibrate(40); // Rövid rezgés
+                        if (window.navigator.vibrate) window.navigator.vibrate(40);
                         div.classList.add('dragging');
-                    }, 500); // 0.5 másodperc után válik húzhatóvá
+                    }, 500);
                 };
-
                 div.ontouchend = () => {
                     clearTimeout(dragTimer);
                     if(div.classList.contains('dragging')) {
@@ -240,12 +212,8 @@
                         listRef.update(updates);
                     }
                 };
-
                 div.ontouchmove = (e) => {
-                    if(!div.classList.contains('dragging')) {
-                        clearTimeout(dragTimer);
-                        return;
-                    }
+                    if(!div.classList.contains('dragging')) { clearTimeout(dragTimer); return; }
                     e.preventDefault();
                     const container = document.getElementById('activeItems');
                     const afterElement = getDragAfterElement(container, e.touches[0].clientY);
@@ -266,7 +234,7 @@
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
-        function clearAll() { if(confirm("Törlöd a teljes listát?")) listRef.remove(); }
+        function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
     </script>
 </body>
 </html>
