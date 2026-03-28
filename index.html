@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.3.4</title>
+    <title>Lista Pro v0.3.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -36,7 +36,7 @@
 
 <div class="app-card">
     <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.3.4</div>
+        <div style="font-size:10px; color:#444;">v0.3.5</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -73,10 +73,8 @@
         <button class="close-x" onclick="closeModal('inputModal')">✕</button>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        
-        <div id="inputImgBtn" class="upload-placeholder" onclick="document.getElementById('manualFile').click()">📷 Kép hozzáadása</div>
-        <input type="file" id="manualFile" hidden accept="image/*" onchange="handleManualFile(this)">
-        
+        <div id="inputImgBtn" class="upload-placeholder" onclick="document.getElementById('manualFile').click()">📷 Kép kiválasztása</div>
+        <input type="file" id="manualFile" hidden accept="image/*">
         <button class="action-btn" id="addBtn" onclick="addItem()">HOZZÁADÁS</button>
     </div>
 </div>
@@ -99,28 +97,75 @@
     const listRef = db.ref('shoppingList');
 
     let currentId = null;
-    let manualImgUrl = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // --- MANUÁLIS BEVITEL KÉP KEZELÉSE ---
-    async function handleManualFile(input) {
+    // --- MANUÁLIS HOZZÁADÁS ---
+    async function addItem() {
+        const title = document.getElementById('manualInput').value.trim();
+        const note = document.getElementById('manualNote').value.trim();
+        const fileInput = document.getElementById('manualFile');
+        const addBtn = document.getElementById('addBtn');
+        
+        if (!title) return;
+
+        addBtn.disabled = true;
+        addBtn.innerText = "Feltöltés...";
+
+        let imgUrl = "";
+        
+        if (fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
+            try {
+                const snap = await sRef.put(file);
+                imgUrl = await snap.ref.getDownloadURL();
+            } catch (err) {
+                console.error("Feltöltési hiba:", err);
+                alert("Hiba a kép feltöltésekor!");
+            }
+        }
+
+        listRef.push({
+            text: title,
+            note: note,
+            img: imgUrl,
+            status: 'active',
+            order: Date.now()
+        });
+
+        // Reset
+        addBtn.disabled = false;
+        addBtn.innerText = "HOZZÁADÁS";
+        document.getElementById('manualInput').value = "";
+        document.getElementById('manualNote').value = "";
+        fileInput.value = "";
+        document.getElementById('inputImgBtn').innerText = "📷 Kép kiválasztása";
+        closeModal('inputModal');
+    }
+
+    // --- UTÓLAGOS FELTÖLTÉS (Részletekben) ---
+    async function uploadExtra(input) {
         const file = input.files[0];
-        if(!file) return;
-        const btn = document.getElementById('inputImgBtn');
-        btn.innerText = "⏳ Feltöltés...";
-        const ref = storage.ref('photos/' + Date.now() + "_" + file.name);
+        if(!file || !currentId) return;
+        
+        const placeholder = input.previousElementSibling;
+        placeholder.innerText = "⌛ Töltés...";
+        
+        const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
         try {
-            await ref.put(file);
-            manualImgUrl = await ref.getDownloadURL();
-            btn.innerText = "✅ Kép OK";
-        } catch(e) {
-            btn.innerText = "❌ Hiba a feltöltésben";
+            const snap = await sRef.put(file);
+            const url = await snap.ref.getDownloadURL();
+            await listRef.child(currentId).update({ img: url });
+            closeModal('detailsModal');
+        } catch (err) {
+            placeholder.innerText = "❌ Hiba";
+            console.error(err);
         }
     }
 
-    // --- RÉSZLETEK ÉS UTÓLAGOS KÉP ---
+    // --- MEGJELENÍTÉS ---
     function openDetails(id, text, note, img) {
         currentId = id;
         document.getElementById('detTitle').innerText = text;
@@ -150,16 +195,6 @@
         document.getElementById('detEditView').style.display = 'none';
         noteView.style.display = 'block';
         openModal('detailsModal');
-    }
-
-    async function uploadExtra(input) {
-        const file = input.files[0];
-        if(!file) return;
-        const ref = storage.ref('photos/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        await listRef.child(currentId).update({ img: url });
-        closeModal('detailsModal');
     }
 
     function showFullImage(src) {
@@ -198,7 +233,7 @@
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div style="position:absolute;right:0;top:0;bottom:0;width:75px;background:var(--danger);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;" onclick="firebase.database().ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
+            wrap.innerHTML = `<div style="position:absolute;right:0;top:0;bottom:0;width:75px;background:var(--danger);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
             const div = document.createElement('div');
             div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             const hasC = (it.note && it.note.trim() !== "") || (it.img && it.img !== "");
@@ -221,18 +256,9 @@
         render(data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []);
     });
 
-    function addItem() {
-        const t = document.getElementById('manualInput').value.trim();
-        const n = document.getElementById('manualNote').value.trim();
-        if(t) { 
-            listRef.push({ text: t, note: n, img: manualImgUrl, status: 'active', order: Date.now() }); 
-            closeModal('inputModal');
-            document.getElementById('manualInput').value=""; 
-            document.getElementById('manualNote').value="";
-            document.getElementById('inputImgBtn').innerText = "📷 Kép hozzáadása";
-            manualImgUrl = "";
-        }
-    }
+    document.getElementById('manualFile').onchange = (e) => {
+        if(e.target.files[0]) document.getElementById('inputImgBtn').innerText = "✅ Kép kiválasztva";
+    };
 
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 </script>
