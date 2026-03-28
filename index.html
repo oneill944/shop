@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.1.1</title>
+    <title>Lista Pro v0.1.2</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -33,6 +33,7 @@
         #missingItems .item { background: var(--danger) !important; color: white; }
 
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
+        .has-note { background: var(--yellow) !important; color: #000 !important; }
         
         .col-header { display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 8px; }
         .column-label { font-size: 10px; font-weight: bold; color: #777; letter-spacing: 1px; }
@@ -41,7 +42,7 @@
         .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; }
         .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 2100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; resize: none; }
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
     </style>
 </head>
@@ -49,7 +50,7 @@
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="version">v0.1.1</div>
+        <div class="version">v0.1.2</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
             <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
@@ -84,7 +85,17 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('inputModal')">✕</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
+        <textarea id="manualNote" placeholder="Megjegyzés (opcionális)..." rows="3"></textarea>
         <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MEHET</button>
+    </div>
+</div>
+
+<div id="noteModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="close-x" onclick="closeModal('noteModal')">✕</div>
+        <h3 id="noteItemTitle" style="margin-top:0; font-size:16px;"> Megjegyzés</h3>
+        <textarea id="editNoteText" rows="4"></textarea>
+        <button onclick="saveNote()" style="width:100%; padding:12px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MENTÉS</button>
     </div>
 </div>
 
@@ -94,12 +105,35 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
 
+    let currentEditId = null;
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
-        if(t) { listRef.push({ text: t, status: 'active', order: Date.now() }); closeModal('inputModal'); document.getElementById('manualInput').value=""; }
+        const n = document.getElementById('manualNote').value.trim();
+        if(t) { 
+            listRef.push({ text: t, note: n, status: 'active', order: Date.now() }); 
+            closeModal('inputModal'); 
+            document.getElementById('manualInput').value=""; 
+            document.getElementById('manualNote').value=""; 
+        }
+    }
+
+    function openNote(id, text, note) {
+        currentEditId = id;
+        document.getElementById('noteItemTitle').innerText = text;
+        document.getElementById('editNoteText').value = note || "";
+        openModal('noteModal');
+    }
+
+    function saveNote() {
+        if(currentEditId) {
+            const newNote = document.getElementById('editNoteText').value.trim();
+            listRef.child(currentEditId).update({ note: newNote });
+            closeModal('noteModal');
+        }
     }
 
     function askNotif() {
@@ -126,9 +160,11 @@
             div.dataset.id = it.id;
             
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
+            const noteClass = it.note ? 'has-note' : '';
             
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
+                    <button class="btn-sm ${noteClass}" onclick="openNote('${it.id}', '${it.text}', '${it.note || ''}')">ℹ️</button>
                     ${it.status === 'active' ? 
                     `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                      <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
