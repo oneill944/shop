@@ -24,18 +24,12 @@
         .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
         .main-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 13px; color: white; text-transform: uppercase; cursor: pointer; }
 
-        /* LISTÁK */
         .list-container { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
 
-        /* ALSÓ KÉT OSZLOP */
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .column-label { text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; padding: 10px; border-radius: 8px; color: var(--text); background: var(--grey); }
 
-        .item { 
-            background: var(--card); padding: 10px; border-radius: 8px; 
-            display: flex; align-items: center; gap: 8px; touch-action: none; 
-            border: 1px solid transparent; 
-        }
+        .item { background: var(--card); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; touch-action: none; border: 1px solid transparent; }
         .item.dragging { opacity: 0.7; background: #333; border: 1px dashed var(--primary); transform: scale(1.02); z-index: 100; }
         
         .item.checked { background: var(--success) !important; color: white; border: none; font-size: 13px; padding: 8px; }
@@ -44,13 +38,11 @@
         .item-text { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .actions { display: flex; gap: 4px; }
         
-        /* GOMBOK EGYSÉGESÍTÉSE */
-        .btn-sm { border: none; width: 30px; height: 30px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.15); }
-        .btn-check { color: #4caf50; } /* Csak a pipa zöld */
-        .btn-x { color: #f44336; }     /* Csak az X piros */
-        .item.checked .btn-sm, .item.cancelled .btn-sm { background: rgba(0,0,0,0.2); color: white; }
+        .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.15); }
+        .btn-check-full { background: #4caf50 !important; color: white; }
+        .btn-x-full { background: #f44336 !important; color: white; }
+        .btn-grey { background: rgba(255,255,255,0.1); color: var(--text); }
 
-        /* MODAL */
         #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 1000; }
         .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 320px; border: 1px solid #444; }
         .modal-content input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background: var(--bg); color: var(--text); font-size: 18px; outline: none; user-select: text !important; -webkit-user-select: text !important; }
@@ -68,7 +60,7 @@
 
     <div class="btn-row">
         <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 HANG</button>
-        <button class="main-btn" style="background: var(--grey); color: var(--text);" ontouchstart="quickOpen(event)">⌨️ ÍRÁS</button>
+        <button id="writeBtn" class="main-btn" style="background: var(--grey); color: var(--text);">⌨️ ÍRÁS</button>
     </div>
 
     <div id="activeItems" class="list-container"></div>
@@ -123,11 +115,14 @@
             document.getElementById('tBtn').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
         }
 
-        function quickOpen(e) {
-            if(e) e.preventDefault();
+        // ÍRÁS GOMB JAVÍTVA
+        document.getElementById('writeBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
             document.getElementById('inputModal').style.display = 'flex';
-            setTimeout(() => { document.getElementById('manualInput').focus(); }, 150);
-        }
+            const input = document.getElementById('manualInput');
+            input.focus();
+            input.setSelectionRange(0, 0); 
+        });
 
         function closeModal() { document.getElementById('inputModal').style.display = 'none'; document.getElementById('manualInput').value = ''; }
         function handleManualAdd() { const val = document.getElementById('manualInput').value.trim(); if(val) { addItem(val); closeModal(); } }
@@ -182,8 +177,8 @@
                 <span class="item-text">${item.text}</span>
                 <div class="actions">
                     ${item.status === 'active' ? `
-                        <button class="btn-sm btn-check" onclick="updateStatus('${item.id}', 'done')">✔</button>
-                        <button class="btn-sm btn-x" onclick="updateStatus('${item.id}', 'x')">✖</button>
+                        <button class="btn-sm btn-check-full" onclick="updateStatus('${item.id}', 'done')">✔</button>
+                        <button class="btn-sm btn-x-full" onclick="updateStatus('${item.id}', 'x')">✖</button>
                         <button class="btn-sm" onclick="deleteItem('${item.id}')">🗑</button>
                     ` : `
                         <button class="btn-sm" onclick="updateStatus('${item.id}', 'active')">↩</button>
@@ -193,14 +188,18 @@
             `;
 
             if(isActive) {
-                div.ontouchstart = (e) => {
+                div.addEventListener('touchstart', (e) => {
                     if(e.target.tagName === 'BUTTON') return;
                     dragTimer = setTimeout(() => {
-                        if (window.navigator.vibrate) window.navigator.vibrate(40);
+                        // REZGÉS TRÜKK
+                        if ("vibrate" in navigator) {
+                            navigator.vibrate(60);
+                        }
                         div.classList.add('dragging');
                     }, 500);
-                };
-                div.ontouchend = () => {
+                }, {passive: true});
+
+                div.addEventListener('touchend', () => {
                     clearTimeout(dragTimer);
                     if(div.classList.contains('dragging')) {
                         div.classList.remove('dragging');
@@ -210,15 +209,16 @@
                         });
                         listRef.update(updates);
                     }
-                };
-                div.ontouchmove = (e) => {
+                });
+
+                div.addEventListener('touchmove', (e) => {
                     if(!div.classList.contains('dragging')) { clearTimeout(dragTimer); return; }
                     e.preventDefault();
                     const container = document.getElementById('activeItems');
                     const afterElement = getDragAfterElement(container, e.touches[0].clientY);
                     if (afterElement == null) container.appendChild(div);
                     else container.insertBefore(div, afterElement);
-                };
+                }, {passive: false});
             }
             return div;
         }
