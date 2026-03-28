@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Közös Bolt Pro</title>
+    <title>Bevásárló Lista v1.2</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -16,9 +16,12 @@
             --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea;
         }
         * { -webkit-tap-highlight-color: transparent; user-select: none !important; -webkit-user-select: none !important; box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; transition: 0.2s; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; transition: 0.2s; position: relative; }
         
-        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        /* Verziószám */
+        .version { position: absolute; top: 5px; left: 10px; font-size: 10px; color: #555; font-weight: bold; }
+
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; padding-top: 15px; }
         .theme-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; border: none; background: none; color: var(--text); cursor: pointer; }
 
         .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
@@ -41,21 +44,24 @@
         .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.15); }
         .btn-check-full { background: #4caf50 !important; color: white; }
         .btn-x-full { background: #f44336 !important; color: white; }
-        .btn-grey { background: rgba(255,255,255,0.1); color: var(--text); }
 
         #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 1000; }
         .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 320px; border: 1px solid #444; }
         .modal-content input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background: var(--bg); color: var(--text); font-size: 18px; outline: none; user-select: text !important; -webkit-user-select: text !important; }
 
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 30px; width: 100%; padding: 12px; font-size: 11px; border-radius: 8px; font-weight: bold; opacity: 0.6; }
+        
+        #notifBtn { font-size: 10px; background: #444; color: #aaa; border: none; padding: 5px 10px; border-radius: 20px; margin-bottom: 10px; cursor: pointer; }
     </style>
 </head>
 <body class="dark">
 
+    <div class="version">v1.2</div>
     <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
 
     <div class="header">
         <h2 style="margin:0; letter-spacing: 2px;">BEVÁSÁRLÓ LISTA</h2>
+        <button id="notifBtn" onclick="requestNotificationPermission()">🔔 Értesítések aktiválása</button>
     </div>
 
     <div class="btn-row">
@@ -100,13 +106,44 @@
         const listRef = db.ref('shoppingList');
 
         let shoppingList = [];
-        let isRecording = false;
+        let isFirstLoad = true;
         let recognition;
         let dragTimer;
 
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+        function requestNotificationPermission() {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    document.getElementById('notifBtn').innerText = "✅ Értesítések aktívak";
+                    document.getElementById('notifBtn').style.background = "#2e7d32";
+                    // Egy rövid hang lejátszása, hogy a böngésző engedélyezze a későbbi hangokat
+                    audio.play().catch(() => {});
+                }
+            });
+        }
+
         listRef.on('value', (snapshot) => {
             const data = snapshot.val();
-            shoppingList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            const newList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            
+            // ÉRTESÍTÉSI LOGIKA JAVÍTVA
+            if (!isFirstLoad && newList.length > shoppingList.length) {
+                const newestItem = newList[newList.length - 1];
+                if (newestItem.status === 'active') {
+                    // Rezgés és hang mindenképp
+                    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                    audio.play().catch(e => console.log("Hangi engedély hiányzik"));
+
+                    // Megpróbáljuk az értesítést is
+                    if (Notification.permission === "granted") {
+                        new Notification("Új termék a listán!", { body: newestItem.text });
+                    }
+                }
+            }
+            
+            shoppingList = newList;
+            isFirstLoad = false;
             renderAll();
         });
 
@@ -115,13 +152,10 @@
             document.getElementById('tBtn').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
         }
 
-        // ÍRÁS GOMB JAVÍTVA
         document.getElementById('writeBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             document.getElementById('inputModal').style.display = 'flex';
-            const input = document.getElementById('manualInput');
-            input.focus();
-            input.setSelectionRange(0, 0); 
+            setTimeout(() => { document.getElementById('manualInput').focus(); }, 150);
         });
 
         function closeModal() { document.getElementById('inputModal').style.display = 'none'; document.getElementById('manualInput').value = ''; }
@@ -132,22 +166,18 @@
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
-            recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopRecording(); };
+            recognition.onresult = (e) => { addItem(e.results[0][0].transcript); if(recognition) recognition.stop(); };
         }
 
         document.getElementById('micBtn').onclick = () => {
-            if (!isRecording) {
-                isRecording = true; recognition.start();
-                document.getElementById('micBtn').innerText = "🛑 STOP";
-                document.getElementById('micBtn').style.background = "#ff3b30";
-            } else { stopRecording(); }
+             recognition.start();
+             document.getElementById('micBtn').innerText = "🛑 FIGYELEK...";
+             document.getElementById('micBtn').style.background = "#ff3b30";
+             setTimeout(() => {
+                document.getElementById('micBtn').innerText = "🎤 HANG";
+                document.getElementById('micBtn').style.background = "var(--primary)";
+             }, 3000);
         };
-
-        function stopRecording() {
-            isRecording = false; if(recognition) recognition.stop();
-            document.getElementById('micBtn').innerText = "🎤 HANG";
-            document.getElementById('micBtn').style.background = "var(--primary)";
-        }
 
         function addItem(text) { listRef.push({ text: text, status: 'active', order: 999, time: Date.now() }); }
         function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus, time: Date.now() }); }
@@ -191,10 +221,7 @@
                 div.addEventListener('touchstart', (e) => {
                     if(e.target.tagName === 'BUTTON') return;
                     dragTimer = setTimeout(() => {
-                        // REZGÉS TRÜKK
-                        if ("vibrate" in navigator) {
-                            navigator.vibrate(60);
-                        }
+                        if ("vibrate" in navigator) navigator.vibrate(60);
                         div.classList.add('dragging');
                     }, 500);
                 }, {passive: true});
