@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.3.3</title>
+    <title>Lista Pro v0.3.4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -24,18 +24,19 @@
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 40px 20px 20px; position: relative; border: 1px solid var(--border); }
         .close-x { position: absolute; top: 5px; right: 10px; background: none; color: var(--text); font-size: 22px; cursor: pointer; border: none; padding: 8px; line-height: 1; opacity: 0.7; }
-        .img-preview { width: 100%; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid var(--border); }
+        .img-preview { width: 100%; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid var(--border); display: block; }
         .full-screen-img { display: none; position: fixed; inset: 0; background: #000; z-index: 3000; justify-content: center; align-items: center; }
         .full-screen-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .upload-placeholder { border: 1px dashed #555; padding: 12px; text-align: center; border-radius: 10px; color: #888; cursor: pointer; margin-bottom: 10px; font-size: 13px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.3.3</div>
+        <div style="font-size:10px; color:#444;">v0.3.4</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -72,7 +73,11 @@
         <button class="close-x" onclick="closeModal('inputModal')">✕</button>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
+        
+        <div id="inputImgBtn" class="upload-placeholder" onclick="document.getElementById('manualFile').click()">📷 Kép hozzáadása</div>
+        <input type="file" id="manualFile" hidden accept="image/*" onchange="handleManualFile(this)">
+        
+        <button class="action-btn" id="addBtn" onclick="addItem()">HOZZÁADÁS</button>
     </div>
 </div>
 
@@ -94,28 +99,44 @@
     const listRef = db.ref('shoppingList');
 
     let currentId = null;
+    let manualImgUrl = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    // --- MANUÁLIS BEVITEL KÉP KEZELÉSE ---
+    async function handleManualFile(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const btn = document.getElementById('inputImgBtn');
+        btn.innerText = "⏳ Feltöltés...";
+        const ref = storage.ref('photos/' + Date.now() + "_" + file.name);
+        try {
+            await ref.put(file);
+            manualImgUrl = await ref.getDownloadURL();
+            btn.innerText = "✅ Kép OK";
+        } catch(e) {
+            btn.innerText = "❌ Hiba a feltöltésben";
+        }
+    }
+
+    // --- RÉSZLETEK ÉS UTÓLAGOS KÉP ---
     function openDetails(id, text, note, img) {
         currentId = id;
         document.getElementById('detTitle').innerText = text;
         const imgCont = document.getElementById('detImgContainer');
         const noteView = document.getElementById('detNoteView');
         
-        // Kép kezelése
         if(img && img !== "") {
             imgCont.innerHTML = `<img src="${img}" class="img-preview" onclick="showFullImage('${img}')">
                                  <button style="width:100%; margin-bottom:10px; background:none; border:1px solid #555; color:#888; padding:5px; border-radius:5px;" onclick="deleteImage()">Kép törlése</button>`;
         } else {
-            imgCont.innerHTML = `<button onclick="triggerUpload()" style="width:100%; padding:15px; border:1px dashed #555; background:none; color:#888; border-radius:10px; margin-bottom:15px; cursor:pointer;">📷 Kép hozzáadása utólag</button>
+            imgCont.innerHTML = `<div onclick="document.getElementById('extraFile').click()" class="upload-placeholder">📷 Kép hozzáadása utólag</div>
                                  <input type="file" id="extraFile" hidden accept="image/*" onchange="uploadExtra(this)">`;
         }
 
-        // Megjegyzés kezelése
         if(note && note.trim() !== "") {
-            noteView.innerHTML = `<div style="padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center; position:relative;">
+            noteView.innerHTML = `<div style="padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center;">
                                     ${note}
                                     <div style="margin-top:10px; border-top:1px solid #333; padding-top:10px; display:flex; justify-content:center; gap:20px;">
                                         <span onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)" style="cursor:pointer;">✏️</span>
@@ -131,13 +152,6 @@
         openModal('detailsModal');
     }
 
-    function showFullImage(src) {
-        document.getElementById('fullImgTag').src = src;
-        document.getElementById('fullImgModal').style.display = 'flex';
-    }
-
-    function triggerUpload() { document.getElementById('extraFile').click(); }
-
     async function uploadExtra(input) {
         const file = input.files[0];
         if(!file) return;
@@ -146,6 +160,11 @@
         const url = await ref.getDownloadURL();
         await listRef.child(currentId).update({ img: url });
         closeModal('detailsModal');
+    }
+
+    function showFullImage(src) {
+        document.getElementById('fullImgTag').src = src;
+        document.getElementById('fullImgModal').style.display = 'flex';
     }
 
     async function deleteImage() {
@@ -206,9 +225,12 @@
         const t = document.getElementById('manualInput').value.trim();
         const n = document.getElementById('manualNote').value.trim();
         if(t) { 
-            listRef.push({ text: t, note: n, img: "", status: 'active', order: Date.now() }); 
+            listRef.push({ text: t, note: n, img: manualImgUrl, status: 'active', order: Date.now() }); 
             closeModal('inputModal');
-            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
+            document.getElementById('manualInput').value=""; 
+            document.getElementById('manualNote').value="";
+            document.getElementById('inputImgBtn').innerText = "📷 Kép hozzáadása";
+            manualImgUrl = "";
         }
     }
 
