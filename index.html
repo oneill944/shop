@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.1.3</title>
+    <title>Lista Pro v0.1.4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -24,7 +24,7 @@
         #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; }
 
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
         
         .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
         .drag-handle { cursor: grab; color: #555; font-size: 18px; padding-right: 5px; }
@@ -34,9 +34,6 @@
 
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
         .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
-        
-        .note-box { background: var(--yellow); color: #000; margin: -5px 5px 5px; padding: 8px 12px; border-radius: 0 0 10px 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; font-weight: 500; }
-        .note-actions { display: flex; gap: 10px; font-size: 16px; }
 
         .col-header { display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 8px; }
         .column-label { font-size: 10px; font-weight: bold; color: #777; letter-spacing: 1px; }
@@ -47,13 +44,16 @@
 
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; resize: none; }
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
+        
+        .note-menu-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .note-display { background: rgba(255,255,0,0.1); border: 1px solid var(--yellow); padding: 10px; border-radius: 10px; color: var(--text); font-size: 14px; min-height: 40px; margin-bottom: 10px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="version">v0.1.3</div>
+        <div class="version">v0.1.4</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
             <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
@@ -93,12 +93,21 @@
     </div>
 </div>
 
-<div id="noteEditModal" class="custom-modal">
+<div id="noteMenuModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('noteEditModal')">✕</div>
-        <h3 id="noteEditTitle" style="margin-top:0; font-size:16px; color:var(--text);">Megjegyzés szerkesztése</h3>
-        <textarea id="editNoteText" rows="4" placeholder="Írd ide a megjegyzést..."></textarea>
-        <button onclick="saveNote()" style="width:100%; padding:12px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MENTÉS</button>
+        <div class="close-x" onclick="closeModal('noteMenuModal')">✕</div>
+        <h3 id="noteMenuTitle" style="margin-top:0; font-size:16px;">Megjegyzés</h3>
+        <div id="noteContentArea">
+            <div id="noteTextDisplay" class="note-display"></div>
+            <div class="note-menu-actions">
+                <button onclick="switchToEdit()" style="flex:1; padding:10px; background:var(--grey); border:none; color:white; border-radius:8px;">✏️ Szerkesztés</button>
+                <button onclick="deleteNoteDirect()" style="flex:1; padding:10px; background:var(--danger); border:none; color:white; border-radius:8px;">🗑️ Törlés</button>
+            </div>
+        </div>
+        <div id="noteEditArea" style="display:none;">
+            <textarea id="editNoteInput" rows="4"></textarea>
+            <button onclick="saveNote()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:8px; font-weight:bold;">MENTÉS</button>
+        </div>
     </div>
 </div>
 
@@ -108,10 +117,16 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
 
-    let currentEditId = null;
+    let currentId = null;
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function closeModal(id) { 
+        document.getElementById(id).style.display = 'none';
+        if(id === 'noteMenuModal') {
+            document.getElementById('noteContentArea').style.display = 'block';
+            document.getElementById('noteEditArea').style.display = 'none';
+        }
+    }
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
@@ -119,28 +134,41 @@
         if(t) { 
             listRef.push({ text: t, note: n, status: 'active', order: Date.now() }); 
             closeModal('inputModal'); 
-            document.getElementById('manualInput').value=""; 
-            document.getElementById('manualNote').value=""; 
+            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value=""; 
         }
     }
 
-    function editNote(id, currentNote) {
-        currentEditId = id;
-        document.getElementById('editNoteText').value = currentNote || "";
-        openModal('noteEditModal');
+    function openNoteMenu(id, text, note) {
+        currentId = id;
+        document.getElementById('noteMenuTitle').innerText = text;
+        const display = document.getElementById('noteTextDisplay');
+        
+        if(note && note.trim() !== "") {
+            display.innerText = note;
+            document.getElementById('noteContentArea').style.display = 'block';
+            document.getElementById('noteEditArea').style.display = 'none';
+        } else {
+            switchToEdit(); // Ha üres, rögtön a szerkesztőt dobja
+        }
+        openModal('noteMenuModal');
+    }
+
+    function switchToEdit() {
+        document.getElementById('noteContentArea').style.display = 'none';
+        document.getElementById('noteEditArea').style.display = 'block';
+        document.getElementById('editNoteInput').value = document.getElementById('noteTextDisplay').innerText || "";
     }
 
     function saveNote() {
-        if(currentEditId) {
-            const newNote = document.getElementById('editNoteText').value.trim();
-            listRef.child(currentEditId).update({ note: newNote });
-            closeModal('noteEditModal');
-        }
+        const val = document.getElementById('editNoteInput').value.trim();
+        listRef.child(currentId).update({ note: val });
+        closeModal('noteMenuModal');
     }
 
-    function deleteNote(id) {
+    function deleteNoteDirect() {
         if(confirm("Törlöd a megjegyzést?")) {
-            listRef.child(id).update({ note: "" });
+            listRef.child(currentId).update({ note: "" });
+            closeModal('noteMenuModal');
         }
     }
 
@@ -168,12 +196,11 @@
             div.dataset.id = it.id;
             
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
-            const hasNote = it.note && it.note.trim() !== "";
-            const noteBtnClass = hasNote ? 'has-note-btn' : '';
+            const noteBtnClass = (it.note && it.note.trim() !== "") ? 'has-note-btn' : '';
             
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${noteBtnClass}" onclick="editNote('${it.id}', '${it.note || ''}')">ℹ️</button>
+                    <button class="btn-sm ${noteBtnClass}" onclick="openNoteMenu('${it.id}', '${it.text}', '${it.note || ''}')">ℹ️</button>
                     ${it.status === 'active' ? 
                     `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                      <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
@@ -182,23 +209,7 @@
             
             if(it.status === 'active') initSortable(div, wrap);
             initSwipe(div);
-
             wrap.appendChild(div);
-
-            // Ha van megjegyzés, hozzáadjuk a sárga dobozt
-            if(hasNote) {
-                const noteBox = document.createElement('div');
-                noteBox.className = 'note-box';
-                noteBox.innerHTML = `
-                    <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.note}</span>
-                    <div class="note-actions">
-                        <span onclick="editNote('${it.id}', '${it.note}')" style="cursor:pointer;">✏️</span>
-                        <span onclick="deleteNote('${it.id}')" style="cursor:pointer;">🗑️</span>
-                    </div>
-                `;
-                wrap.appendChild(noteBox);
-            }
-
             if(containers[it.status]) containers[it.status].appendChild(wrap);
         });
     }
