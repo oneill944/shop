@@ -14,26 +14,34 @@
         input, textarea { user-select: text; -webkit-user-select: text; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; }
         
-        .app-card { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 15px; padding: 15px; position: relative; align-self: flex-start; }
-        .header { text-align: center; border-bottom: 1px solid #333; padding: 10px 0; margin-bottom: 10px; }
+        .app-card { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 15px; padding: 15px; position: relative; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .version { position: absolute; top: 8px; left: 15px; font-size: 9px; color: #555; }
+        .theme-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; border: none; background: none; cursor: pointer; color: var(--text); }
         
+        .header { text-align: center; border-bottom: 1px solid #333; padding: 15px 0 10px; margin-bottom: 10px; }
+        #notifBtn { font-size: 9px; background: #222; color: #777; border: none; padding: 4px 10px; border-radius: 20px; cursor: pointer; margin-top: 5px; }
+        #notifBtn.active { background: var(--success); color: white; }
+
         .list-container { display: flex; flex-direction: column; gap: 8px; }
         .item-wrapper { position: relative; overflow: hidden; border-radius: 8px; }
         .item { background: var(--item-bg); padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 55px; position: relative; z-index: 2; transition: transform 0.2s; }
         
+        /* SZÍNES ALSÓ SOROK */
+        #doneItems .item { background: var(--success) !important; color: white; }
+        #missingItems .item { background: var(--danger) !important; color: white; }
+
         .actions { display: flex; gap: 5px; }
         .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.1); font-size: 16px; }
-        
-        /* CITROMSÁRGA HÁTTÉR HA VAN ADAT */
-        .has-data { background: var(--yellow) !important; color: #000 !important; font-weight: bold; }
+        .has-data { background: var(--yellow) !important; color: #000 !important; }
         
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
         .modal-content { background: var(--item-bg); padding: 35px 20px 20px; border-radius: 15px; width: 100%; max-width: 320px; position: relative; border: 1px solid #444; }
         .close-x { position: absolute; top: 8px; right: 12px; font-size: 28px; color: #888; cursor: pointer; }
 
-        .cam-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; display: none; border: 1px dashed #555; }
-        .full-img { width: 100%; border-radius: 10px; box-shadow: 0 0 20px rgba(255,255,0,0.2); }
-
+        .info-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; border-left: 4px solid var(--yellow); margin-bottom: 10px; position: relative; }
+        .img-container { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; position: relative; }
+        .img-container img { width: 100%; display: block; }
+        
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .column-label { text-align: center; font-size: 10px; font-weight: bold; padding: 5px; background: var(--grey); border-radius: 5px; margin-bottom: 5px; }
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; }
@@ -42,9 +50,13 @@
 <body class="dark">
 
 <div class="app-card">
+    <div class="version">v2.9</div>
+    <button class="theme-btn" onclick="toggleTheme()">☀️</button>
     <div class="header">
         <h2 style="margin:0; font-size: 18px;">BEVÁSÁRLÓ LISTA</h2>
+        <button id="notifBtn" onclick="toggleNotifications()">🔔 Értesítések: KI</button>
     </div>
+
     <div style="display:flex; gap:8px; margin-bottom:15px;">
         <button id="micBtn" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
         <button id="writeBtn" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--grey); color:var(--text); font-weight:bold;">⌨️ ÍRÁS</button>
@@ -61,32 +73,40 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; background:#000; color:#fff; border:1px solid #444;">
-        <input type="text" id="noteInput" placeholder="Megjegyzés..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; background:#000; color:#fff; border:1px solid #444;">
-        
-        <label for="camInput" style="display:flex; align-items:center; justify-content:center; gap:10px; padding:10px; background:#333; border-radius:8px; cursor:pointer; margin-bottom:10px;">
-            📷 Fotó hozzáadása
-            <input type="file" id="camInput" accept="image/*" capture="environment" style="display:none" onchange="previewImage(this)">
-        </label>
-        <img id="imgPreview" class="cam-preview">
-        
+        <input type="text" id="noteInput" placeholder="Megjegyzés (opcionális)..." style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; background:#000; color:#fff; border:1px solid #444;">
         <button onclick="handleAddItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">HOZZÁADÁS</button>
     </div>
 </div>
 
-<div id="imgModal" class="custom-modal">
-    <div class="modal-content" style="padding:40px 10px 10px;">
-        <div class="close-x" onclick="closeModal('imgModal')">×</div>
-        <img id="fullImg" class="full-img">
-    </div>
-</div>
-
-<div id="noteModal" class="custom-modal">
+<div id="infoModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('noteModal')">×</div>
-        <h3 id="noteTitle" style="margin-top:0"></h3>
-        <div id="noteBox" style="background:#000; padding:15px; border-radius:10px; border-left:4px solid var(--yellow); margin-bottom:10px;"></div>
-        <textarea id="noteTextarea" style="width:100%; display:none; padding:10px; background:#000; color:#fff; border-radius:8px;"></textarea>
-        <button id="saveNoteBtn" style="width:100%; padding:12px; background:var(--primary); border:none; border-radius:8px; color:white; font-weight:bold;">MENTÉS</button>
+        <div class="close-x" onclick="closeModal('infoModal')">×</div>
+        <h3 id="infoTitle" style="margin:0 0 10px 0; font-size: 16px;"></h3>
+        
+        <div class="info-box">
+            <div id="noteView" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <span id="noteDisplay" style="font-size:14px; font-style:italic; color:#ccc; flex:1"></span>
+                <div style="display:flex; gap:5px">
+                    <button onclick="editNote()" style="background:none; border:none; font-size:16px;">✏️</button>
+                    <button onclick="deleteNote()" style="background:none; border:none; font-size:16px;">🗑️</button>
+                </div>
+            </div>
+            <div id="noteEdit" style="display:none">
+                <textarea id="noteTextarea" style="width:100%; padding:10px; background:#000; color:#fff; border-radius:8px; margin-bottom:5px;"></textarea>
+                <button onclick="saveNote()" style="width:100%; padding:8px; background:var(--primary); border:none; border-radius:5px; color:white; font-size:12px;">MENTÉS</button>
+            </div>
+        </div>
+
+        <div id="photoArea">
+            <label for="camUpdate" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#333; border-radius:8px; cursor:pointer; font-size:13px;">
+                📷 <span id="photoLabel">Fotó hozzáadása</span>
+                <input type="file" id="camUpdate" accept="image/*" capture="environment" style="display:none" onchange="updatePhoto(this)">
+            </label>
+            <div id="photoPreviewContainer" class="img-container" style="display:none">
+                <img id="infoPhotoImg" src="">
+                <button onclick="deletePhoto()" style="position:absolute; top:5px; right:5px; background:rgba(255,0,0,0.7); border:none; color:white; border-radius:50%; width:25px; height:25px;">×</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -95,33 +115,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
-    let currentPhoto = "";
+    let currentItemId = null;
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleTheme() { document.body.classList.toggle('light'); }
     document.getElementById('writeBtn').onclick = () => { document.getElementById('inputModal').style.display='flex'; document.getElementById('manualInput').focus(); };
-
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                currentPhoto = e.target.result;
-                const prev = document.getElementById('imgPreview');
-                prev.src = currentPhoto;
-                prev.style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
 
     function handleAddItem() {
         const text = document.getElementById('manualInput').value.trim();
         const note = document.getElementById('noteInput').value.trim();
         if(text) {
-            listRef.push({ text, note, photo: currentPhoto, status: 'active', order: Date.now() });
+            listRef.push({ text, note, status: 'active', order: Date.now() });
             document.getElementById('manualInput').value = '';
             document.getElementById('noteInput').value = '';
-            document.getElementById('imgPreview').style.display = 'none';
-            currentPhoto = "";
             closeModal('inputModal');
         }
     }
@@ -142,12 +148,12 @@
             wrap.innerHTML = `<div class="delete-reveal" onclick="deleteItem('${item.id}')">TÖRLÉS</div>`;
 
             const div = document.createElement('div');
-            div.className = `item ${item.status==='done'?'checked':(item.status==='x'?'cancelled':'')}`;
+            div.className = `item`;
+            const hasInfo = item.note || item.photo;
             div.innerHTML = `
                 <span style="flex:1">${item.text}</span>
                 <div class="actions">
-                    <button class="btn-sm ${item.photo ? 'has-data' : ''}" onclick="showPhoto('${item.photo}')">📷</button>
-                    <button class="btn-sm ${item.note ? 'has-data' : ''}" onclick="showNote('${item.id}')">ℹ️</button>
+                    <button class="btn-sm ${hasInfo ? 'has-data' : ''}" onclick="openInfo('${item.id}')">ℹ️</button>
                     ${item.status === 'active' ? `
                         <button class="btn-sm" style="background:#2e7d32" onclick="setStatus('${item.id}','done')">✔</button>
                         <button class="btn-sm" style="background:#af4444" onclick="setStatus('${item.id}','x')">✖</button>
@@ -155,7 +161,6 @@
                 </div>
             `;
 
-            // Swipe törlés
             let startX = 0;
             div.ontouchstart = (e) => startX = e.touches[0].clientX;
             div.ontouchmove = (e) => {
@@ -172,24 +177,57 @@
         });
     }
 
-    function showPhoto(url) {
-        if(!url) return;
-        document.getElementById('fullImg').src = url;
-        document.getElementById('imgModal').style.display = 'flex';
-    }
-
-    function showNote(id) {
+    // INFO ABLAK KEZELÉSE
+    function openInfo(id) {
+        currentItemId = id;
         listRef.child(id).once('value', snap => {
             const item = snap.val();
-            document.getElementById('noteTitle').innerText = item.text;
-            document.getElementById('noteBox').innerText = item.note || "Nincs megjegyzés";
-            document.getElementById('noteModal').style.display = 'flex';
-            document.getElementById('saveNoteBtn').onclick = () => closeModal('noteModal');
+            document.getElementById('infoTitle').innerText = item.text;
+            document.getElementById('noteDisplay').innerText = item.note || "Nincs megjegyzés";
+            document.getElementById('noteView').style.display = 'flex';
+            document.getElementById('noteEdit').style.display = 'none';
+            
+            const photoCont = document.getElementById('photoPreviewContainer');
+            if(item.photo) {
+                document.getElementById('infoPhotoImg').src = item.photo;
+                photoCont.style.display = 'block';
+                document.getElementById('photoLabel').innerText = "Fotó cseréje";
+            } else {
+                photoCont.style.display = 'none';
+                document.getElementById('photoLabel').innerText = "Fotó hozzáadása";
+            }
+            document.getElementById('infoModal').style.display = 'flex';
         });
     }
 
+    function editNote() {
+        document.getElementById('noteView').style.display = 'none';
+        document.getElementById('noteEdit').style.display = 'block';
+        document.getElementById('noteTextarea').value = document.getElementById('noteDisplay').innerText.replace("Nincs megjegyzés", "");
+    }
+
+    function saveNote() {
+        const newNote = document.getElementById('noteTextarea').value.trim();
+        listRef.child(currentItemId).update({ note: newNote });
+        openInfo(currentItemId); // Frissíti a nézetet
+    }
+
+    function deleteNote() { if(confirm("Törlöd a megjegyzést?")) listRef.child(currentItemId).update({ note: "" }).then(()=>openInfo(currentItemId)); }
+
+    function updatePhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                listRef.child(currentItemId).update({ photo: e.target.result }).then(()=>openInfo(currentItemId));
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function deletePhoto() { if(confirm("Törlöd a fotót?")) listRef.child(currentItemId).update({ photo: "" }).then(()=>openInfo(currentItemId)); }
+
     function setStatus(id, s) { listRef.child(id).update({ status: s }); }
-    function deleteItem(id) { if(confirm("Törlöd?")) listRef.child(id).remove(); }
+    function deleteItem(id) { if(confirm("Törlöd a terméket?")) listRef.child(id).remove(); }
 </script>
 </body>
 </html>
