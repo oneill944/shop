@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.4.2</title>
+    <title>Lista Pro v0.4.3</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,24 +20,28 @@
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; }
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: #421a18; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: #421a18; width: 100%; }
         
         .item { 
             background: var(--item-bg); padding: 10px 12px; border-radius: 10px; 
             display: flex; align-items: center; gap: 10px; position: relative; 
             z-index: 5; transition: transform 0.1s; border: 1px solid transparent; 
-            touch-action: pan-y;
+            touch-action: pan-y; width: 100%;
         }
 
-        .drag-handle { color: #555; font-size: 22px; padding-right: 5px; cursor: grab; }
+        .drag-handle { color: #555; font-size: 22px; padding-right: 5px; cursor: grab; flex-shrink: 0; }
         .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
         .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
         
-        .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: none; }
+        .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: none; flex-shrink: 0; }
         .has-data { background: var(--yellow) !important; color: #000 !important; }
 
-        /* Modalok */
+        /* Lenti rács javítása - Nincs kontúr */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
+        .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+        /* Modals */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); user-select: auto; }
         .close-x { position: absolute; top: 5px; right: 15px; font-size: 30px; color: var(--danger); cursor: pointer; }
@@ -52,7 +56,7 @@
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.4.2</div>
+        <div style="font-size:10px; color:#444;">v0.4.3</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
     
@@ -64,14 +68,14 @@
     </div>
 
     <div class="col-label">Aktív tételek</div>
-    <div id="activeItems" class="list-container" style="margin-bottom:15px;"></div>
+    <div id="activeItems" class="list-container"></div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-        <div style="border: 1px solid var(--border); border-radius:15px; padding:5px;">
+    <div class="bottom-grid">
+        <div class="sub-col">
             <div class="col-label">Megvan</div>
             <div id="doneItems" class="list-container"></div>
         </div>
-        <div style="border: 1px solid var(--border); border-radius:15px; padding:5px;">
+        <div class="sub-col">
             <div class="col-label">Nincs</div>
             <div id="missingItems" class="list-container"></div>
         </div>
@@ -83,13 +87,11 @@
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        
         <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px;">
             📷 Fotó hozzáadása
             <input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this)">
         </label>
         <img id="newPhotoPreview" class="img-preview-box" style="display:none;">
-        
         <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
     </div>
 </div>
@@ -118,7 +120,6 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Sorrendezés ≡ jellel
     new Sortable(document.getElementById('activeItems'), {
         handle: '.drag-handle',
         animation: 150,
@@ -146,8 +147,7 @@
             document.getElementById('infoTitle').innerText = it.text;
             document.getElementById('infoNoteDisplay').innerText = it.note || "Nincs megjegyzés";
             const img = document.getElementById('infoPhotoImg');
-            if(it.photo) { img.src = it.photo; img.style.display = 'block'; } 
-            else { img.style.display = 'none'; }
+            if(it.photo) { img.src = it.photo; img.style.display = 'block'; } else { img.style.display = 'none'; }
             openModal('infoModal');
         });
     }
@@ -168,7 +168,7 @@
 
             div.innerHTML = `
                 <div class="drag-handle">≡</div>
-                <span style="flex:1;">${it.text}</span>
+                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>
                     ${it.status === 'active' ? 
