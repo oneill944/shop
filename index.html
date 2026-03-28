@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.1.2</title>
+    <title>Lista Pro v0.1.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -24,7 +24,7 @@
         #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; }
 
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
         
         .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
         .drag-handle { cursor: grab; color: #555; font-size: 18px; padding-right: 5px; }
@@ -33,8 +33,11 @@
         #missingItems .item { background: var(--danger) !important; color: white; }
 
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
-        .has-note { background: var(--yellow) !important; color: #000 !important; }
+        .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
         
+        .note-box { background: var(--yellow); color: #000; margin: -5px 5px 5px; padding: 8px 12px; border-radius: 0 0 10px 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; font-weight: 500; }
+        .note-actions { display: flex; gap: 10px; font-size: 16px; }
+
         .col-header { display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 8px; }
         .column-label { font-size: 10px; font-weight: bold; color: #777; letter-spacing: 1px; }
 
@@ -50,7 +53,7 @@
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="version">v0.1.2</div>
+        <div class="version">v0.1.3</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
             <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
@@ -90,11 +93,11 @@
     </div>
 </div>
 
-<div id="noteModal" class="custom-modal">
+<div id="noteEditModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('noteModal')">✕</div>
-        <h3 id="noteItemTitle" style="margin-top:0; font-size:16px;"> Megjegyzés</h3>
-        <textarea id="editNoteText" rows="4"></textarea>
+        <div class="close-x" onclick="closeModal('noteEditModal')">✕</div>
+        <h3 id="noteEditTitle" style="margin-top:0; font-size:16px; color:var(--text);">Megjegyzés szerkesztése</h3>
+        <textarea id="editNoteText" rows="4" placeholder="Írd ide a megjegyzést..."></textarea>
         <button onclick="saveNote()" style="width:100%; padding:12px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MENTÉS</button>
     </div>
 </div>
@@ -121,18 +124,23 @@
         }
     }
 
-    function openNote(id, text, note) {
+    function editNote(id, currentNote) {
         currentEditId = id;
-        document.getElementById('noteItemTitle').innerText = text;
-        document.getElementById('editNoteText').value = note || "";
-        openModal('noteModal');
+        document.getElementById('editNoteText').value = currentNote || "";
+        openModal('noteEditModal');
     }
 
     function saveNote() {
         if(currentEditId) {
             const newNote = document.getElementById('editNoteText').value.trim();
             listRef.child(currentEditId).update({ note: newNote });
-            closeModal('noteModal');
+            closeModal('noteEditModal');
+        }
+    }
+
+    function deleteNote(id) {
+        if(confirm("Törlöd a megjegyzést?")) {
+            listRef.child(id).update({ note: "" });
         }
     }
 
@@ -160,11 +168,12 @@
             div.dataset.id = it.id;
             
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
-            const noteClass = it.note ? 'has-note' : '';
+            const hasNote = it.note && it.note.trim() !== "";
+            const noteBtnClass = hasNote ? 'has-note-btn' : '';
             
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${noteClass}" onclick="openNote('${it.id}', '${it.text}', '${it.note || ''}')">ℹ️</button>
+                    <button class="btn-sm ${noteBtnClass}" onclick="editNote('${it.id}', '${it.note || ''}')">ℹ️</button>
                     ${it.status === 'active' ? 
                     `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                      <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
@@ -175,6 +184,21 @@
             initSwipe(div);
 
             wrap.appendChild(div);
+
+            // Ha van megjegyzés, hozzáadjuk a sárga dobozt
+            if(hasNote) {
+                const noteBox = document.createElement('div');
+                noteBox.className = 'note-box';
+                noteBox.innerHTML = `
+                    <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.note}</span>
+                    <div class="note-actions">
+                        <span onclick="editNote('${it.id}', '${it.note}')" style="cursor:pointer;">✏️</span>
+                        <span onclick="deleteNote('${it.id}')" style="cursor:pointer;">🗑️</span>
+                    </div>
+                `;
+                wrap.appendChild(noteBox);
+            }
+
             if(containers[it.status]) containers[it.status].appendChild(wrap);
         });
     }
@@ -191,6 +215,7 @@
 
     function initSortable(el, wrap) {
         const handle = el.querySelector('.drag-handle');
+        if(!handle) return;
         handle.addEventListener('pointerdown', e => {
             const cont = document.getElementById('activeItems');
             el.setPointerCapture(e.pointerId);
