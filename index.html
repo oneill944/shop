@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.2.8</title>
+    <title>Lista Pro v0.2.9</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -24,18 +24,27 @@
         .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
         .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
 
-        /* GOMB STÍLUSOK */
         .btn-sm { border: 1px solid transparent; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; }
-        
-        /* CSAK AKKOR PIROS A KONTÚR HA VAN TARTALOM */
         .info-has-content { border: 1px solid var(--danger) !important; background: #555 !important; }
 
-        /* MODAL ÉS X IGAZÍTÁS */
+        /* MODAL ÉS JAVÍTOTT X POZÍCIÓ */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 40px 20px 20px; position: relative; border: 1px solid var(--border); }
         
-        /* JAVÍTOTT X POZÍCIÓ */
-        .close-x { position: absolute; top: 15px; right: 15px; background: none; color: var(--text); font-size: 20px; cursor: pointer; border: none; padding: 5px; line-height: 1; }
+        .close-x { 
+            position: absolute; 
+            top: 10px;    /* Feljebb tolva */
+            right: 10px;  /* Kicsit beljebb tolva */
+            background: none; 
+            color: var(--text); 
+            font-size: 22px; 
+            cursor: pointer; 
+            border: none; 
+            padding: 8px; /* Nagyobb érintési felület */
+            line-height: 1; 
+            opacity: 0.7;
+        }
+        .close-x:active { opacity: 1; }
 
         .note-display-box { border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: rgba(255,255,255,0.02); }
         .note-text-content { padding: 15px; text-align: center; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
@@ -51,7 +60,7 @@
 
 <div class="app-card">
     <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.2.8</div>
+        <div style="font-size:10px; color:#444;">v0.2.9</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -80,7 +89,7 @@
         <h3 id="detTitle" style="margin-top:0; text-align:center; font-size:17px; margin-bottom:15px;"></h3>
         <div id="detNoteView"></div>
         <div id="detEditView" style="display:none;">
-            <textarea id="editNoteInput" rows="5" placeholder="Írj ide valamit..."></textarea>
+            <textarea id="editNoteInput" rows="5" placeholder="Megjegyzés..."></textarea>
             <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">MENTÉS</button>
         </div>
     </div>
@@ -160,7 +169,6 @@
             const div = document.createElement('div');
             div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             
-            // Feltételes stílus osztály az infó gombhoz
             const hasContent = (it.note && it.note.trim() !== "");
             const infoClass = hasContent ? "info-has-content" : "";
             
