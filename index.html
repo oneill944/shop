@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.1.5</title>
+    <title>Lista Pro v0.2.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --yellow: #ffff00; }
         body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; }
@@ -21,7 +22,6 @@
         .top-icons { display: flex; gap: 15px; align-items: center; font-size: 20px; }
 
         .header { text-align: center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 15px; }
-        #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; }
 
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
@@ -36,23 +36,28 @@
         .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; }
-        .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 2100; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; overflow-y: auto; max-height: 90vh; }
+        .close-x { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; z-index: 2100; }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; resize: none; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; }
         
-        .note-display { background: rgba(255,255,0,0.1); border: 1px solid var(--yellow); padding: 12px; border-radius: 10px; color: var(--text); font-size: 14px; min-height: 50px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .note-btns-right { display: flex; gap: 12px; font-size: 18px; flex-shrink: 0; }
-        .empty-note { color: #666; font-style: italic; cursor: pointer; width: 100%; }
+        .note-display { background: rgba(255,255,0,0.05); border: 1px dashed var(--yellow); padding: 12px; border-radius: 10px; color: var(--text); font-size: 14px; margin-bottom: 10px; position: relative; }
+        .note-btns-overlay { display: flex; gap: 12px; font-size: 18px; position: absolute; top: 8px; right: 8px; background: var(--card-bg); padding: 4px; border-radius: 6px; }
+        
+        .img-preview { width: 100%; border-radius: 10px; margin-bottom: 10px; display: block; border: 1px solid #444; cursor: pointer; }
+        .upload-area { border: 2px dashed #444; padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
         
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
+        
+        #uploadProgress { width: 100%; height: 4px; background: #222; margin-bottom: 10px; border-radius: 2px; display: none; }
+        #uploadBar { width: 0%; height: 100%; background: var(--primary); transition: 0.2s; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="version">v0.1.5</div>
+        <div class="version">v0.2.0</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
             <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
@@ -61,7 +66,6 @@
     
     <div class="header">
         <h2 style="margin:0 0 10px; font-size: 18px; letter-spacing: 1px;">KÖZÖS LISTA</h2>
-        <button id="notifBtn" onclick="askNotif()">🔔 Értesítések</button>
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -81,7 +85,14 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('inputModal')">✕</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
-        <textarea id="manualNote" placeholder="Megjegyzés (opcionális)..." rows="3"></textarea>
+        <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
+        
+        <div id="uploadProgress"><div id="uploadBar"></div></div>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <span id="fileLabel">📷 Kép hozzáadása</span>
+            <input type="file" id="fileInput" hidden accept="image/*">
+        </div>
+        
         <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MEHET</button>
     </div>
 </div>
@@ -89,69 +100,112 @@
 <div id="noteMenuModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('noteMenuModal')">✕</div>
-        <h3 id="noteMenuTitle" style="margin-top:0; font-size:16px; margin-bottom:15px;">Termék részletei</h3>
+        <h3 id="noteMenuTitle" style="margin-top:0; font-size:16px;">Részletek</h3>
+        
+        <div id="itemImageArea"></div>
         
         <div id="noteContentArea">
-            <div id="noteTextDisplay" class="note-display">
-                </div>
+            <div id="noteTextDisplay" class="note-display"></div>
         </div>
 
         <div id="noteEditArea" style="display:none;">
-            <textarea id="editNoteInput" rows="4" placeholder="Írd ide a megjegyzést..."></textarea>
-            <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--primary); border:none; color:white; border-radius:10px; font-weight:bold;">MENTÉS</button>
+            <textarea id="editNoteInput" rows="4"></textarea>
+            <button onclick="saveNote()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:10px;">MENTÉS</button>
         </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", 
+        databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", 
+        projectId: "kozoslista-e0717",
+        storageBucket: "kozoslista-e0717.appspot.com" // Ellenőrizd ezt a konzolban!
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const storage = firebase.storage();
     const listRef = db.ref('shoppingList');
 
     let currentId = null;
+    let tempImgUrl = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { 
         document.getElementById(id).style.display = 'none';
         document.getElementById('noteContentArea').style.display = 'block';
         document.getElementById('noteEditArea').style.display = 'none';
+        tempImgUrl = "";
+        document.getElementById('fileLabel').innerText = "📷 Kép hozzáadása";
     }
+
+    // Képfeltöltés kezelése
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        
+        const bar = document.getElementById('uploadProgress');
+        const fill = document.getElementById('uploadBar');
+        bar.style.display = 'block';
+        
+        const sRef = storage.ref('images/' + Date.now() + "_" + file.name);
+        const task = sRef.put(file);
+        
+        task.on('state_changed', 
+            (s) => fill.style.width = (s.bytesTransferred / s.totalBytes * 100) + "%",
+            (e) => alert("Hiba a feltöltésnél"),
+            async () => {
+                tempImgUrl = await sRef.getDownloadURL();
+                document.getElementById('fileLabel').innerText = "✅ Kép kész";
+                bar.style.display = 'none';
+                if(currentId) { // Ha utólag töltjük fel
+                    listRef.child(currentId).update({ img: tempImgUrl });
+                    renderNoteDisplay("", tempImgUrl);
+                }
+            }
+        );
+    });
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
         const n = document.getElementById('manualNote').value.trim();
         if(t) { 
-            listRef.push({ text: t, note: n, status: 'active', order: Date.now() }); 
+            listRef.push({ text: t, note: n, img: tempImgUrl, status: 'active', order: Date.now() }); 
             closeModal('inputModal'); 
             document.getElementById('manualInput').value=""; document.getElementById('manualNote').value=""; 
         }
     }
 
-    function openNoteMenu(id, text, note) {
+    function openNoteMenu(id, text, note, img) {
         currentId = id;
         document.getElementById('noteMenuTitle').innerText = text;
+        renderNoteDisplay(note, img);
+        openModal('noteMenuModal');
+    }
+
+    function renderNoteDisplay(note, img) {
+        const imgArea = document.getElementById('itemImageArea');
         const display = document.getElementById('noteTextDisplay');
         
+        imgArea.innerHTML = img ? `<img src="${img}" class="img-preview" onclick="window.open('${img}')">` : 
+            `<div class="upload-area" onclick="document.getElementById('fileInput').click()">📷 Kép pótlása</div>`;
+        
         if(note && note.trim() !== "") {
-            display.innerHTML = `
-                <span style="flex:1">${note}</span>
-                <div class="note-btns-right">
+            display.innerHTML = `<span>${note}</span>
+                <div class="note-btns-overlay">
                     <span onclick="switchToEdit()" style="cursor:pointer;">✏️</span>
                     <span onclick="deleteNoteDirect()" style="cursor:pointer;">🗑️</span>
                 </div>`;
         } else {
-            display.innerHTML = `<div class="empty-note" onclick="switchToEdit()">Megjegyzés írása...</div>`;
+            display.innerHTML = `<div style="color:#666; font-style:italic; cursor:pointer" onclick="switchToEdit()">Megjegyzés írása...</div>`;
         }
-        openModal('noteMenuModal');
     }
 
     function switchToEdit() {
         document.getElementById('noteContentArea').style.display = 'none';
         document.getElementById('noteEditArea').style.display = 'block';
-        const currentText = document.getElementById('noteTextDisplay').querySelector('span')?.innerText || "";
-        document.getElementById('editNoteInput').value = currentText;
-        document.getElementById('editNoteInput').focus();
+        const txt = document.getElementById('noteTextDisplay').querySelector('span')?.innerText || "";
+        document.getElementById('editNoteInput').value = txt;
     }
 
     function saveNote() {
@@ -165,10 +219,6 @@
             listRef.child(currentId).update({ note: "" });
             closeModal('noteMenuModal');
         }
-    }
-
-    function askNotif() {
-        Notification.requestPermission().then(p => { if(p==='granted') document.getElementById('notifBtn').style.background = 'var(--success)'; });
     }
 
     listRef.on('value', snap => {
@@ -191,11 +241,12 @@
             div.dataset.id = it.id;
             
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
-            const noteBtnClass = (it.note && it.note.trim() !== "") ? 'has-note-btn' : '';
+            const hasExtra = (it.note && it.note.trim() !== "") || it.img;
+            const noteBtnClass = hasExtra ? 'has-note-btn' : '';
             
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${noteBtnClass}" onclick="openNoteMenu('${it.id}', '${it.text}', '${it.note || ''}')">ℹ️</button>
+                    <button class="btn-sm ${noteBtnClass}" onclick="openNoteMenu('${it.id}', '${it.text}', '${it.note || ''}', '${it.img || ''}')">ℹ️</button>
                     ${it.status === 'active' ? 
                     `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                      <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
