@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Közös Bolt Lista</title>
+    <title>Közös Bolt Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -15,45 +15,79 @@
             --bg: #f0f0f7; --card: #ffffff; --text: #1c1c1e;
             --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea;
         }
-        * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none !important; 
+            -webkit-user-select: none !important; 
+            box-sizing: border-box; 
+        }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 8px; transition: 0.2s; overflow-x: hidden; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 5px; }
         .theme-btn { font-size: 20px; cursor: pointer; border: none; background: none; color: var(--text); }
         .btn-row { display: flex; gap: 5px; margin-bottom: 10px; }
-        .main-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 12px; color: white; text-transform: uppercase; }
+        .main-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 12px; color: white; text-transform: uppercase; cursor: pointer; }
+        
+        /* MODAL */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000;
         }
         .modal-content { 
-            background: var(--card); padding: 12px; border-radius: 12px; width: 90%; max-width: 320px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #444;
+            background: var(--card); padding: 15px; border-radius: 12px; width: 90%; max-width: 320px; border: 1px solid #444;
         }
         .modal-content input {
             width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #555;
-            background: var(--bg); color: var(--text); font-size: 18px; outline: none; display: block;
+            background: var(--bg); color: var(--text); font-size: 18px; outline: none; 
             user-select: text !important; -webkit-user-select: text !important;
         }
-        .list-container { display: flex; flex-direction: column; gap: 5px; min-height: 50px; }
-        .item { background: var(--card); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; touch-action: none; }
-        .item.dragging { opacity: 0.5; background: #444; }
-        .item.checked { background: var(--success) !important; color: white; }
-        .item.cancelled { background: var(--danger) !important; color: white; }
-        .item-text { flex-grow: 1; font-size: 16px; pointer-events: none; }
-        .actions { display: flex; gap: 5px; }
-        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 6px; font-size: 16px; display: flex; align-items: center; justify-content: center; color: white; }
+
+        /* LISTÁK */
+        .list-container { display: flex; flex-direction: column; gap: 6px; min-height: 50px; }
+        
+        /* ALSÓ LISTA KÉT OSZLOPBAN */
+        #doneItems {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .item { 
+            background: var(--card); padding: 10px; border-radius: 8px; 
+            display: flex; align-items: center; gap: 8px; touch-action: none; 
+            border: 1px solid transparent; transition: transform 0.1s;
+        }
+        
+        /* Rendezés közben */
+        .item.dragging { 
+            opacity: 0.8; 
+            background: #333; 
+            border: 1px dashed var(--primary);
+            transform: scale(1.02);
+            z-index: 100;
+        }
+        
+        .item.checked { background: var(--success) !important; color: white; border: none; }
+        .item.cancelled { background: var(--danger) !important; color: white; border: none; }
+        
+        /* Szöveg kezelése */
+        .item-text { flex-grow: 1; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #doneItems .item-text { font-size: 13px; }
+
+        .actions { display: flex; gap: 4px; }
+        .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
         .btn-check { background: #4caf50; }
         .btn-x { background: #f44336; } 
-        .btn-grey { background: var(--grey); color: var(--text); }
-        .summary-title { margin-top: 20px; border-top: 1px solid #444; padding-top: 10px; font-size: 11px; color: #888; text-transform: uppercase; }
-        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 15px; width: 100%; padding: 10px; font-size: 12px; border-radius: 8px; }
+        .btn-grey { background: var(--grey); color: var(--text); opacity: 0.8; }
+        
+        .summary-title { margin-top: 20px; border-top: 1px solid #444; padding-top: 10px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; width: 100%; padding: 12px; font-size: 12px; border-radius: 8px; font-weight: bold; }
         #loading { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body class="dark">
 
     <div class="header">
-        <h4 style="margin:0">KÖZÖS BOLT</h4>
+        <h4 style="margin:0">KÖZÖS BOLT PRO</h4>
         <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
     </div>
 
@@ -64,9 +98,11 @@
 
     <div id="loading">Csatlakozás...</div>
     <div id="activeItems" class="list-container"></div>
-    <div class="summary-title">KÉSZ / NINCS</div>
+    
+    <div class="summary-title">KÉSZ / NINCS (2 OSZLOP)</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="clear-all" onclick="clearAll()">MINDENT TÖRÖL</button>
+    
+    <button class="clear-all" onclick="clearAll()">LISTA TELJES ÜRÍTÉSE</button>
 
     <div id="inputModal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
@@ -79,7 +115,6 @@
     </div>
 
     <script>
-        // BEÁLLÍTÁSOK
         const firebaseConfig = {
             apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE",
             databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app",
@@ -93,14 +128,7 @@
         let shoppingList = [];
         let isRecording = false;
         let recognition;
-
-        const categories = {
-            "1": ["alma", "banán", "hagyma", "paprika", "paradicsom", "krumpli", "répa", "uborka", "citrom", "narancs", "zöldség", "gyümölcs"],
-            "2": ["hús", "szalámi", "sonka", "parizer", "virsli", "kolbász", "szalonna", "csirke", "májkrém"],
-            "3": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "tojás"],
-            "4": ["víz", "üdítő", "kóla", "sör", "bor", "kávé", "ásványvíz"],
-            "5": ["kenyér", "kifli", "zsemle", "pékáru", "zsömle", "bagett"]
-        };
+        let dragTimer;
 
         listRef.on('value', (snapshot) => {
             const data = snapshot.val();
@@ -118,8 +146,7 @@
             if(e) e.preventDefault();
             document.getElementById('inputModal').style.display = 'flex';
             const input = document.getElementById('manualInput');
-            input.focus();
-            setTimeout(() => { input.focus(); input.click(); }, 100);
+            setTimeout(() => { input.focus(); }, 150);
         }
 
         function closeModal() {
@@ -139,7 +166,6 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'hu-HU';
             recognition.onresult = (e) => { addItem(e.results[0][0].transcript); stopRecording(); };
-            recognition.onend = () => { if(isRecording) stopRecording(); };
         }
 
         document.getElementById('micBtn').onclick = () => {
@@ -157,12 +183,7 @@
         }
 
         function addItem(text) {
-            let order = 99;
-            const lowText = text.toLowerCase();
-            for (const [key, list] of Object.entries(categories)) {
-                if (list.some(word => lowText.includes(word))) { order = parseInt(key); break; }
-            }
-            listRef.push({ text: text, status: 'active', order: order, time: Date.now() });
+            listRef.push({ text: text, status: 'active', order: 999, time: Date.now() });
         }
 
         function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus }); }
@@ -176,14 +197,15 @@
             const activeItems = shoppingList.filter(i => i.status === 'active').sort((a, b) => a.order - b.order);
             const doneItems = shoppingList.filter(i => i.status !== 'active').sort((a,b) => b.time - a.time);
 
-            activeItems.forEach(item => act.appendChild(createItemEl(item)));
-            doneItems.forEach(item => don.appendChild(createItemEl(item)));
+            activeItems.forEach(item => act.appendChild(createItemEl(item, true)));
+            doneItems.forEach(item => don.appendChild(createItemEl(item, false)));
         }
 
-        function createItemEl(item) {
+        function createItemEl(item, isActive) {
             const div = document.createElement('div');
             div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
             div.dataset.id = item.id;
+            
             div.innerHTML = `
                 <span class="item-text">${item.text}</span>
                 <div class="actions">
@@ -192,26 +214,44 @@
                         <button class="btn-sm btn-x" onclick="updateStatus('${item.id}', 'x')">✖</button>
                     ` : `
                         <button class="btn-sm btn-grey" onclick="updateStatus('${item.id}', 'active')">↩</button>
+                        <button class="btn-sm btn-grey" onclick="deleteItem('${item.id}')">🗑</button>
                     `}
-                    <button class="btn-sm btn-grey" onclick="deleteItem('${item.id}')">🗑</button>
                 </div>
             `;
 
-            if(item.status === 'active') {
-                div.addEventListener('touchstart', (e) => { if(e.target.tagName !== 'BUTTON') div.classList.add('dragging'); }, {passive: true});
-                div.addEventListener('touchmove', (e) => {
-                    if(!div.classList.contains('dragging')) return;
-                    const target = getDragAfterElement(act, e.touches[0].clientY);
-                    if (!target) act.appendChild(div); else act.insertBefore(div, target);
+            if(isActive) {
+                // HOSSZÚ NYOMÁS ÉS REZGÉS LOGIKA
+                div.ontouchstart = (e) => {
+                    if(e.target.tagName === 'BUTTON') return;
+                    dragTimer = setTimeout(() => {
+                        if (window.navigator.vibrate) window.navigator.vibrate(40); // Rövid rezgés
+                        div.classList.add('dragging');
+                    }, 500); // 0.5 másodperc után válik húzhatóvá
+                };
+
+                div.ontouchend = () => {
+                    clearTimeout(dragTimer);
+                    if(div.classList.contains('dragging')) {
+                        div.classList.remove('dragging');
+                        const updates = {};
+                        document.querySelectorAll('#activeItems .item').forEach((el, index) => {
+                            updates[`${el.dataset.id}/order`] = index;
+                        });
+                        listRef.update(updates);
+                    }
+                };
+
+                div.ontouchmove = (e) => {
+                    if(!div.classList.contains('dragging')) {
+                        clearTimeout(dragTimer);
+                        return;
+                    }
                     e.preventDefault();
-                }, {passive: false});
-                div.addEventListener('touchend', () => {
-                    if(!div.classList.contains('dragging')) return;
-                    div.classList.remove('dragging');
-                    const updates = {};
-                    document.querySelectorAll('#activeItems .item').forEach((el, index) => { updates[`${el.dataset.id}/order`] = index; });
-                    listRef.update(updates);
-                });
+                    const container = document.getElementById('activeItems');
+                    const afterElement = getDragAfterElement(container, e.touches[0].clientY);
+                    if (afterElement == null) container.appendChild(div);
+                    else container.insertBefore(div, afterElement);
+                };
             }
             return div;
         }
@@ -226,7 +266,7 @@
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
-        function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
+        function clearAll() { if(confirm("Törlöd a teljes listát?")) listRef.remove(); }
     </script>
 </body>
 </html>
