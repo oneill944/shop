@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.2.2</title>
+    <title>Lista Pro v0.2.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -22,41 +22,58 @@
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; padding: 5px 0; }
         .col-label { font-size: 10px; text-align: center; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
+        /* ITEM WRAPPER JAVÍTÁS */
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: #000; }
         
-        /* ALAP TÉTEL */
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: 0.2s; border: 1px solid transparent; }
+        .item { 
+            background: var(--item-bg); 
+            padding: 10px 12px; 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            position: relative; 
+            z-index: 5; /* Magasabb z-index, hogy takarjon */
+            transition: transform 0.2s ease-out; 
+            border: 1px solid transparent; 
+        }
         
-        /* SZÍNEZETT TÉTELEK */
-        .status-done { background: rgba(50, 168, 82, 0.15) !important; border-color: rgba(50, 168, 82, 0.4) !important; }
-        .status-x { background: rgba(235, 64, 52, 0.15) !important; border-color: rgba(235, 64, 52, 0.4) !important; }
+        /* NEM ÁTLÁTSZÓ SZÍNEK, HOGY NE LÁTSZON ÁT A TÖRLÉS */
+        .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
+        .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
 
-        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; }
+        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; z-index: 6; }
         .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
+
+        .delete-reveal { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            bottom: 0; 
+            width: 75px; 
+            background: var(--danger); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-size: 11px; 
+            z-index: 1; /* A kártya alatt marad */
+            font-weight: bold; 
+        }
 
         /* MODAL */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 30px 20px 20px; position: relative; border: 1px solid #333; }
-        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; opacity: 0.7; }
+        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; }
 
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; outline: none; }
-        
-        .note-box { background: rgba(255,255,0,0.02); border: 1px solid rgba(255,255,0,0.3); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; }
-        .note-text { color: var(--text); font-size: 15px; line-height: 1.5; word-wrap: break-word; text-align: center; margin-bottom: 15px; }
-        .note-actions { display: flex; justify-content: center; gap: 50px; padding-top: 10px; border-top: 1px solid rgba(255,255,0,0.1); }
-        .note-action-btn { background: none; border: none; font-size: 26px; cursor: pointer; }
-
-        .img-area { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; cursor: pointer; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
-        .img-area img { width: 100%; height: auto; }
-        
-        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div style="font-size:10px; color:#444;">v0.2.2</div>
+        <div style="font-size:10px; color:#444;">v0.2.3</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" class="clear-all-btn">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -100,7 +117,7 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('detailsModal')">✕</div>
         <h3 id="detTitle" style="margin-top:0; text-align:center; font-size:17px;"></h3>
-        <div id="detImgArea" class="img-area"></div>
+        <div id="detImgArea" style="width:100%; border-radius:12px; margin-bottom:15px; border:1px solid #333; min-height:100px; display:flex; align-items:center; justify-content:center; background:#000;"></div>
         <div id="detNoteView"></div>
         <div id="detEditView" style="display:none;">
             <textarea id="editNoteInput" rows="5"></textarea>
@@ -111,6 +128,7 @@
 </div>
 
 <script>
+    // Firebase konfig maradt...
     const firebaseConfig = { 
         apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", 
         databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", 
@@ -130,27 +148,9 @@
         document.getElementById('detNoteView').style.display = 'block';
         document.getElementById('detEditView').style.display = 'none';
         tempUrl = ""; 
-        document.getElementById('fileBtn').innerText = "📷 Kép hozzáadása";
     }
 
-    async function handleFile(file, isExtra) {
-        if(!file) return;
-        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
-        const task = ref.put(file);
-        task.on('state_changed', null, null, async () => {
-            const url = await ref.getDownloadURL();
-            if(isExtra && currentId) {
-                await listRef.child(currentId).update({ img: url });
-                refreshDetails(currentId);
-            } else {
-                tempUrl = url;
-                document.getElementById('fileBtn').innerText = "✅ Kép OK";
-            }
-        });
-    }
-
-    document.getElementById('fileIn').onchange = e => handleFile(e.target.files[0], false);
-    document.getElementById('fileInExtra').onchange = e => handleFile(e.target.files[0], true);
+    // handleFile, addItem, clearAllItems, refreshDetails stb. ugyanaz...
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
@@ -162,56 +162,7 @@
         }
     }
 
-    function clearAllItems() {
-        if(confirm("Törlöd a teljes listát?")) listRef.remove();
-    }
-
-    async function refreshDetails(id) {
-        const s = await listRef.child(id).get();
-        const d = s.val();
-        openDetails(id, d.text, d.note, d.img);
-    }
-
-    function openDetails(id, text, note, img) {
-        currentId = id;
-        document.getElementById('detTitle').innerText = text;
-        const imgArea = document.getElementById('detImgArea');
-        imgArea.innerHTML = img ? `<img src="${img}" onclick="window.open('${img}')">` : `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555">📷 Kép hozzáadása</div>`;
-        
-        const noteView = document.getElementById('detNoteView');
-        if(note && note.trim() !== "") {
-            noteView.innerHTML = `<div class="note-box">
-                <div class="note-text">${note}</div>
-                <div class="note-actions">
-                    <button class="note-action-btn" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
-                    <button class="note-action-btn" onclick="deleteNote()">🗑️</button>
-                </div>
-            </div>`;
-        } else {
-            noteView.innerHTML = `<div style="border:1px dashed #444; padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
-        }
-        openModal('detailsModal');
-    }
-
-    function switchToEdit(val) {
-        document.getElementById('detNoteView').style.display = 'none';
-        document.getElementById('detEditView').style.display = 'block';
-        document.getElementById('editNoteInput').value = val;
-    }
-
-    function saveNote() {
-        listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value.trim() });
-        closeModal('detailsModal');
-    }
-
-    function deleteNote() {
-        if(confirm("Törlöd?")) { listRef.child(currentId).update({ note: "" }); closeModal('detailsModal'); }
-    }
-
-    listRef.on('value', snap => {
-        const data = snap.val();
-        render(data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []);
-    });
+    function clearAllItems() { if(confirm("Törlöd a teljes listát?")) listRef.remove(); }
 
     function render(items) {
         const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
@@ -219,23 +170,21 @@
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div class="delete-reveal" onclick="db.ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
+            wrap.innerHTML = `<div class="delete-reveal" onclick="firebase.database().ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
+            
             const div = document.createElement('div');
-            
-            // OSZTÁLYOK HOZZÁADÁSA STÁTUSZ ALAPJÁN
-            let statusClass = "";
-            if(it.status === 'done') statusClass = "status-done";
-            if(it.status === 'x') statusClass = "status-x";
-            
+            let statusClass = it.status === 'done' ? "status-done" : (it.status === 'x' ? "status-x" : "");
             div.className = `item ${statusClass}`;
+            
             const hasC = (it.note && it.note.trim() !== "") || it.img;
-            div.innerHTML = `<span style="flex:1">${it.text}</span>
+            div.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.text}</span>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-sm ${hasC?'has-note-btn':''}" onclick="openDetails('${it.id}','${it.text.replace(/'/g, "\\'")}','${(it.note||"").replace(/'/g, "\\'")}','${it.img||''}')">ℹ️</button>
-                    ${it.status==='active'? `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
-                    <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
-                    `<button class="btn-sm" onclick="db.ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
+                    ${it.status==='active'? `<button class="btn-sm" style="background:var(--success)" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
+                    <button class="btn-sm" style="background:var(--danger)" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
+                    `<button class="btn-sm" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
                 </div>`;
+            
             initSwipe(div);
             wrap.appendChild(div);
             const target = it.status==='done'?'done':(it.status==='x'?'x':'active');
@@ -248,9 +197,65 @@
         el.addEventListener('touchstart', e => sX = e.touches[0].clientX);
         el.addEventListener('touchmove', e => { 
             let dX = sX - e.touches[0].clientX; 
-            if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; 
+            if(dX > 10 && dX < 100) el.style.transform = `translateX(-${dX}px)`; 
         });
-        el.addEventListener('touchend', e => el.style.transform = (sX - e.changedTouches[0].clientX > 50) ? 'translateX(-75px)' : 'translateX(0)');
+        el.addEventListener('touchend', e => {
+            let dX = sX - e.changedTouches[0].clientX;
+            el.style.transform = (dX > 50) ? 'translateX(-75px)' : 'translateX(0)';
+        });
+    }
+
+    // Alapértelmezett Firebase listener
+    listRef.on('value', snap => {
+        const data = snap.val();
+        render(data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []);
+    });
+
+    // Képfeltöltés és egyéb függvények hiányzó részei... (openDetails, switchToEdit, saveNote stb.)
+    async function handleFile(file, isExtra) {
+        if(!file) return;
+        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        if(isExtra && currentId) {
+            await listRef.child(currentId).update({ img: url });
+            const s = await listRef.child(currentId).get();
+            openDetails(currentId, s.val().text, s.val().note, s.val().img);
+        } else {
+            tempUrl = url;
+            document.getElementById('fileBtn').innerText = "✅ Kép OK";
+        }
+    }
+    document.getElementById('fileIn').onchange = e => handleFile(e.target.files[0], false);
+    document.getElementById('fileInExtra').onchange = e => handleFile(e.target.files[0], true);
+
+    function openDetails(id, text, note, img) {
+        currentId = id;
+        document.getElementById('detTitle').innerText = text;
+        const imgArea = document.getElementById('detImgArea');
+        imgArea.innerHTML = img ? `<img src="${img}" style="width:100%" onclick="window.open('${img}')">` : `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555">📷 Kép hozzáadása</div>`;
+        const noteView = document.getElementById('detNoteView');
+        if(note && note.trim() !== "") {
+            noteView.innerHTML = `<div style="border:1px solid rgba(255,255,0,0.3); padding:15px; border-radius:12px; text-align:center;">
+                <div style="margin-bottom:15px; white-space:pre-wrap;">${note}</div>
+                <div style="display:flex; justify-content:center; gap:40px;">
+                    <button style="background:none; border:none; font-size:24px;" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
+                    <button style="background:none; border:none; font-size:24px;" onclick="if(confirm('Törlöd?')){listRef.child(currentId).update({note:''});closeModal('detailsModal');}">🗑️</button>
+                </div>
+            </div>`;
+        } else {
+            noteView.innerHTML = `<div style="border:1px dashed #444; padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
+        }
+        openModal('detailsModal');
+    }
+    function switchToEdit(val) {
+        document.getElementById('detNoteView').style.display = 'none';
+        document.getElementById('detEditView').style.display = 'block';
+        document.getElementById('editNoteInput').value = val;
+    }
+    function saveNote() {
+        listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value.trim() });
+        closeModal('detailsModal');
     }
 </script>
 </body>
