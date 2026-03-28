@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.1.7</title>
+    <title>Lista Pro v0.1.8</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -11,61 +11,45 @@
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --yellow: #ffff00; }
         body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; user-select: none; -webkit-user-select: none; }
-        input, textarea { user-select: text; -webkit-user-select: text; }
-
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .version { font-size: 10px; color: #555; }
         
-        .header { text-align: center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 15px; }
-
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; }
         
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
-        .drag-handle { cursor: grab; color: #555; font-size: 18px; padding-right: 5px; }
-        
-        #doneItems .item { background: var(--success) !important; color: white; }
-        #missingItems .item { background: var(--danger) !important; color: white; }
-
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
         .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; overflow-y: auto; max-height: 90vh; }
-        .close-x { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; z-index: 2100; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; }
+        .close-x { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; outline: none; }
         
-        .note-display { background: rgba(255,255,0,0.05); border: 1px solid var(--yellow); padding: 12px; border-radius: 10px; color: var(--text); font-size: 14px; margin-bottom: 10px; position: relative; min-height: 50px; }
-        .note-btns-overlay { display: flex; gap: 12px; font-size: 18px; position: absolute; top: 8px; right: 8px; background: var(--card-bg); padding: 4px; border-radius: 6px; }
+        /* Ikonok középre hatter nélkül */
+        .note-display { background: rgba(255,255,0,0.05); border: 1px solid var(--yellow); padding: 15px; border-radius: 10px; color: var(--text); font-size: 14px; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; }
+        .note-btns-row { display: flex; gap: 40px; font-size: 24px; border-top: 1px solid rgba(255,255,0,0.2); padding-top: 10px; width: 100%; justify-content: center; }
+        .note-icon { cursor: pointer; background: none; border: none; padding: 5px; }
+
+        .img-preview { width: 100%; border-radius: 10px; margin-bottom: 10px; border: 1px solid #444; }
+        .upload-area { border: 1px solid #444; padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 10px; background: rgba(255,255,255,0.03); }
         
-        .img-preview { width: 100%; border-radius: 10px; margin-bottom: 10px; display: block; border: 1px solid #444; cursor: pointer; }
-        .upload-area { border: 1px solid #444; padding: 20px; text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 10px; background: rgba(255,255,255,0.05); }
+        #upProg { width: 100%; height: 4px; background: #222; margin-bottom: 10px; display: none; border-radius: 2px; overflow: hidden; }
+        #upFill { width: 0%; height: 100%; background: var(--primary); }
         
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
-        
-        #uploadProgress { width: 100%; height: 6px; background: #222; margin-bottom: 10px; border-radius: 3px; display: none; overflow: hidden; }
-        #uploadBar { width: 0%; height: 100%; background: var(--primary); transition: 0.2s; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
-    <div class="top-bar">
-        <div class="version">v0.1.7</div>
-        <div class="top-icons" style="font-size: 20px; display: flex; gap: 15px;">
-            <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
-            <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
-        </div>
-    </div>
-    
-    <div class="header">
-        <h2 style="margin:0; font-size: 18px; letter-spacing: 1px;">KÖZÖS LISTA</h2>
-    </div>
+    <div class="top-bar"><div class="version">v0.1.8</div><div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div></div>
+    <h2 style="text-align:center; font-size:18px;">KÖZÖS LISTA</h2>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
         <button id="micBtn" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
@@ -73,10 +57,9 @@
     </div>
 
     <div id="activeItems" class="list-container"></div>
-
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:25px;">
-        <div><div style="text-align:center; font-size:10px; color:#555; margin-bottom:5px;">MEGVAN</div><div id="doneItems" class="list-container"></div></div>
-        <div><div style="text-align:center; font-size:10px; color:#555; margin-bottom:5px;">NINCS</div><div id="missingItems" class="list-container"></div></div>
+    <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div id="doneItems" class="list-container"></div>
+        <div id="missingItems" class="list-container"></div>
     </div>
 </div>
 
@@ -85,13 +68,11 @@
         <div class="close-x" onclick="closeModal('inputModal')">✕</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        
-        <div id="uploadProgress"><div id="uploadBar"></div></div>
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <span id="fileLabel">📷 Kép hozzáadása</span>
-            <input type="file" id="fileInput" hidden accept="image/*">
+        <div id="upProg"><div id="upFill"></div></div>
+        <div class="upload-area" onclick="document.getElementById('fileIn').click()">
+            <span id="fileLab">📷 Kép hozzáadása</span>
+            <input type="file" id="fileIn" hidden accept="image/*">
         </div>
-        
         <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MEHET</button>
     </div>
 </div>
@@ -99,20 +80,16 @@
 <div id="noteMenuModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('noteMenuModal')">✕</div>
-        <h3 id="noteMenuTitle" style="margin-top:0; font-size:16px;">Részletek</h3>
-        
-        <div id="itemImageArea"></div>
-        
+        <h3 id="noteMenuTitle" style="margin-top:0; font-size:16px; text-align:center;"></h3>
+        <div id="itemImgArea"></div>
         <div id="noteContentArea">
             <div id="noteTextDisplay" class="note-display"></div>
         </div>
-
         <div id="noteEditArea" style="display:none;">
             <textarea id="editNoteInput" rows="4"></textarea>
-            <button onclick="saveNote()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:10px; font-weight:bold;">MENTÉS</button>
+            <button onclick="saveNote()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:10px;">MENTÉS</button>
         </div>
-        
-        <input type="file" id="fileInputExtra" hidden accept="image/*">
+        <input type="file" id="fileInExtra" hidden accept="image/*">
     </div>
 </div>
 
@@ -129,85 +106,81 @@
     const listRef = db.ref('shoppingList');
 
     let currentId = null;
-    let tempImgUrl = "";
+    let tempUrl = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { 
         document.getElementById(id).style.display = 'none';
         document.getElementById('noteContentArea').style.display = 'block';
         document.getElementById('noteEditArea').style.display = 'none';
-        tempImgUrl = "";
-        document.getElementById('fileLabel').innerText = "📷 Kép hozzáadása";
-        document.getElementById('uploadProgress').style.display = 'none';
+        tempUrl = "";
+        document.getElementById('fileLab').innerText = "📷 Kép hozzáadása";
     }
 
-    // Képfeltöltés logika (Közös függvény)
-    async function handleUpload(file, isExtra = false) {
+    async function uploadFile(file, isExtra) {
         if(!file) return;
-        const bar = document.getElementById('uploadProgress');
-        const fill = document.getElementById('uploadBar');
+        const bar = document.getElementById('upProg');
+        const fill = document.getElementById('upFill');
         bar.style.display = 'block';
         
-        const sRef = storage.ref('images/' + Date.now() + "_" + file.name);
-        const task = sRef.put(file);
+        const ref = storage.ref('images/' + Date.now() + "_" + file.name);
+        const task = ref.put(file);
         
         task.on('state_changed', 
-            (s) => fill.style.width = (s.bytesTransferred / s.totalBytes * 100) + "%",
-            (e) => { alert("Hiba! Ellenőrizd a Firebase Storage szabályokat!"); bar.style.display = 'none'; },
+            s => fill.style.width = (s.bytesTransferred / s.totalBytes * 100) + "%",
+            e => { alert("Hiba!"); bar.style.display = 'none'; },
             async () => {
-                const url = await sRef.getDownloadURL();
+                const url = await ref.getDownloadURL();
                 bar.style.display = 'none';
                 if(isExtra && currentId) {
-                    listRef.child(currentId).update({ img: url });
+                    await listRef.child(currentId).update({ img: url });
+                    // Frissítés után újra megnyitjuk a nézetet az új képpel
+                    const snap = await listRef.child(currentId).get();
+                    const d = snap.val();
+                    openNoteMenu(currentId, d.text, d.note, d.img);
                 } else {
-                    tempImgUrl = url;
-                    document.getElementById('fileLabel').innerText = "✅ Kép feltöltve";
+                    tempUrl = url;
+                    document.getElementById('fileLab').innerText = "✅ Kép OK";
                 }
             }
         );
     }
 
-    document.getElementById('fileInput').onchange = (e) => handleUpload(e.target.files[0], false);
-    document.getElementById('fileInputExtra').onchange = (e) => handleUpload(e.target.files[0], true);
+    document.getElementById('fileIn').onchange = (e) => uploadFile(e.target.files[0], false);
+    document.getElementById('fileInExtra').onchange = (e) => uploadFile(e.target.files[0], true);
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
         const n = document.getElementById('manualNote').value.trim();
         if(t) { 
-            listRef.push({ text: t, note: n, img: tempImgUrl, status: 'active', order: Date.now() }); 
-            closeModal('inputModal'); 
-            document.getElementById('manualInput').value=""; 
-            document.getElementById('manualNote').value=""; 
+            listRef.push({ text: t, note: n, img: tempUrl, status: 'active', order: Date.now() }); 
+            closeModal('inputModal');
+            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
         }
     }
 
     function openNoteMenu(id, text, note, img) {
         currentId = id;
         document.getElementById('noteMenuTitle').innerText = text;
-        
-        const imgArea = document.getElementById('itemImageArea');
+        const imgArea = document.getElementById('itemImgArea');
         const display = document.getElementById('noteTextDisplay');
         
         imgArea.innerHTML = img ? `<img src="${img}" class="img-preview" onclick="window.open('${img}')">` : 
-            `<div class="upload-area" onclick="document.getElementById('fileInputExtra').click()">📷 Kép hozzáadása</div>`;
+            `<div class="upload-area" onclick="document.getElementById('fileInExtra').click()">📷 Kép hozzáadása</div>`;
         
-        if(note && note.trim() !== "") {
-            display.innerHTML = `<span>${note}</span>
-                <div class="note-btns-overlay">
-                    <span onclick="switchToEdit()" style="cursor:pointer;">✏️</span>
-                    <span onclick="deleteNoteDirect()" style="cursor:pointer;">🗑️</span>
-                </div>`;
-        } else {
-            display.innerHTML = `<div style="color:#666; font-style:italic; cursor:pointer" onclick="switchToEdit()">Megjegyzés írása...</div>`;
-        }
+        display.innerHTML = `<span>${note || "Nincs megjegyzés"}</span>
+            <div class="note-btns-row">
+                <button class="note-icon" onclick="switchToEdit()">✏️</button>
+                <button class="note-icon" onclick="deleteNoteDirect()">🗑️</button>
+            </div>`;
         openModal('noteMenuModal');
     }
 
     function switchToEdit() {
         document.getElementById('noteContentArea').style.display = 'none';
         document.getElementById('noteEditArea').style.display = 'block';
-        const txt = document.getElementById('noteTextDisplay').querySelector('span')?.innerText || "";
-        document.getElementById('editNoteInput').value = txt;
+        const txt = document.getElementById('noteTextDisplay').querySelector('span').innerText;
+        document.getElementById('editNoteInput').value = (txt === "Nincs megjegyzés") ? "" : txt;
     }
 
     function saveNote() {
@@ -217,7 +190,7 @@
     }
 
     function deleteNoteDirect() {
-        if(confirm("Törlöd a megjegyzést?")) {
+        if(confirm("Törlöd?")) {
             listRef.child(currentId).update({ note: "" });
             closeModal('noteMenuModal');
         }
@@ -230,74 +203,22 @@
     });
 
     function render(items) {
-        const containers = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
-        Object.values(containers).forEach(c => c.innerHTML = '');
-
+        const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
+        Object.values(conts).forEach(c => c.innerHTML = '');
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
             wrap.innerHTML = `<div class="delete-reveal" onclick="db.ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
-            
             const div = document.createElement('div');
             div.className = 'item';
-            div.dataset.id = it.id;
-            
-            const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
             const hasExtra = (it.note && it.note.trim() !== "") || it.img;
-            
-            div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
+            div.innerHTML = `<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-sm ${hasExtra ? 'has-note-btn' : ''}" onclick="openNoteMenu('${it.id}', '${it.text}', '${it.note || ''}', '${it.img || ''}')">ℹ️</button>
-                    ${it.status === 'active' ? 
-                    `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
-                     <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
-                    `<button class="btn-sm" onclick="db.ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
+                    ${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>` : `<button class="btn-sm" onclick="db.ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
                 </div>`;
-            
-            if(it.status === 'active') initSortable(div, wrap);
-            initSwipe(div);
             wrap.appendChild(div);
-            if(containers[it.status]) containers[it.status].appendChild(wrap);
-        });
-    }
-
-    function initSwipe(el) {
-        let sX = 0;
-        el.addEventListener('touchstart', e => sX = e.touches[0].clientX);
-        el.addEventListener('touchmove', e => { 
-            let dX = sX - e.touches[0].clientX; 
-            if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; 
-        });
-        el.addEventListener('touchend', e => el.style.transform = (sX - e.changedTouches[0].clientX > 50) ? 'translateX(-75px)' : 'translateX(0)');
-    }
-
-    function initSortable(el, wrap) {
-        const handle = el.querySelector('.drag-handle');
-        if(!handle) return;
-        handle.addEventListener('pointerdown', e => {
-            const cont = document.getElementById('activeItems');
-            el.setPointerCapture(e.pointerId);
-            wrap.style.opacity = "0.5";
-            const onMove = ev => {
-                const after = [...cont.querySelectorAll('.item-wrapper')].reduce((closest, child) => {
-                    if(child === wrap) return closest;
-                    const box = child.getBoundingClientRect();
-                    const offset = ev.clientY - box.top - box.height/2;
-                    return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
-                }, { offset: Number.NEGATIVE_INFINITY }).element;
-                if(after) cont.insertBefore(wrap, after); else cont.appendChild(wrap);
-            };
-            const onUp = () => {
-                wrap.style.opacity = "1";
-                handle.releasePointerCapture(e.pointerId);
-                document.removeEventListener('pointermove', onMove);
-                document.removeEventListener('pointerup', onUp);
-                const updates = {};
-                document.querySelectorAll('#activeItems .item').forEach((item, i) => updates[item.dataset.id + '/order'] = Date.now() + i);
-                listRef.update(updates);
-            };
-            document.addEventListener('pointermove', onMove);
-            document.addEventListener('pointerup', onUp);
+            if(conts[it.status]) conts[it.status].appendChild(wrap);
         });
     }
 </script>
