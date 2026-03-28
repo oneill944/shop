@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.8</title>
+    <title>Lista Pro v0.9</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -16,10 +16,12 @@
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; }
         
-        .top-icons { display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 5px; font-size: 20px; }
-        .header { text-align: center; border-bottom: 1px solid #333; margin-bottom: 15px; padding-bottom: 10px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .v-num { font-size: 10px; color: #555; }
+        .top-icons { display: flex; gap: 15px; font-size: 20px; }
 
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; }
+        .header { text-align: center; border-bottom: 1px solid #333; margin-bottom: 15px; padding-bottom: 10px; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 2px; }
         .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
         
@@ -44,9 +46,12 @@
 <body class="dark">
 
 <div class="app-card">
-    <div class="top-icons">
-        <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
-        <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
+    <div class="top-bar">
+        <div class="v-num">v0.9</div>
+        <div class="top-icons">
+            <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
+            <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
+        </div>
     </div>
     
     <div class="header">
@@ -71,7 +76,12 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('addModal')">✕</div>
         <input type="text" id="addInput" placeholder="Termék neve...">
-        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">MEHET</button>
+        <textarea id="addNote" placeholder="Megjegyzés (opcionális)..."></textarea>
+        <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:10px; cursor:pointer; font-size:13px; margin-bottom:10px;">
+            📷 Fotó hozzáadása <input type="file" accept="image/*" style="display:none" onchange="previewImg(this)">
+        </label>
+        <img id="addPreview" style="width:100%; border-radius:10px; display:none; margin-bottom:10px;">
+        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">HOZZÁADÁS</button>
     </div>
 </div>
 
@@ -79,10 +89,7 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">✕</div>
         <h3 id="infoTitle" style="margin-top:0; text-align:center;"></h3>
-        <textarea id="infoNote" placeholder="Megjegyzés ide..."></textarea>
-        <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:10px; cursor:pointer; font-size:13px; margin-bottom:10px;">
-            📷 Fotó hozzáadása <input type="file" accept="image/*" style="display:none" onchange="upImg(this)">
-        </label>
+        <textarea id="infoNote" placeholder="Megjegyzés..."></textarea>
         <div id="imgCont" style="display:none; position:relative;">
             <img id="infoImg" style="width:100%; border-radius:10px; margin-bottom:10px;">
             <button onclick="delImg()" style="position:absolute; top:5px; right:5px; background:red; border:none; color:white; border-radius:50%; width:25px; height:25px;">×</button>
@@ -97,75 +104,12 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
 
-    let curId = null;
+    let curId = null, tempPhoto = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function addItem() {
-        const val = document.getElementById('addInput').value.trim();
-        if(val) { listRef.push({ text: val, status: 'active', order: Date.now() }); closeModal('addModal'); document.getElementById('addInput').value=""; }
-    }
-
-    listRef.on('value', snap => {
-        const data = snap.val() || {};
-        const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
-        Object.values(conts).forEach(c => c.innerHTML = '');
-
-        Object.keys(data).forEach(id => {
-            const it = data[id];
-            const wrap = document.createElement('div');
-            wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div class="delete-reveal" onclick="listRef.child('${id}').remove()">TÖRLÉS</div>`;
-            
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.dataset.id = id;
-            div.dataset.order = it.order || 0;
-            
-            const hasExtra = (it.note || it.photo) ? 'has-data' : '';
-            const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
-            
-            div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${hasExtra}" onclick="openInfo('${id}')">ℹ️</button>
-                    ${it.status === 'active' ? 
-                    `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${id}').update({status:'done'})">✔</button>
-                     <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${id}').update({status:'x'})">✖</button>` : 
-                    `<button class="btn-sm" onclick="listRef.child('${id}').update({status:'active'})">↩</button>`}
-                </div>`;
-            
-            if(it.status === 'active') initDrag(div, wrap);
-            initSwipe(div);
-            
-            const target = it.status === 'done' ? conts.done : (it.status === 'x' ? conts.x : conts.active);
-            target.appendChild(wrap);
-            
-            // Sorrendezés az aktív listában
-            if(it.status === 'active') {
-                const all = Array.from(conts.active.children);
-                all.sort((a,b) => a.querySelector('.item').dataset.order - b.querySelector('.item').dataset.order);
-                all.forEach(el => conts.active.appendChild(el));
-            }
-        });
-    });
-
-    function openInfo(id) {
-        curId = id;
-        listRef.child(id).once('value', s => {
-            const it = s.val();
-            document.getElementById('infoTitle').innerText = it.text;
-            document.getElementById('infoNote').value = it.note || "";
-            const img = document.getElementById('infoImg');
-            if(it.photo) { img.src = it.photo; document.getElementById('imgCont').style.display='block'; }
-            else { document.getElementById('imgCont').style.display='none'; }
-            openModal('infoModal');
-        });
-    }
-
-    function saveInfo() { listRef.child(curId).update({ note: document.getElementById('infoNote').value }); closeModal('infoModal'); }
-    
-    function upImg(input) {
+    function previewImg(input) {
         if (!input.files[0]) return;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -176,13 +120,79 @@
                 if (w > max) { h *= max/w; w = max; }
                 canvas.width = w; canvas.height = h;
                 canvas.getContext('2d').drawImage(img,0,0,w,h);
-                listRef.child(curId).update({ photo: canvas.toDataURL('image/jpeg', 0.6) }).then(() => openInfo(curId));
+                tempPhoto = canvas.toDataURL('image/jpeg', 0.6);
+                const prev = document.getElementById('addPreview');
+                prev.src = tempPhoto; prev.style.display = 'block';
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
 
+    function addItem() {
+        const text = document.getElementById('addInput').value.trim();
+        const note = document.getElementById('addNote').value.trim();
+        if(text) {
+            listRef.push({ text, note, photo: tempPhoto, status: 'active', order: Date.now() });
+            closeModal('addModal');
+            document.getElementById('addInput').value = "";
+            document.getElementById('addNote').value = "";
+            document.getElementById('addPreview').style.display = 'none';
+            tempPhoto = "";
+        }
+    }
+
+    listRef.on('value', snap => {
+        const data = snap.val() || {};
+        const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
+        Object.values(conts).forEach(c => c.innerHTML = '');
+
+        const allItems = Object.keys(data).map(id => ({ id, ...data[id] }));
+        allItems.sort((a,b) => (a.order || 0) - (b.order || 0));
+
+        allItems.forEach(it => {
+            const wrap = document.createElement('div');
+            wrap.className = 'item-wrapper';
+            wrap.innerHTML = `<div class="delete-reveal" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
+            
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.dataset.id = it.id;
+            
+            const hasExtra = (it.note || it.photo) ? 'has-data' : '';
+            const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
+            
+            div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-sm ${hasExtra}" onclick="openInfo('${it.id}')">ℹ️</button>
+                    ${it.status === 'active' ? 
+                    `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button>
+                     <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : 
+                    `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}
+                </div>`;
+            
+            if(it.status === 'active') initDrag(div, wrap);
+            initSwipe(div);
+            
+            const target = it.status === 'done' ? conts.done : (it.status === 'x' ? conts.x : conts.active);
+            target.appendChild(wrap);
+        });
+    });
+
+    function openInfo(id) {
+        curId = id;
+        listRef.child(id).once('value', s => {
+            const it = s.val();
+            document.getElementById('infoTitle').innerText = it.text;
+            document.getElementById('infoNote').value = it.note || "";
+            const imgCont = document.getElementById('imgCont');
+            if(it.photo) { document.getElementById('infoImg').src = it.photo; imgCont.style.display='block'; }
+            else { imgCont.style.display='none'; }
+            openModal('infoModal');
+        });
+    }
+
+    function saveInfo() { listRef.child(curId).update({ note: document.getElementById('infoNote').value }); closeModal('infoModal'); }
     function delImg() { if(confirm("Törlöd a fotót?")) listRef.child(curId).update({ photo: "" }).then(() => openInfo(curId)); }
 
     function startVoice() {
