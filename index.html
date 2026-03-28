@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.3.6</title>
+    <title>Lista Pro v0.3.7</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -24,18 +24,19 @@
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 40px 20px 20px; position: relative; border: 1px solid var(--border); }
         .close-x { position: absolute; top: 5px; right: 10px; background: none; color: var(--text); font-size: 22px; border: none; padding: 8px; opacity: 0.7; }
-        .img-preview { width: 100%; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); display: block; }
+        .img-preview { width: 100%; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid var(--border); display: block; }
+        .full-screen-img { display: none; position: fixed; inset: 0; background: #000; z-index: 3000; justify-content: center; align-items: center; }
+        .full-screen-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
-        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .upload-placeholder { border: 1px dashed #555; padding: 12px; text-align: center; border-radius: 10px; color: #888; cursor: pointer; margin-bottom: 10px; }
+        .upload-placeholder { border: 1px dashed #555; padding: 12px; text-align: center; border-radius: 10px; color: #888; cursor: pointer; margin-bottom: 10px; font-size: 13px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.3.6</div>
+        <div style="font-size:10px; color:#444;">v0.3.7</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
     </div>
     <h2 style="text-align:center; font-size:19px; margin-bottom:20px;">BEVÁSÁRLÓ LISTA</h2>
@@ -70,9 +71,13 @@
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
         <div id="inputImgBtn" class="upload-placeholder" onclick="document.getElementById('manualFile').click()">📷 Kép hozzáadása</div>
-        <input type="file" id="manualFile" hidden accept="image/*" onchange="document.getElementById('inputImgBtn').innerText='✅ Kép kijelölve'">
+        <input type="file" id="manualFile" hidden accept="image/*" onchange="uploadManualFile(this)">
         <button class="action-btn" id="addBtn" onclick="addItem()">HOZZÁADÁS</button>
     </div>
+</div>
+
+<div id="fullImgModal" class="full-screen-img" onclick="this.style.display='none'">
+    <img id="fullImgTag" src="">
 </div>
 
 <script>
@@ -86,52 +91,35 @@
     const db = firebase.database();
     const storage = firebase.storage();
     const listRef = db.ref('shoppingList');
+
     let currentId = null;
+    let manualImgUrl = "";
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    async function addItem() {
-        const title = document.getElementById('manualInput').value.trim();
-        const note = document.getElementById('manualNote').value.trim();
-        const file = document.getElementById('manualFile').files[0];
-        const btn = document.getElementById('addBtn');
-        
-        if (!title) return;
-        btn.disabled = true;
-        btn.innerText = "Töltés...";
-
-        let url = "";
-        if (file) {
-            try {
-                const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
-                const task = await sRef.put(file);
-                url = await task.ref.getDownloadURL();
-            } catch (e) { alert("Hiba a képnél!"); }
-        }
-
-        await listRef.push({ text: title, note: note, img: url, status: 'active', order: Date.now() });
-        
-        btn.disabled = false;
-        btn.innerText = "HOZZÁADÁS";
-        document.getElementById('manualInput').value = "";
-        document.getElementById('manualNote').value = "";
-        document.getElementById('manualFile').value = "";
-        document.getElementById('inputImgBtn').innerText = "📷 Kép hozzáadása";
-        closeModal('inputModal');
+    async function uploadManualFile(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const btn = document.getElementById('inputImgBtn');
+        btn.innerText = "⏳ Feltöltés...";
+        const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
+        try {
+            const snap = await sRef.put(file);
+            manualImgUrl = await snap.ref.getDownloadURL();
+            btn.innerText = "✅ Kép OK";
+        } catch(e) { btn.innerText = "❌ Hiba"; }
     }
 
     async function uploadExtra(input) {
         const file = input.files[0];
         if(!file || !currentId) return;
-        input.previousElementSibling.innerText = "⌛...";
-        try {
-            const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
-            const task = await sRef.put(file);
-            const url = await task.ref.getDownloadURL();
-            await listRef.child(currentId).update({ img: url });
-            closeModal('detailsModal');
-        } catch (e) { alert("Hiba!"); }
+        input.previousElementSibling.innerText = "⏳...";
+        const sRef = storage.ref('photos/' + Date.now() + "_" + file.name);
+        const snap = await sRef.put(file);
+        const url = await snap.ref.getDownloadURL();
+        await listRef.child(currentId).update({ img: url });
+        closeModal('detailsModal');
     }
 
     function openDetails(id, text, note, img) {
@@ -140,17 +128,22 @@
         const imgCont = document.getElementById('detImgContainer');
         const noteView = document.getElementById('detNoteView');
         
-        imgCont.innerHTML = img ? `<img src="${img}" class="img-preview" onclick="window.open('${img}')"><button class="action-btn" style="background:none; color:red; margin-bottom:10px;" onclick="deleteImage()">Kép törlése</button>` : 
+        imgCont.innerHTML = img ? `<img src="${img}" class="img-preview" onclick="showFullImage('${img}')"><button style="width:100%; margin-bottom:10px; background:none; border:1px solid #555; color:#888; padding:5px; border-radius:5px;" onclick="deleteImage()">Kép törlése</button>` : 
             `<div onclick="document.getElementById('exFile').click()" class="upload-placeholder">📷 Kép pótlása</div><input type="file" id="exFile" hidden accept="image/*" onchange="uploadExtra(this)">`;
 
-        noteView.innerHTML = note ? `<div style="padding:15px; background:rgba(255,255,255,0.05); border-radius:10px;">${note}<br><br><span onclick="deleteNote()" style="cursor:pointer; opacity:0.5;">🗑️ Törlés</span></div>` : 
-            `<div onclick="switchToEdit('')" style="border:1px dashed #555; padding:10px; border-radius:10px; text-align:center;">➕ Jegyzet</div>`;
+        noteView.innerHTML = note ? `<div style="padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; text-align:center;">${note}<div style="margin-top:10px; border-top:1px solid #333; padding-top:10px; display:flex; justify-content:center; gap:20px;"><span onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)" style="cursor:pointer;">✏️</span><span onclick="deleteNote()" style="cursor:pointer;">🗑️</span></div></div>` : 
+            `<div onclick="switchToEdit('')" style="text-align:center; color:#555; border:1px dashed #555; padding:15px; border-radius:10px; cursor:pointer;">➕ Megjegyzés</div>`;
         
+        document.getElementById('detEditView').style.display = 'none';
+        noteView.style.display = 'block';
         openModal('detailsModal');
     }
 
+    function showFullImage(src) { document.getElementById('fullImgTag').src = src; document.getElementById('fullImgModal').style.display = 'flex'; }
     async function deleteImage() { if(confirm("Törlöd?")) { await listRef.child(currentId).update({img:""}); closeModal('detailsModal'); } }
     async function deleteNote() { if(confirm("Törlöd?")) { await listRef.child(currentId).update({note:""}); closeModal('detailsModal'); } }
+    function switchToEdit(val) { document.getElementById('detNoteView').style.display = 'none'; document.getElementById('detEditView').style.display = 'block'; document.getElementById('editNoteInput').value = val; }
+    function saveNote() { listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value.trim() }); closeModal('detailsModal'); }
 
     function render(items) {
         const c = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
@@ -158,20 +151,32 @@
         items.sort((a,b)=>a.order-b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div style="position:absolute;right:0;width:75px;height:100%;background:red;display:flex;align-items:center;justify-content:center;color:white;" onclick="listRef.child('${it.id}').remove()">TÖRÖL</div>`;
+            wrap.innerHTML = `<div style="position:absolute;right:0;width:75px;height:100%;background:var(--danger);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
             const div = document.createElement('div');
             div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
-            const has = it.note || it.img;
+            const has = (it.note && it.note.trim() !== "") || (it.img && it.img !== "");
             div.innerHTML = `<span style="flex:1;">${it.text}</span><div style="display:flex; gap:5px;">
                 <button class="btn-sm ${has?'info-has-content':''}" onclick="openDetails('${it.id}','${it.text.replace(/'/g,"\\'")}','${(it.note||'').replace(/'/g,"\\'")}','${it.img||''}')">ℹ️</button>
-                ${it.status==='active'? `<button class="btn-sm" style="background:green" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:red" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
+                ${it.status==='active'? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             wrap.appendChild(div);
             c[it.status==='done'?'done':(it.status==='x'?'x':'active')].appendChild(wrap);
         });
     }
 
     listRef.on('value', s => { const d = s.val(); render(d ? Object.keys(d).map(k=>({id:k,...d[k]})) : []); });
-    function clearAllItems() { if(confirm("Mindent?")) listRef.remove(); }
+
+    function addItem() {
+        const t = document.getElementById('manualInput').value.trim();
+        const n = document.getElementById('manualNote').value.trim();
+        if(t) { 
+            listRef.push({ text: t, note: n, img: manualImgUrl, status: 'active', order: Date.now() }); 
+            closeModal('inputModal');
+            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
+            document.getElementById('inputImgBtn').innerText = "📷 Kép hozzáadása";
+            manualImgUrl = "";
+        }
+    }
+    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 </script>
 </body>
 </html>
