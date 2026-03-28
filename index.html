@@ -3,42 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v3.3.1</title>
+    <title>Lista Pro v0.1.1</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --yellow: #ffff00; }
         body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; user-select: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; user-select: none; -webkit-user-select: none; }
         input, textarea { user-select: text; -webkit-user-select: text; }
 
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; }
+        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .v-num { font-size: 10px; color: #555; }
-        .top-icons { display: flex; gap: 20px; font-size: 22px; align-items: center; }
+        .version { font-size: 10px; color: #555; }
+        .top-icons { display: flex; gap: 15px; align-items: center; font-size: 20px; }
 
-        .header { text-align: center; border-bottom: 1px solid #333; margin-bottom: 15px; padding-bottom: 10px; }
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 2px; }
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
+        .header { text-align: center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 15px; }
+        #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; }
+
+        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
         
-        .drag-handle { cursor: grab; color: #444; font-size: 20px; padding-right: 5px; }
-        .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
-        .has-data { background: var(--yellow) !important; color: #000 !important; }
-
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
+        .drag-handle { cursor: grab; color: #555; font-size: 18px; padding-right: 5px; }
+        
         #doneItems .item { background: var(--success) !important; color: white; }
         #missingItems .item { background: var(--danger) !important; color: white; }
 
+        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
+        .has-data { background: var(--yellow) !important; color: #000 !important; }
+
+        .col-label { text-align: center; font-size: 10px; color: #666; font-weight: bold; margin: 15px 0 5px; }
+
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 330px; border-radius: 18px; padding: 30px 20px 20px; position: relative; border: 1px solid #444; }
-        .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; cursor: pointer; z-index: 2100; }
+        .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; cursor: pointer; }
 
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; }
-        .col-label { text-align: center; font-size: 10px; color: #666; font-weight: bold; margin-bottom: 5px; margin-top: 15px; }
-
         @keyframes pulse { 50% { background: red; } }
         .recording { animation: pulse 1s infinite; }
     </style>
@@ -47,15 +50,16 @@
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="v-num">v3.3.1</div>
+        <div class="version">v0.1.1</div>
         <div class="top-icons">
             <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
-            <span onclick="if(confirm('MINDENT törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
+            <span onclick="if(confirm('Mindent törölsz?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
         </div>
     </div>
     
     <div class="header">
         <h2 style="margin:0 0 10px; font-size: 18px;">KÖZÖS LISTA</h2>
+        <button id="notifBtn" onclick="toggleNotif()">🔔 Értesítések</button>
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -65,7 +69,7 @@
 
     <div id="activeItems" class="list-container"></div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
         <div><div class="col-label">MEGVAN</div><div id="doneItems" class="list-container"></div></div>
         <div><div class="col-label">NINCS</div><div id="missingItems" class="list-container"></div></div>
     </div>
@@ -88,7 +92,7 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">✕</div>
         <h3 id="infoTitle" style="margin-top:0; text-align:center;"></h3>
-        <textarea id="infoNote" placeholder="Megjegyzés módosítása..."></textarea>
+        <textarea id="infoNote" placeholder="Megjegyzés..."></textarea>
         <div id="imgCont" style="display:none; position:relative;">
             <img id="infoImg" style="width:100%; border-radius:10px; margin-bottom:10px;">
             <button onclick="delImg()" style="position:absolute; top:5px; right:5px; background:red; border:none; color:white; border-radius:50%; width:25px; height:25px;">×</button>
@@ -220,6 +224,10 @@
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp, {once:true});
         });
+    }
+
+    function toggleNotif() {
+        Notification.requestPermission().then(p => { if(p==='granted') document.getElementById('notifBtn').style.background = 'var(--success)'; });
     }
 </script>
 </body>
