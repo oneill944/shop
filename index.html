@@ -7,78 +7,42 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root {
-            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-            --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #333;
-        }
-        body.light {
-            --bg: #f0f0f7; --card: #ffffff; --text: #1c1c1e;
-            --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea;
-        }
-        * { -webkit-tap-highlight-color: transparent; user-select: none !important; -webkit-user-select: none !important; box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; transition: 0.2s; position: relative; }
-        
+        :root { --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #333; }
+        body.light { --bg: #f0f0f7; --card: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 10px; overflow-x: hidden; position: relative; }
         .version { position: absolute; top: 5px; left: 10px; font-size: 10px; color: #444; }
         .header { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; padding-top: 15px; }
-        .theme-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; border: none; background: none; color: var(--text); cursor: pointer; }
-
+        .theme-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; border: none; background: none; cursor: pointer; color: var(--text); }
         .btn-row { display: flex; gap: 8px; margin-bottom: 15px; }
         .main-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 13px; color: white; text-transform: uppercase; cursor: pointer; }
-
-        .list-container { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
-
+        .list-container { display: flex; flex-direction: column; gap: 6px; }
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .column-label { text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; padding: 10px; border-radius: 8px; color: var(--text); background: var(--grey); }
-
-        .item { background: var(--card); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; touch-action: none; border: 1px solid transparent; }
-        .item.dragging { opacity: 0.7; background: #333; border: 1px dashed var(--primary); transform: scale(1.02); z-index: 100; }
-        
+        .column-label { text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 8px; padding: 10px; border-radius: 8px; background: var(--grey); }
+        .item { background: var(--card); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; border: 1px solid transparent; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
-        
-        .item-text { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .actions { display: flex; gap: 4px; }
-        
-        .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.15); }
-        .btn-check-full { background: #4caf50 !important; }
-        .btn-x-full { background: #f44336 !important; }
-
-        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: flex-start; padding-top: 20vh; z-index: 1000; }
-        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 85%; max-width: 320px; border: 1px solid #444; }
-        .modal-content input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #555; background: var(--bg); color: var(--text); font-size: 18px; outline: none; -webkit-user-select: text !important; user-select: text !important; }
-
+        .item-text { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: none; }
+        .btn-sm { border: none; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.15); }
+        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 1000; }
+        .modal-content { background: var(--card); padding: 20px; border-radius: 15px; width: 90%; max-width: 320px; }
+        .modal-content input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #555; background: var(--bg); color: var(--text); font-size: 18px; outline: none; }
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 30px; width: 100%; padding: 12px; font-size: 11px; border-radius: 8px; font-weight: bold; opacity: 0.6; }
-        #notifBtn { font-size: 10px; background: #333; color: #888; border: none; padding: 6px 12px; border-radius: 20px; margin-bottom: 5px; cursor: pointer; }
     </style>
 </head>
 <body class="dark">
-
-    <div class="version">v1.3</div>
-    <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
-
-    <div class="header">
-        <h2 style="margin:0; letter-spacing: 2px;">BEVÁSÁRLÓ LISTA</h2>
-        <button id="notifBtn" onclick="requestNotificationPermission()">🔔 Értesítések aktiválása</button>
-    </div>
-
+    <div class="version">v1.4</div>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    <div class="header"><h2>BEVÁSÁRLÓ LISTA</h2></div>
     <div class="btn-row">
         <button id="micBtn" class="main-btn" style="background: var(--primary);">🎤 HANG</button>
         <button id="writeBtn" class="main-btn" style="background: var(--grey); color: var(--text);">⌨️ ÍRÁS</button>
     </div>
-
     <div id="activeItems" class="list-container"></div>
-    
     <div class="bottom-grid">
-        <div>
-            <div class="column-label">TALÁLTAM</div>
-            <div id="doneItems" class="list-container"></div>
-        </div>
-        <div>
-            <div class="column-label">NINCS</div>
-            <div id="missingItems" class="list-container"></div>
-        </div>
+        <div><div class="column-label">TALÁLTAM</div><div id="doneItems" class="list-container"></div></div>
+        <div><div class="column-label">NINCS</div><div id="missingItems" class="list-container"></div></div>
     </div>
-    
     <button class="clear-all" onclick="clearAll()">LISTA TÖRLÉSE</button>
 
     <div id="inputModal">
@@ -97,36 +61,22 @@
             databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "kozoslista-e0717"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const listRef = db.ref('shoppingList');
-
         let shoppingList = [];
         let isFirstLoad = true;
-        let recognition;
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-        function requestNotificationPermission() {
-            Notification.requestPermission().then(p => {
-                if (p === "granted") {
-                    document.getElementById('notifBtn').innerText = "✅ Értesítések aktívak";
-                    document.getElementById('notifBtn').style.display = "none";
-                }
-            });
-        }
-
-        // AZONNALI FRISSÜLÉS JAVÍTVA
         listRef.on('value', (snapshot) => {
             const data = snapshot.val();
             const newList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             
             if (!isFirstLoad && newList.length > shoppingList.length) {
                 const newest = newList[newList.length - 1];
-                if (newest.status === 'active' && Notification.permission === "granted") {
-                    new Notification("Bevásárló lista", { body: newest.text, silent: false });
-                    audio.play().catch(() => {});
-                    if ("vibrate" in navigator) navigator.vibrate([100, 50, 100]);
+                if (newest.status === 'active') {
+                    if (Notification.permission === "granted") {
+                        new Notification("Bevásárló lista", { body: "Új termék a listán: " + newest.text });
+                    }
                 }
             }
             shoppingList = newList;
@@ -134,76 +84,36 @@
             renderAll();
         });
 
-        function toggleTheme() {
-            document.body.classList.toggle('light');
-            document.getElementById('tBtn').innerText = document.body.classList.contains('light') ? '☀️' : '🌙';
+        function renderAll() {
+            const containers = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
+            Object.values(containers).forEach(c => c.innerHTML = '');
+            shoppingList.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `item ${item.status === 'done' ? 'checked' : (item.status === 'x' ? 'cancelled' : '')}`;
+                div.innerHTML = `<span class="item-text">${item.text}</span>
+                    <div class="actions">
+                        ${item.status === 'active' ? `<button class="btn-sm" style="background:#4caf50" onclick="updateStatus('${item.id}','done')">✔</button>
+                        <button class="btn-sm" style="background:#f44336" onclick="updateStatus('${item.id}','x')">✖</button>` : ''}
+                        <button class="btn-sm" onclick="deleteItem('${item.id}')">🗑</button>
+                    </div>`;
+                const target = item.status === 'active' ? containers.active : (item.status === 'done' ? containers.done : containers.x);
+                target.appendChild(div);
+            });
         }
 
-        // AZONNALI FÓKUSZ JAVÍTVA
-        document.getElementById('writeBtn').addEventListener('click', (e) => {
-            const modal = document.getElementById('inputModal');
-            const input = document.getElementById('manualInput');
-            modal.style.display = 'flex';
-            setTimeout(() => { input.focus(); }, 50);
-        });
-
-        function closeModal() { document.getElementById('inputModal').style.display = 'none'; document.getElementById('manualInput').value = ''; }
-        function handleManualAdd() { const val = document.getElementById('manualInput').value.trim(); if(val) { addItem(val); closeModal(); } }
-        document.getElementById('manualInput').onkeypress = (e) => { if (e.key === "Enter") handleManualAdd(); };
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'hu-HU';
-            recognition.onresult = (e) => { addItem(e.results[0][0].transcript); recognition.stop(); };
-        }
-
-        document.getElementById('micBtn').onclick = () => {
-            recognition.start();
-            document.getElementById('micBtn').innerText = "🛑 FIGYELEK...";
-            setTimeout(() => { document.getElementById('micBtn').innerText = "🎤 HANG"; }, 3000);
+        document.getElementById('writeBtn').onclick = () => {
+            document.getElementById('inputModal').style.display = 'flex';
+            document.getElementById('manualInput').focus();
         };
 
-        function addItem(text) { listRef.push({ text: text, status: 'active', order: Date.now(), time: Date.now() }); }
-        function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus, time: Date.now() }); }
+        function closeModal() { document.getElementById('inputModal').style.display = 'none'; document.getElementById('manualInput').value = ''; }
+        function handleManualAdd() { const val = document.getElementById('manualInput').value.trim(); if(val) { listRef.push({ text: val, status: 'active', time: Date.now() }); closeModal(); } }
+        document.getElementById('manualInput').onkeypress = (e) => { if(e.key === 'Enter') handleManualAdd(); };
+        function updateStatus(id, s) { listRef.child(id).update({ status: s }); }
         function deleteItem(id) { if(confirm("Törlöd?")) listRef.child(id).remove(); }
-
-        function renderAll() {
-            const act = document.getElementById('activeItems');
-            const don = document.getElementById('doneItems');
-            const mis = document.getElementById('missingItems');
-            act.innerHTML = ''; don.innerHTML = ''; mis.innerHTML = '';
-
-            const activeItems = shoppingList.filter(i => i.status === 'active').sort((a, b) => a.order - b.order);
-            const doneItems = shoppingList.filter(i => i.status === 'done').sort((a,b) => b.time - a.time);
-            const missingItems = shoppingList.filter(i => i.status === 'x').sort((a,b) => b.time - a.time);
-
-            activeItems.forEach(item => act.appendChild(createItemEl(item, true)));
-            doneItems.forEach(item => don.appendChild(createItemEl(item, false)));
-            missingItems.forEach(item => mis.appendChild(createItemEl(item, false)));
-        }
-
-        function createItemEl(item, isActive) {
-            const div = document.createElement('div');
-            div.className = `item ${item.status === 'done' ? 'checked' : (item.status === 'x' ? 'cancelled' : '')}`;
-            div.dataset.id = item.id;
-            div.innerHTML = `
-                <span class="item-text">${item.text}</span>
-                <div class="actions">
-                    ${item.status === 'active' ? `
-                        <button class="btn-sm btn-check-full" onclick="updateStatus('${item.id}', 'done')">✔</button>
-                        <button class="btn-sm btn-x-full" onclick="updateStatus('${item.id}', 'x')">✖</button>
-                        <button class="btn-sm" onclick="deleteItem('${item.id}')">🗑</button>
-                    ` : `
-                        <button class="btn-sm" onclick="updateStatus('${item.id}', 'active')">↩</button>
-                        <button class="btn-sm" onclick="deleteItem('${item.id}')">🗑</button>
-                    `}
-                </div>
-            `;
-            return div;
-        }
-
+        function toggleTheme() { document.body.classList.toggle('light'); }
         function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
+        if (Notification.permission !== "granted") Notification.requestPermission();
     </script>
 </body>
 </html>
