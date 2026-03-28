@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.2.4</title>
+    <title>Lista Pro v0.2.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
-        :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --yellow: #ffff00; }
-        body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; }
+        :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; }
+        body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; --border: #ccc; }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; }
@@ -17,61 +17,42 @@
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .clear-all-btn { background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.5; }
+        .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
 
-        /* JAVÍTOTT SZOLID CÍMKÉK */
-        .col-label { 
-            font-size: 10px; 
-            text-align: center; 
-            color: #aaa; 
-            margin: 10px auto 8px; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            background: var(--grey); /* Olyan mint az írás gomb */
-            padding: 4px 12px;
-            border-radius: 20px;
-            display: table; /* Csak akkora legyen, amekkora a szöveg */
-        }
-
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; padding: 5px 0; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: #000; }
-        
-        .item { 
-            background: var(--item-bg); 
-            padding: 10px 12px; 
-            border-radius: 10px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            position: relative; 
-            z-index: 5; 
-            transition: transform 0.2s ease-out; 
-            border: 1px solid transparent; 
-        }
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s ease-out; border: 1px solid transparent; }
         
         .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
         .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
 
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; }
-        .has-note-btn { background: var(--yellow) !important; color: #000 !important; }
+        .has-note-btn { background: #555 !important; } /* Sárga helyett szürke az 'i' gomb ha van tartalom */
 
-        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 75px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
-
-        /* MODAL */
+        /* MODAL & RÉSZLETEK JAVÍTÁSA */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 30px 20px 20px; position: relative; border: 1px solid #333; }
-        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 30px 20px 20px; position: relative; border: 1px solid var(--border); }
+        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; border:none; outline:none; }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; outline: none; }
+        .note-display-box { border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: rgba(255,255,255,0.02); }
+        .note-text-content { padding: 15px; text-align: center; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+        .note-divider { height: 1px; background: var(--border); width: 90%; margin: 0 auto; }
+        .note-footer-actions { display: flex; justify-content: center; gap: 25px; padding: 10px; }
+        .note-icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; filter: grayscale(1); opacity: 0.8; }
+        .note-icon-btn:hover { opacity: 1; filter: grayscale(0); }
+
+        .img-area-box { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); min-height: 100px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div style="font-size:10px; color:#444;">v0.2.4</div>
+        <div style="font-size:10px; color:#444;">v0.2.5</div>
         <div style="display:flex; gap:15px; align-items:center;">
-            <button onclick="clearAllItems()" class="clear-all-btn">🗑️</button>
+            <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
         </div>
     </div>
@@ -87,39 +68,36 @@
     <div id="activeItems" class="list-container"></div>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-        <div>
-            <div class="col-label">Megvan</div>
-            <div id="doneItems" class="list-container"></div>
-        </div>
-        <div>
-            <div class="col-label">Nincs</div>
-            <div id="missingItems" class="list-container"></div>
-        </div>
-    </div>
-</div>
-
-<div id="inputModal" class="custom-modal">
-    <div class="modal-content">
-        <div class="close-x" onclick="closeModal('inputModal')">✕</div>
-        <input type="text" id="manualInput" placeholder="Termék neve...">
-        <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        <div id="fileBtn" onclick="document.getElementById('fileIn').click()" style="border:1px dashed #444; padding:15px; text-align:center; border-radius:10px; color:#888; cursor:pointer;">📷 Kép hozzáadása</div>
-        <input type="file" id="fileIn" hidden accept="image/*">
-        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold; margin-top:15px;">HOZZÁADÁS</button>
+        <div><div class="col-label">Megvan</div><div id="doneItems" class="list-container"></div></div>
+        <div><div class="col-label">Nincs</div><div id="missingItems" class="list-container"></div></div>
     </div>
 </div>
 
 <div id="detailsModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('detailsModal')">✕</div>
-        <h3 id="detTitle" style="margin-top:0; text-align:center; font-size:17px;"></h3>
-        <div id="detImgArea" style="width:100%; border-radius:12px; margin-bottom:15px; border:1px solid #333; min-height:100px; display:flex; align-items:center; justify-content:center; background:#000; overflow:hidden;"></div>
-        <div id="detNoteView"></div>
+        <button class="close-x" onclick="closeModal('detailsModal')">✕</button>
+        <h3 id="detTitle" style="margin-top:0; text-align:center; font-size:17px; margin-bottom:15px;"></h3>
+        <div id="detImgArea" class="img-area-box"></div>
+        
+        <div id="detNoteView">
+            </div>
+
         <div id="detEditView" style="display:none;">
             <textarea id="editNoteInput" rows="5"></textarea>
             <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">MENTÉS</button>
         </div>
         <input type="file" id="fileInExtra" hidden accept="image/*">
+    </div>
+</div>
+
+<div id="inputModal" class="custom-modal">
+    <div class="modal-content">
+        <button class="close-x" onclick="closeModal('inputModal')">✕</button>
+        <input type="text" id="manualInput" placeholder="Termék neve...">
+        <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
+        <div id="fileBtn" onclick="document.getElementById('fileIn').click()" style="border:1px dashed #444; padding:15px; text-align:center; border-radius:10px; color:#888; cursor:pointer;">📷 Kép hozzáadása</div>
+        <input type="file" id="fileIn" hidden accept="image/*">
+        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold; margin-top:15px;">HOZZÁADÁS</button>
     </div>
 </div>
 
@@ -142,50 +120,59 @@
         document.getElementById(id).style.display = 'none';
         document.getElementById('detNoteView').style.display = 'block';
         document.getElementById('detEditView').style.display = 'none';
-        tempUrl = ""; 
     }
 
-    async function handleFile(file, isExtra) {
-        if(!file) return;
-        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        if(isExtra && currentId) {
-            await listRef.child(currentId).update({ img: url });
-            refreshDetails(currentId);
+    function openDetails(id, text, note, img) {
+        currentId = id;
+        document.getElementById('detTitle').innerText = text;
+        const imgArea = document.getElementById('detImgArea');
+        imgArea.innerHTML = img ? `<img src="${img}" style="width:100%" onclick="window.open('${img}')">` : `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555; cursor:pointer">📷 Kép hozzáadása</div>`;
+        
+        const noteView = document.getElementById('detNoteView');
+        if(note && note.trim() !== "") {
+            noteView.innerHTML = `
+                <div class="note-display-box">
+                    <div class="note-text-content">${note}</div>
+                    <div class="note-divider"></div>
+                    <div class="note-footer-actions">
+                        <button class="note-icon-btn" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
+                        <button class="note-icon-btn" onclick="deleteNote()">🗑️</button>
+                    </div>
+                </div>`;
         } else {
-            tempUrl = url;
-            document.getElementById('fileBtn').innerText = "✅ Kép OK";
+            noteView.innerHTML = `<div style="border:1px dashed var(--border); padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
+        }
+        openModal('detailsModal');
+    }
+
+    function switchToEdit(val) {
+        document.getElementById('detNoteView').style.display = 'none';
+        document.getElementById('detEditView').style.display = 'block';
+        document.getElementById('editNoteInput').value = val;
+    }
+
+    function saveNote() {
+        listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value.trim() });
+        closeModal('detailsModal');
+    }
+
+    function deleteNote() {
+        if(confirm("Törlöd a megjegyzést?")) {
+            listRef.child(currentId).update({ note: "" });
+            closeModal('detailsModal');
         }
     }
 
-    document.getElementById('fileIn').onchange = e => handleFile(e.target.files[0], false);
-    document.getElementById('fileInExtra').onchange = e => handleFile(e.target.files[0], true);
-
-    function addItem() {
-        const t = document.getElementById('manualInput').value.trim();
-        const n = document.getElementById('manualNote').value.trim();
-        if(t) { 
-            listRef.push({ text: t, note: n, img: tempUrl, status: 'active', order: Date.now() }); 
-            closeModal('inputModal');
-            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
-        }
-    }
-
-    function clearAllItems() { if(confirm("Törlöd a teljes listát?")) listRef.remove(); }
-
+    // Alap renderelés és egyéb funkciók...
     function render(items) {
         const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
         Object.values(conts).forEach(c => c.innerHTML = '');
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div class="delete-reveal" onclick="firebase.database().ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
-            
+            wrap.innerHTML = `<div style="position:absolute;right:0;top:0;bottom:0;width:75px;background:var(--danger);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;" onclick="firebase.database().ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
             const div = document.createElement('div');
-            let statusClass = it.status === 'done' ? "status-done" : (it.status === 'x' ? "status-x" : "");
-            div.className = `item ${statusClass}`;
-            
+            div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             const hasC = (it.note && it.note.trim() !== "") || it.img;
             div.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.text}</span>
                 <div style="display:flex; gap:5px;">
@@ -195,23 +182,16 @@
                     `<button class="btn-sm" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
                 </div>`;
             
-            initSwipe(div);
+            let sX = 0;
+            div.addEventListener('touchstart', e => sX = e.touches[0].clientX);
+            div.addEventListener('touchmove', e => { 
+                let dX = sX - e.touches[0].clientX; 
+                if(dX > 10 && dX < 100) div.style.transform = `translateX(-${dX}px)`; 
+            });
+            div.addEventListener('touchend', e => div.style.transform = (sX - e.changedTouches[0].clientX > 50) ? 'translateX(-75px)' : 'translateX(0)');
+            
             wrap.appendChild(div);
-            const target = it.status==='done'?'done':(it.status==='x'?'x':'active');
-            if(conts[target]) conts[target].appendChild(wrap);
-        });
-    }
-
-    function initSwipe(el) {
-        let sX = 0;
-        el.addEventListener('touchstart', e => sX = e.touches[0].clientX);
-        el.addEventListener('touchmove', e => { 
-            let dX = sX - e.touches[0].clientX; 
-            if(dX > 10 && dX < 100) el.style.transform = `translateX(-${dX}px)`; 
-        });
-        el.addEventListener('touchend', e => {
-            let dX = sX - e.changedTouches[0].clientX;
-            el.style.transform = (dX > 50) ? 'translateX(-75px)' : 'translateX(0)';
+            conts[it.status==='done'?'done':(it.status==='x'?'x':'active')].appendChild(wrap);
         });
     }
 
@@ -220,40 +200,38 @@
         render(data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []);
     });
 
-    async function refreshDetails(id) {
-        const s = await listRef.child(id).get();
-        const d = s.val();
-        openDetails(id, d.text, d.note, d.img);
+    function addItem() {
+        const t = document.getElementById('manualInput').value.trim();
+        const n = document.getElementById('manualNote').value.trim();
+        if(t) { 
+            listRef.push({ text: t, note: n, img: tempUrl, status: 'active', order: Date.now() }); 
+            closeModal('inputModal');
+            document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
+            tempUrl = "";
+        }
     }
 
-    function openDetails(id, text, note, img) {
-        currentId = id;
-        document.getElementById('detTitle').innerText = text;
-        const imgArea = document.getElementById('detImgArea');
-        imgArea.innerHTML = img ? `<img src="${img}" style="width:100%" onclick="window.open('${img}')">` : `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555">📷 Kép hozzáadása</div>`;
-        const noteView = document.getElementById('detNoteView');
-        if(note && note.trim() !== "") {
-            noteView.innerHTML = `<div style="border:1px solid rgba(255,255,0,0.3); padding:15px; border-radius:12px; text-align:center;">
-                <div style="margin-bottom:15px; white-space:pre-wrap;">${note}</div>
-                <div style="display:flex; justify-content:center; gap:40px;">
-                    <button style="background:none; border:none; font-size:24px;" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
-                    <button style="background:none; border:none; font-size:24px;" onclick="if(confirm('Törlöd?')){listRef.child(currentId).update({note:''});closeModal('detailsModal');}">🗑️</button>
-                </div>
-            </div>`;
-        } else {
-            noteView.innerHTML = `<div style="border:1px dashed #444; padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
-        }
-        openModal('detailsModal');
-    }
-    function switchToEdit(val) {
-        document.getElementById('detNoteView').style.display = 'none';
-        document.getElementById('detEditView').style.display = 'block';
-        document.getElementById('editNoteInput').value = val;
-    }
-    function saveNote() {
-        listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value.trim() });
-        closeModal('detailsModal');
-    }
+    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
+    
+    document.getElementById('fileIn').onchange = async e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
+        await ref.put(file);
+        tempUrl = await ref.getDownloadURL();
+        document.getElementById('fileBtn').innerText = "✅ Kép OK";
+    };
+
+    document.getElementById('fileInExtra').onchange = async e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await listRef.child(currentId).update({ img: url });
+        const s = await listRef.child(currentId).get();
+        openDetails(currentId, s.val().text, s.val().note, s.val().img);
+    };
 </script>
 </body>
 </html>
