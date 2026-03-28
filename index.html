@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Compact List</title>
+    <title>Közös Bolt Lista</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
@@ -15,14 +17,10 @@
         }
         * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 8px; transition: 0.2s; overflow-x: hidden; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; padding: 5px; }
         .theme-btn { font-size: 20px; cursor: pointer; border: none; background: none; color: var(--text); }
-
         .btn-row { display: flex; gap: 5px; margin-bottom: 10px; }
         .main-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 12px; color: white; text-transform: uppercase; }
-        
-        /* JAVÍTOTT COMPACT MODAL */
         #inputModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000;
@@ -36,31 +34,26 @@
             background: var(--bg); color: var(--text); font-size: 18px; outline: none; display: block;
             user-select: text !important; -webkit-user-select: text !important;
         }
-
         .list-container { display: flex; flex-direction: column; gap: 5px; min-height: 50px; }
-        .item { 
-            background: var(--card); padding: 10px; border-radius: 8px; 
-            display: flex; align-items: center; gap: 8px; touch-action: none;
-        }
+        .item { background: var(--card); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; touch-action: none; }
         .item.dragging { opacity: 0.5; background: #444; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
-        
         .item-text { flex-grow: 1; font-size: 16px; pointer-events: none; }
         .actions { display: flex; gap: 5px; }
         .btn-sm { border: none; width: 34px; height: 34px; border-radius: 6px; font-size: 16px; display: flex; align-items: center; justify-content: center; color: white; }
         .btn-check { background: #4caf50; }
         .btn-x { background: #f44336; } 
         .btn-grey { background: var(--grey); color: var(--text); }
-        
         .summary-title { margin-top: 20px; border-top: 1px solid #444; padding-top: 10px; font-size: 11px; color: #888; text-transform: uppercase; }
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 15px; width: 100%; padding: 10px; font-size: 12px; border-radius: 8px; }
+        #loading { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body class="dark">
 
     <div class="header">
-        <h4 style="margin:0">BOLTOS</h4>
+        <h4 style="margin:0">KÖZÖS BOLT</h4>
         <button class="theme-btn" onclick="toggleTheme()" id="tBtn">🌙</button>
     </div>
 
@@ -69,35 +62,52 @@
         <button class="main-btn" style="background: var(--grey); color: var(--text);" ontouchstart="quickOpen(event)">⌨️ ÍRÁS</button>
     </div>
 
+    <div id="loading">Csatlakozás...</div>
     <div id="activeItems" class="list-container"></div>
-    <div class="summary-title">PIPA / X</div>
+    <div class="summary-title">KÉSZ / NINCS</div>
     <div id="doneItems" class="list-container"></div>
-    <button class="clear-all" onclick="clearAll()">LISTA ÜRÍTÉSE</button>
+    <button class="clear-all" onclick="clearAll()">MINDENT TÖRÖL</button>
 
     <div id="inputModal" onclick="if(event.target == this) closeModal()">
         <div class="modal-content">
             <input type="text" id="manualInput" placeholder="Termék..." autocomplete="off">
             <div class="btn-row" style="margin-bottom:0">
-                <button class="main-btn" style="background:#666; padding:8px;" onclick="closeModal()">MÉGSE</button>
-                <button class="main-btn" style="background:var(--primary); padding:8px;" onclick="handleManualAdd()">OK</button>
+                <button class="main-btn" style="background:#666;" onclick="closeModal()">MÉGSE</button>
+                <button class="main-btn" style="background:var(--primary);" onclick="handleManualAdd()">OK</button>
             </div>
         </div>
     </div>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('myShoppingList')) || [];
+        // BEÁLLÍTÁSOK
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE",
+            databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "kozoslista-e0717"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const listRef = db.ref('shoppingList');
+
+        let shoppingList = [];
         let isRecording = false;
         let recognition;
 
         const categories = {
             "1": ["alma", "banán", "hagyma", "paprika", "paradicsom", "krumpli", "répa", "uborka", "citrom", "narancs", "zöldség", "gyümölcs"],
             "2": ["hús", "szalámi", "sonka", "parizer", "virsli", "kolbász", "szalonna", "csirke", "májkrém"],
-            "3": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "tojás", "tejszín"],
-            "4": ["víz", "üdítő", "kóla", "sör", "bor", "kávé", "ásványvíz", "energiaital"],
+            "3": ["tej", "sajt", "vaj", "tejföl", "túró", "joghurt", "tojás"],
+            "4": ["víz", "üdítő", "kóla", "sör", "bor", "kávé", "ásványvíz"],
             "5": ["kenyér", "kifli", "zsemle", "pékáru", "zsömle", "bagett"]
         };
 
-        window.onload = renderAll;
+        listRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById('loading').style.display = 'none';
+            shoppingList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderAll();
+        });
 
         function toggleTheme() {
             document.body.classList.toggle('light');
@@ -109,8 +119,7 @@
             document.getElementById('inputModal').style.display = 'flex';
             const input = document.getElementById('manualInput');
             input.focus();
-            // Mobil fókusz kényszerítése
-            setTimeout(() => { input.focus(); input.click(); }, 50);
+            setTimeout(() => { input.focus(); input.click(); }, 100);
         }
 
         function closeModal() {
@@ -153,73 +162,58 @@
             for (const [key, list] of Object.entries(categories)) {
                 if (list.some(word => lowText.includes(word))) { order = parseInt(key); break; }
             }
-            shoppingList.push({ id: Date.now(), text: text, status: 'active', order: order });
-            shoppingList.sort((a, b) => (a.status === 'active' && b.status === 'active') ? a.order - b.order : 0);
-            saveAndRender();
+            listRef.push({ text: text, status: 'active', order: order, time: Date.now() });
         }
 
-        function updateStatus(id, newStatus) {
-            const i = shoppingList.findIndex(x => x.id === id);
-            if(i !== -1) { shoppingList[i].status = newStatus; saveAndRender(); }
-        }
-
-        function deleteItem(id) {
-            shoppingList = shoppingList.filter(x => x.id !== id);
-            saveAndRender();
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
-            renderAll();
-        }
+        function updateStatus(id, newStatus) { listRef.child(id).update({ status: newStatus }); }
+        function deleteItem(id) { listRef.child(id).remove(); }
 
         function renderAll() {
             const act = document.getElementById('activeItems');
             const don = document.getElementById('doneItems');
             act.innerHTML = ''; don.innerHTML = '';
 
-            shoppingList.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
-                div.dataset.id = item.id;
-                div.innerHTML = `
-                    <span class="item-text">${item.text}</span>
-                    <div class="actions">
-                        ${item.status === 'active' ? `
-                            <button class="btn-sm btn-check" onclick="updateStatus(${item.id}, 'done')">✔</button>
-                            <button class="btn-sm btn-x" onclick="updateStatus(${item.id}, 'x')">✖</button>
-                        ` : `
-                            <button class="btn-sm btn-grey" onclick="updateStatus(${item.id}, 'active')">↩</button>
-                        `}
-                        <button class="btn-sm btn-grey" onclick="deleteItem(${item.id})">🗑</button>
-                    </div>
-                `;
+            const activeItems = shoppingList.filter(i => i.status === 'active').sort((a, b) => a.order - b.order);
+            const doneItems = shoppingList.filter(i => i.status !== 'active').sort((a,b) => b.time - a.time);
 
-                if(item.status === 'active') {
-                    div.addEventListener('touchstart', (e) => {
-                        div.classList.add('dragging');
-                    }, {passive: true});
+            activeItems.forEach(item => act.appendChild(createItemEl(item)));
+            doneItems.forEach(item => don.appendChild(createItemEl(item)));
+        }
 
-                    div.addEventListener('touchmove', (e) => {
-                        if(!div.classList.contains('dragging')) return;
-                        const target = getDragAfterElement(act, e.touches[0].clientY);
-                        if (!target) act.appendChild(div);
-                        else act.insertBefore(div, target);
-                        e.preventDefault();
-                    }, {passive: false});
+        function createItemEl(item) {
+            const div = document.createElement('div');
+            div.className = `item ${item.status !== 'active' ? (item.status === 'done' ? 'checked' : 'cancelled') : ''}`;
+            div.dataset.id = item.id;
+            div.innerHTML = `
+                <span class="item-text">${item.text}</span>
+                <div class="actions">
+                    ${item.status === 'active' ? `
+                        <button class="btn-sm btn-check" onclick="updateStatus('${item.id}', 'done')">✔</button>
+                        <button class="btn-sm btn-x" onclick="updateStatus('${item.id}', 'x')">✖</button>
+                    ` : `
+                        <button class="btn-sm btn-grey" onclick="updateStatus('${item.id}', 'active')">↩</button>
+                    `}
+                    <button class="btn-sm btn-grey" onclick="deleteItem('${item.id}')">🗑</button>
+                </div>
+            `;
 
-                    div.addEventListener('touchend', () => {
-                        div.classList.remove('dragging');
-                        const newOrder = [];
-                        document.querySelectorAll('#activeItems .item').forEach(el => {
-                            newOrder.push(shoppingList.find(x => x.id == el.dataset.id));
-                        });
-                        shoppingList = [...newOrder, ...shoppingList.filter(x => x.status !== 'active')];
-                        localStorage.setItem('myShoppingList', JSON.stringify(shoppingList));
-                    });
-                }
-                (item.status === 'active' ? act : don).appendChild(div);
-            });
+            if(item.status === 'active') {
+                div.addEventListener('touchstart', (e) => { if(e.target.tagName !== 'BUTTON') div.classList.add('dragging'); }, {passive: true});
+                div.addEventListener('touchmove', (e) => {
+                    if(!div.classList.contains('dragging')) return;
+                    const target = getDragAfterElement(act, e.touches[0].clientY);
+                    if (!target) act.appendChild(div); else act.insertBefore(div, target);
+                    e.preventDefault();
+                }, {passive: false});
+                div.addEventListener('touchend', () => {
+                    if(!div.classList.contains('dragging')) return;
+                    div.classList.remove('dragging');
+                    const updates = {};
+                    document.querySelectorAll('#activeItems .item').forEach((el, index) => { updates[`${el.dataset.id}/order`] = index; });
+                    listRef.update(updates);
+                });
+            }
+            return div;
         }
 
         function getDragAfterElement(container, y) {
@@ -232,7 +226,7 @@
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
-        function clearAll() { if(confirm("Törlöd az egész listát?")) { shoppingList = []; saveAndRender(); } }
+        function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
     </script>
 </body>
 </html>
