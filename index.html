@@ -3,99 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v3.3</title>
+    <title>Lista Pro v0.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --yellow: #ffff00; }
         body.light { --bg: #e5e5ea; --card-bg: #ffffff; --item-bg: #f2f2f7; --text: #000000; --primary: #5856d6; --grey: #d1d1d6; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; user-select: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; user-select: none; -webkit-user-select: none; }
         input, textarea { user-select: text; -webkit-user-select: text; }
 
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; }
+        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; position: relative; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .v-num { font-size: 10px; color: #555; }
-        .top-icons { display: flex; gap: 15px; font-size: 20px; }
+        .version { font-size: 10px; color: #555; }
+        .theme-btn { background: none; border: 1px solid #444; color: var(--text); border-radius: 10px; padding: 4px 8px; cursor: pointer; }
 
-        .header { text-align: center; border-bottom: 1px solid #333; margin-bottom: 15px; padding-bottom: 10px; }
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 2px; }
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
+        .header { text-align: center; padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 15px; }
+        #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; }
+
+        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
         
-        .drag-handle { cursor: grab; color: #444; font-size: 20px; padding-right: 5px; }
-        .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
-        .has-data { background: var(--yellow) !important; color: #000 !important; }
-
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
+        .drag-handle { cursor: grab; color: #555; font-size: 18px; padding-right: 5px; }
+        
         #doneItems .item { background: var(--success) !important; color: white; }
         #missingItems .item { background: var(--danger) !important; color: white; }
 
+        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
+        
+        .col-header { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 8px; }
+        .column-label { font-size: 10px; font-weight: bold; color: #777; letter-spacing: 1px; }
+
+        /* MODAL FIX */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 330px; border-radius: 18px; padding: 30px 20px 20px; position: relative; border: 1px solid #444; }
-        .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; cursor: pointer; z-index: 2100; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 15px; padding: 25px 20px 20px; position: relative; border: 1px solid #444; }
+        .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 2100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; outline: none; }
-        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 75px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
-        .col-label { text-align: center; font-size: 10px; color: #666; font-weight: bold; margin-bottom: 5px; margin-top: 15px; }
-
-        @keyframes pulse { 50% { background: red; } }
-        .recording { animation: pulse 1s infinite; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; }
+        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="v-num">v3.3</div>
-        <div class="top-icons">
-            <span onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</span>
-            <span onclick="if(confirm('Törlöd a TELJES listát?')) listRef.remove()" style="cursor:pointer;">🗑️</span>
-        </div>
+        <div class="version">v0.3</div>
+        <button class="theme-btn" onclick="document.body.classList.toggle('light')">🌓</button>
     </div>
     
     <div class="header">
-        <h2 style="margin:0 0 10px; font-size: 18px;">KÖZÖS LISTA</h2>
-        <button id="notifBtn" onclick="toggleNotif()" style="font-size:11px; padding:5px 12px; border-radius:15px; border:1px solid #444; background:#222; color:#888;">🔔 Értesítések</button>
+        <h2 style="margin:0 0 10px; font-size: 18px; letter-spacing: 1px;">KÖZÖS LISTA</h2>
+        <button id="notifBtn" onclick="askNotif()">🔔 Értesítések</button>
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <button id="micBtn" onclick="startVoice()" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
-        <button onclick="openModal('addModal')" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--grey); color:white; font-weight:bold;">ÍRÁS</button>
+        <button id="micBtn" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
+        <button onclick="openModal('inputModal')" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--grey); color:white; font-weight:bold;">⌨️ ÍRÁS</button>
     </div>
 
     <div id="activeItems" class="list-container"></div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-        <div><div class="col-label">MEGVAN</div><div id="doneItems" class="list-container"></div></div>
-        <div><div class="col-label">NINCS</div><div id="missingItems" class="list-container"></div></div>
-    </div>
-</div>
-
-<div id="addModal" class="custom-modal">
-    <div class="modal-content">
-        <div class="close-x" onclick="closeModal('addModal')">✕</div>
-        <input type="text" id="addInput" placeholder="Termék neve...">
-        <textarea id="addNote" placeholder="Megjegyzés..."></textarea>
-        <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:10px; cursor:pointer; font-size:13px; margin-bottom:10px;">
-            📷 Fotó csatolása <input type="file" accept="image/*" style="display:none" onchange="previewImg(this)">
-        </label>
-        <img id="addPreview" style="width:100%; border-radius:10px; display:none; margin-bottom:10px;">
-        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">MENTÉS</button>
-    </div>
-</div>
-
-<div id="infoModal" class="custom-modal">
-    <div class="modal-content">
-        <div class="close-x" onclick="closeModal('infoModal')">✕</div>
-        <h3 id="infoTitle" style="margin-top:0; text-align:center;"></h3>
-        <textarea id="infoNote" placeholder="Megjegyzés módosítása..."></textarea>
-        <div id="imgCont" style="display:none; position:relative;">
-            <img id="infoImg" style="width:100%; border-radius:10px; margin-bottom:10px;">
-            <button onclick="delImg()" style="position:absolute; top:5px; right:5px; background:red; border:none; color:white; border-radius:50%; width:25px; height:25px;">×</button>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:25px;">
+        <div>
+            <div class="col-header"><span class="column-label">MEGVAN</span><button style="background:none; border:none; color:red; font-size:14px;" onclick="clearSection('done')">🗑️</button></div>
+            <div id="doneItems" class="list-container"></div>
         </div>
-        <button onclick="saveInfo()" style="width:100%; padding:12px; background:var(--primary); border:none; color:white; border-radius:10px;">FRISSÍTÉS</button>
+        <div>
+            <div class="col-header"><span class="column-label">NINCS</span><button style="background:none; border:none; color:red; font-size:14px;" onclick="clearSection('x')">🗑️</button></div>
+            <div id="missingItems" class="list-container"></div>
+        </div>
+    </div>
+</div>
+
+<div id="inputModal" class="custom-modal">
+    <div class="modal-content">
+        <div class="close-x" onclick="closeModal('inputModal')">✕</div>
+        <input type="text" id="manualInput" placeholder="Termék neve...">
+        <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">MEHET</button>
     </div>
 </div>
 
@@ -105,118 +92,83 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
 
-    let curId = null, tempPhoto = "";
-
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function previewImg(input) {
-        if (!input.files[0]) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let w = img.width, h = img.height, max = 500;
-                if (w > max) { h *= max/w; w = max; }
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img,0,0,w,h);
-                tempPhoto = canvas.toDataURL('image/jpeg', 0.6);
-                document.getElementById('addPreview').src = tempPhoto;
-                document.getElementById('addPreview').style.display = 'block';
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
+    function addItem() {
+        const t = document.getElementById('manualInput').value.trim();
+        if(t) { listRef.push({ text: t, status: 'active', order: Date.now() }); closeModal('inputModal'); document.getElementById('manualInput').value=""; }
     }
 
-    function addItem() {
-        const text = document.getElementById('addInput').value.trim();
-        const note = document.getElementById('addNote').value.trim();
-        if(text) {
-            listRef.push({ text, note, photo: tempPhoto, status: 'active', order: Date.now() });
-            closeModal('addModal');
-            document.getElementById('addInput').value = ""; document.getElementById('addNote').value = "";
-            document.getElementById('addPreview').style.display = 'none'; tempPhoto = "";
+    function clearSection(s) {
+        if(confirm("Törlöd ezt az oszlopot?")) {
+            listRef.once('value', snap => {
+                const data = snap.val();
+                for(let id in data) if(data[id].status === s) listRef.child(id).remove();
+            });
         }
     }
 
+    function askNotif() {
+        Notification.requestPermission().then(p => { if(p==='granted') document.getElementById('notifBtn').style.background = 'var(--success)'; });
+    }
+
     listRef.on('value', snap => {
-        const data = snap.val() || {};
-        const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
-        Object.values(conts).forEach(c => c.innerHTML = '');
-        const items = Object.keys(data).map(id => ({ id, ...data[id] })).sort((a,b) => (a.order || 0) - (b.order || 0));
-        items.forEach(it => {
+        const data = snap.val();
+        const items = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : [];
+        render(items);
+    });
+
+    function render(items) {
+        const containers = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
+        Object.values(containers).forEach(c => c.innerHTML = '');
+
+        items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
-            wrap.innerHTML = `<div class="delete-reveal" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
+            wrap.innerHTML = `<div class="delete-reveal" onclick="db.ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
+            
             const div = document.createElement('div');
             div.className = 'item';
             div.dataset.id = it.id;
-            const hasExtra = (it.note || it.photo) ? 'has-data' : '';
+            
+            // Csak az aktívnál van fogantyú és mozgatás
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
+            
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${hasExtra}" onclick="openInfo('${it.id}')">ℹ️</button>
                     ${it.status === 'active' ? 
-                    `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button>
-                     <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : 
-                    `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}
+                    `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
+                     <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
+                    `<button class="btn-sm" onclick="db.ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
                 </div>`;
-            if(it.status === 'active') initDrag(div, wrap);
+            
+            if(it.status === 'active') initSortable(div, wrap);
             initSwipe(div);
-            const target = it.status === 'done' ? conts.done : (it.status === 'x' ? conts.x : conts.active);
-            target.appendChild(wrap);
+
+            wrap.appendChild(div);
+            // Fix: it.status szerint rakjuk a megfelelő helyre
+            if(containers[it.status]) containers[it.status].appendChild(wrap);
         });
-    });
-
-    function openInfo(id) {
-        curId = id;
-        listRef.child(id).once('value', s => {
-            const it = s.val();
-            document.getElementById('infoTitle').innerText = it.text;
-            document.getElementById('infoNote').value = it.note || "";
-            const imgCont = document.getElementById('imgCont');
-            if(it.photo) { document.getElementById('infoImg').src = it.photo; imgCont.style.display='block'; }
-            else { imgCont.style.display='none'; }
-            openModal('infoModal');
-        });
-    }
-
-    function saveInfo() { listRef.child(curId).update({ note: document.getElementById('infoNote').value }); closeModal('infoModal'); }
-    function delImg() { if(confirm("Törlöd a fotót?")) listRef.child(curId).update({ photo: "" }).then(() => openInfo(curId)); }
-
-    function startVoice() {
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = 'hu-HU';
-        const btn = document.getElementById('micBtn');
-        btn.classList.add('recording');
-        rec.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            listRef.push({ text: t.charAt(0).toUpperCase() + t.slice(1), status: 'active', order: Date.now() });
-        };
-        rec.onend = () => btn.classList.remove('recording');
-        rec.start();
-    }
-
-    function toggleNotif() {
-        Notification.requestPermission().then(p => { if(p==='granted') document.getElementById('notifBtn').style.background = 'var(--success)'; });
     }
 
     function initSwipe(el) {
         let sX = 0;
         el.addEventListener('touchstart', e => sX = e.touches[0].clientX);
-        el.addEventListener('touchmove', e => { let dX = sX - e.touches[0].clientX; if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; });
+        el.addEventListener('touchmove', e => { 
+            let dX = sX - e.touches[0].clientX; 
+            if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; 
+        });
         el.addEventListener('touchend', e => el.style.transform = (sX - e.changedTouches[0].clientX > 50) ? 'translateX(-75px)' : 'translateX(0)');
     }
 
-    function initDrag(el, wrap) {
-        const h = el.querySelector('.drag-handle');
-        if(!h) return;
-        h.addEventListener('pointerdown', e => {
+    function initSortable(el, wrap) {
+        const handle = el.querySelector('.drag-handle');
+        handle.addEventListener('pointerdown', e => {
             const cont = document.getElementById('activeItems');
             el.setPointerCapture(e.pointerId);
-            wrap.style.opacity = "0.4";
+            wrap.style.opacity = "0.5";
+            
             const onMove = ev => {
                 const after = [...cont.querySelectorAll('.item-wrapper')].reduce((closest, child) => {
                     if(child === wrap) return closest;
@@ -226,14 +178,19 @@
                 }, { offset: Number.NEGATIVE_INFINITY }).element;
                 if(after) cont.insertBefore(wrap, after); else cont.appendChild(wrap);
             };
+
             const onUp = () => {
-                wrap.style.opacity = "1"; h.releasePointerCapture(e.pointerId);
+                wrap.style.opacity = "1";
+                handle.releasePointerCapture(e.pointerId);
                 document.removeEventListener('pointermove', onMove);
-                const up = {}; document.querySelectorAll('#activeItems .item').forEach((item, i) => up[item.dataset.id + '/order'] = i);
-                listRef.update(up);
+                document.removeEventListener('pointerup', onUp);
+                const updates = {};
+                document.querySelectorAll('#activeItems .item').forEach((item, i) => updates[item.dataset.id + '/order'] = Date.now() + i);
+                listRef.update(updates);
             };
+
             document.addEventListener('pointermove', onMove);
-            document.addEventListener('pointerup', onUp, {once:true});
+            document.addEventListener('pointerup', onUp);
         });
     }
 </script>
