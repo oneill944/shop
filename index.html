@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.2.6</title>
+    <title>Lista Pro v0.2.7</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -16,7 +16,6 @@
         
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
 
         .list-container { display: flex; flex-direction: column; gap: 8px; }
@@ -26,33 +25,22 @@
         .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
         .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
 
-        .btn-sm { border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; }
+        /* AZ "i" IKON PIROS KONTÚRJA */
+        .btn-sm { border: 1px solid transparent; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; }
+        .info-btn-style { border: 1px solid var(--danger) !important; }
         .has-note-btn { background: #555 !important; }
 
-        /* MODAL & RÉSZLETEK JAVÍTÁSA */
+        /* MODAL */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 30px 20px 20px; position: relative; border: 1px solid var(--border); }
-        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; border:none; outline:none; }
+        .close-x { position: absolute; top: 12px; right: 15px; background: none; color: var(--text); font-size: 24px; cursor: pointer; border:none; }
 
         .note-display-box { border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: rgba(255,255,255,0.02); }
-        .note-text-content { padding: 15px; text-align: center; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+        .note-text-content { padding: 15px; text-align: center; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
         .note-divider { height: 1px; background: var(--border); width: 90%; margin: 0 auto; }
+        .note-footer-actions { display: flex; justify-content: center; gap: 20px; padding: 12px; }
         
-        /* SZÍNES IKONOK PIROS KONTÚRRAL */
-        .note-footer-actions { display: flex; justify-content: center; gap: 15px; padding: 12px; }
-        .note-icon-btn { 
-            background: transparent; 
-            border: 1px solid var(--danger); /* Piros kontúr */
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 20px; 
-            cursor: pointer; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
+        .icon-btn-plain { background: transparent; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; }
 
         .img-area-box { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); min-height: 100px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         
@@ -62,8 +50,8 @@
 <body class="dark">
 
 <div class="app-card">
-    <div class="top-bar">
-        <div style="font-size:10px; color:#444;">v0.2.6</div>
+    <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="font-size:10px; color:#444;">v0.2.7</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -90,13 +78,15 @@
     <div class="modal-content">
         <button class="close-x" onclick="closeModal('detailsModal')">✕</button>
         <h3 id="detTitle" style="margin-top:0; text-align:center; font-size:17px; margin-bottom:15px;"></h3>
-        <div id="detImgArea" class="img-area-box"></div>
+        
+        <div id="detImgArea" class="img-area-box" style="display:none;"></div>
+        
         <div id="detNoteView"></div>
+
         <div id="detEditView" style="display:none;">
-            <textarea id="editNoteInput" rows="5"></textarea>
+            <textarea id="editNoteInput" rows="5" placeholder="Írj ide valamit..."></textarea>
             <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">MENTÉS</button>
         </div>
-        <input type="file" id="fileInExtra" hidden accept="image/*">
     </div>
 </div>
 
@@ -104,14 +94,13 @@
     <div class="modal-content">
         <button class="close-x" onclick="closeModal('inputModal')">✕</button>
         <input type="text" id="manualInput" placeholder="Termék neve...">
-        <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        <div id="fileBtn" onclick="document.getElementById('fileIn').click()" style="border:1px dashed #444; padding:15px; text-align:center; border-radius:10px; color:#888; cursor:pointer;">📷 Kép hozzáadása</div>
-        <input type="file" id="fileIn" hidden accept="image/*">
+        <textarea id="manualNote" placeholder="Megjegyzés (nem kötelező)..." rows="2"></textarea>
         <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold; margin-top:15px;">HOZZÁADÁS</button>
     </div>
 </div>
 
 <script>
+    // Firebase konfig megegyezik...
     const firebaseConfig = { 
         apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", 
         databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", 
@@ -120,10 +109,9 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const storage = firebase.storage();
     const listRef = db.ref('shoppingList');
 
-    let currentId = null, tempUrl = "";
+    let currentId = null;
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { 
@@ -135,8 +123,15 @@
     function openDetails(id, text, note, img) {
         currentId = id;
         document.getElementById('detTitle').innerText = text;
+        
+        // Kép kezelése: Csak ha van kép, akkor mutatjuk a dobozt
         const imgArea = document.getElementById('detImgArea');
-        imgArea.innerHTML = img ? `<img src="${img}" style="width:100%" onclick="window.open('${img}')">` : `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555; cursor:pointer">📷 Kép hozzáadása</div>`;
+        if(img) {
+            imgArea.style.display = 'flex';
+            imgArea.innerHTML = `<img src="${img}" style="width:100%" onclick="window.open('${img}')">`;
+        } else {
+            imgArea.style.display = 'none';
+        }
         
         const noteView = document.getElementById('detNoteView');
         if(note && note.trim() !== "") {
@@ -145,11 +140,12 @@
                     <div class="note-text-content">${note}</div>
                     <div class="note-divider"></div>
                     <div class="note-footer-actions">
-                        <button class="note-icon-btn" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
-                        <button class="note-icon-btn" onclick="deleteNote()">🗑️</button>
+                        <button class="icon-btn-plain" onclick="switchToEdit(\`${note.replace(/`/g, '\\`')}\`)">✏️</button>
+                        <button class="icon-btn-plain" onclick="deleteNote()">🗑️</button>
                     </div>
                 </div>`;
         } else {
+            // HA NINCS MEGJEGYZÉS, rögtön a szerkesztő ablakot is nyithatná, de kérésre:
             noteView.innerHTML = `<div style="border:1px dashed var(--border); padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
         }
         openModal('detailsModal');
@@ -157,6 +153,7 @@
 
     function switchToEdit(val) {
         document.getElementById('detNoteView').style.display = 'none';
+        document.getElementById('detImgArea').style.display = 'none'; // Rejtsük el a képet szerkesztéskor
         document.getElementById('detEditView').style.display = 'block';
         document.getElementById('editNoteInput').value = val;
     }
@@ -167,10 +164,7 @@
     }
 
     function deleteNote() {
-        if(confirm("Törlöd a megjegyzést?")) {
-            listRef.child(currentId).update({ note: "" });
-            closeModal('detailsModal');
-        }
+        if(confirm("Törlöd?")) { listRef.child(currentId).update({ note: "" }); closeModal('detailsModal'); }
     }
 
     function render(items) {
@@ -183,9 +177,10 @@
             const div = document.createElement('div');
             div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             const hasC = (it.note && it.note.trim() !== "") || it.img;
+            
             div.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${hasC?'has-note-btn':''}" onclick="openDetails('${it.id}','${it.text.replace(/'/g, "\\'")}','${(it.note||"").replace(/'/g, "\\'")}','${it.img||''}')">ℹ️</button>
+                    <button class="btn-sm info-btn-style ${hasC?'has-note-btn':''}" onclick="openDetails('${it.id}','${it.text.replace(/'/g, "\\'")}','${(it.note||"").replace(/'/g, "\\'")}','${it.img||''}')">ℹ️</button>
                     ${it.status==='active'? `<button class="btn-sm" style="background:var(--success)" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                     <button class="btn-sm" style="background:var(--danger)" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
                     `<button class="btn-sm" onclick="firebase.database().ref('shoppingList/${it.id}').update({status:'active'})">↩</button>`}
@@ -213,34 +208,13 @@
         const t = document.getElementById('manualInput').value.trim();
         const n = document.getElementById('manualNote').value.trim();
         if(t) { 
-            listRef.push({ text: t, note: n, img: tempUrl, status: 'active', order: Date.now() }); 
+            listRef.push({ text: t, note: n, status: 'active', order: Date.now() }); 
             closeModal('inputModal');
             document.getElementById('manualInput').value=""; document.getElementById('manualNote').value="";
-            tempUrl = "";
         }
     }
 
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
-    
-    document.getElementById('fileIn').onchange = async e => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        tempUrl = await ref.getDownloadURL();
-        document.getElementById('fileBtn').innerText = "✅ Kép OK";
-    };
-
-    document.getElementById('fileInExtra').onchange = async e => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const ref = storage.ref('img/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        await listRef.child(currentId).update({ img: url });
-        const s = await listRef.child(currentId).get();
-        openDetails(currentId, s.val().text, s.val().note, s.val().img);
-    };
 </script>
 </body>
 </html>
