@@ -7,10 +7,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #000000; --card-bg: #121212; --item-bg: #1e1e1e; --text: #e0e0e0; --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #252525; }
-        body.light { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea; }
+        :root { --bg: #000000; --card-bg: #121212; --item-bg: #1e1e1e; --text: #e0e0e0; --primary: #bb86fc; --success: #2e7d32; --danger: #c62828; --grey: #252525; --note: #ffa000; }
+        body.light { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #ff3b30; --grey: #e5e5ea; --note: #e67e22; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; user-select: none !important; -webkit-user-select: none !important; }
-        input { user-select: text !important; -webkit-user-select: text !important; }
+        input, textarea { user-select: text !important; -webkit-user-select: text !important; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 5px; display: flex; justify-content: center; min-height: 100vh; }
         .app-card { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 15px; padding: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); position: relative; align-self: flex-start; }
         .version { position: absolute; top: 6px; left: 12px; font-size: 8px; color: #444; }
@@ -20,25 +20,36 @@
         #notifBtn.active { background: var(--success); color: white; }
         .btn-row { display: flex; gap: 5px; margin-bottom: 8px; }
         .main-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; font-size: 11px; color: white; text-transform: uppercase; cursor: pointer; }
-        .list-container { display: flex; flex-direction: column; gap: 2px; min-height: 10px; }
+        .list-container { display: flex; flex-direction: column; gap: 2px; }
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
         .column-label { text-align: center; font-size: 10px; font-weight: bold; margin-bottom: 4px; padding: 4px; border-radius: 5px; background: var(--grey); }
+        
+        .item-wrapper { display: flex; flex-direction: column; gap: 1px; }
         .item { background: var(--item-bg); padding: 3px 8px; border-radius: 5px; display: flex; align-items: center; justify-content: space-between; gap: 5px; min-height: 34px; }
         .item.dragging { opacity: 0.5; background: #444; }
         .item.checked { background: var(--success) !important; color: white; }
         .item.cancelled { background: var(--danger) !important; color: white; }
         .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; pointer-events: none; }
+        
+        .note-area { background: #2a2a2a; margin: 0 5px; padding: 8px; border-radius: 0 0 8px 8px; display: none; border: 1px solid #444; border-top: none; }
+        body.light .note-area { background: #f9f9fb; }
+        .note-input { width: 100%; background: transparent; border: 1px solid #555; color: var(--text); padding: 5px; font-size: 12px; border-radius: 4px; outline: none; margin-bottom: 5px; display: block; }
+        
         .actions { display: flex; gap: 3px; flex-shrink: 0; }
         .btn-sm { border: none; width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; background: rgba(255,255,255,0.12); font-size: 12px; }
-        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 1000; }
+        .has-note { color: var(--note) !important; }
+
+        #inputModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 1000; }
         .modal-content { background: var(--item-bg); padding: 15px; border-radius: 12px; width: 85%; max-width: 280px; border: 1px solid #333; }
-        .modal-content input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #444; background: var(--bg); color: var(--text); font-size: 16px; outline: none; -webkit-user-select: text; }
+        .modal-content input { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #444; background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
+        .modal-content label { font-size: 10px; color: #888; margin-bottom: 3px; display: block; padding-left: 5px; }
+        
         .clear-all { background: none; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; width: 100%; padding: 8px; font-size: 9px; border-radius: 6px; font-weight: bold; opacity: 0.4; }
     </style>
 </head>
 <body class="dark">
 <div class="app-card">
-    <div class="version">v2.1</div>
+    <div class="version">v2.2</div>
     <button class="theme-btn" id="themeIcon" onclick="toggleTheme()">☀️</button>
     <div class="header">
         <h2 style="margin:0; font-size: 16px; letter-spacing: 1px;">BEVÁSÁRLÓ LISTA</h2>
@@ -55,10 +66,14 @@
     </div>
     <button class="clear-all" onclick="clearAll()">LISTA TÖRLÉSE</button>
 </div>
+
 <div id="inputModal">
     <div class="modal-content">
-        <input type="text" id="manualInput" placeholder="Termék neve..." autocomplete="off">
-        <div class="btn-row" style="margin-bottom:0">
+        <label>Termék neve</label>
+        <input type="text" id="manualInput" placeholder="pl. Tej" autocomplete="off">
+        <label>Megjegyzés (opcionális)</label>
+        <input type="text" id="noteInput" placeholder="pl. 2.8-as, 2db" autocomplete="off">
+        <div class="btn-row" style="margin-bottom:0; margin-top:10px;">
             <button class="main-btn" style="background:#444;" onclick="closeModal()">MÉGSE</button>
             <button class="main-btn" style="background:var(--primary);" id="confirmBtn">OK</button>
         </div>
@@ -74,39 +89,33 @@
     let isFirstLoad = true;
     let notifsEnabled = localStorage.getItem('notifsEnabled') === 'true';
 
-    // FÓKUSZ JAVÍTÁS
     const writeBtn = document.getElementById('writeBtn');
     const inputField = document.getElementById('manualInput');
+    const noteField = document.getElementById('noteInput');
     const modal = document.getElementById('inputModal');
 
     const openInput = (e) => {
         e.preventDefault();
         modal.style.display = 'flex';
-        // Azonnali fókusz kényszerítése több módszerrel
         inputField.focus();
-        setTimeout(() => inputField.focus(), 10);
-        setTimeout(() => inputField.focus(), 100);
+        setTimeout(() => inputField.focus(), 50);
     };
 
     writeBtn.addEventListener('touchstart', openInput);
     writeBtn.addEventListener('click', openInput);
 
-    function closeModal() { modal.style.display = 'none'; inputField.value = ''; }
-    function handleManualAdd() { const val = inputField.value.trim(); if(val) { addItem(val); closeModal(); } }
+    function closeModal() { modal.style.display = 'none'; inputField.value = ''; noteField.value = ''; }
+    function handleManualAdd() { 
+        const val = inputField.value.trim(); 
+        const note = noteField.value.trim();
+        if(val) { addItem(val, note); closeModal(); } 
+    }
     document.getElementById('confirmBtn').onclick = handleManualAdd;
-    inputField.onkeypress = (e) => { if(e.key === 'Enter') handleManualAdd(); };
+    inputField.onkeypress = (e) => { if(e.key === 'Enter') noteField.focus(); };
+    noteField.onkeypress = (e) => { if(e.key === 'Enter') handleManualAdd(); };
 
-    // Értesítések
-    function updateNotifButton() {
-        const btn = document.getElementById('notifBtn');
-        if (notifsEnabled && Notification.permission === "granted") { btn.innerText = "✅ Értesítések: BE"; btn.classList.add('active'); }
-        else { btn.innerText = "🔔 Értesítések: KI"; btn.classList.remove('active'); }
-    }
-    function toggleNotifications() {
-        if (!notifsEnabled) { Notification.requestPermission().then(p => { if(p==="granted") { notifsEnabled=true; localStorage.setItem('notifsEnabled','true'); } updateNotifButton(); }); }
-        else { notifsEnabled=false; localStorage.setItem('notifsEnabled','false'); updateNotifButton(); }
-    }
-
+    function addItem(t, n = "") { listRef.push({ text: t, note: n, status: 'active', order: Date.now(), time: Date.now() }); }
+    
     listRef.on('value', (snapshot) => {
         const data = snapshot.val();
         const newList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -123,26 +132,78 @@
         const containers = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
         Object.values(containers).forEach(c => c.innerHTML = '');
         shoppingList.sort((a, b) => (a.order || 0) - (b.order || 0)).forEach(item => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'item-wrapper';
+            
             const div = document.createElement('div');
             div.className = `item ${item.status === 'done' ? 'checked' : (item.status === 'x' ? 'cancelled' : '')}`;
             div.dataset.id = item.id;
-            div.innerHTML = `<span class="item-text">${item.text}</span><div class="actions">
-                ${item.status === 'active' ? `<button class="btn-sm" style="background:#4caf50" onclick="updateStatus('${item.id}','done')">✔</button><button class="btn-sm" style="background:#f44336" onclick="updateStatus('${item.id}','x')">✖</button>` : `<button class="btn-sm" style="background:#555" onclick="updateStatus('${item.id}','active')">↩</button>`}
-                <button class="btn-sm" style="background:#444" onclick="deleteItem('${item.id}')">🗑</button></div>`;
-            if(item.status === 'active') { div.addEventListener('touchstart', startDrag, {passive: true}); div.addEventListener('touchmove', moveDrag, {passive: false}); div.addEventListener('touchend', endDrag); }
-            containers[item.status === 'active' ? 'active' : (item.status === 'done' ? 'done' : 'x')].appendChild(div);
+            
+            div.innerHTML = `
+                <span class="item-text">${item.text}</span>
+                <div class="actions">
+                    <button class="btn-sm ${item.note ? 'has-note' : ''}" onclick="toggleNoteEditor('${item.id}')">ℹ️</button>
+                    ${item.status === 'active' ? `
+                        <button class="btn-sm" style="background:#4caf50" onclick="updateStatus('${item.id}','done')">✔</button>
+                        <button class="btn-sm" style="background:#f44336" onclick="updateStatus('${item.id}','x')">✖</button>
+                    ` : `
+                        <button class="btn-sm" style="background:#555" onclick="updateStatus('${item.id}','active')">↩</button>
+                    `}
+                    <button class="btn-sm" style="background:#444" onclick="deleteItem('${item.id}')">🗑</button>
+                </div>`;
+            
+            const noteDiv = document.createElement('div');
+            noteDiv.id = `note-${item.id}`;
+            noteDiv.className = 'note-area';
+            noteDiv.innerHTML = `
+                <input type="text" class="note-input" id="edit-note-${item.id}" value="${item.note || ''}" placeholder="Megjegyzés írása...">
+                <button class="main-btn" style="background:var(--primary); padding:5px; font-size:9px" onclick="saveNote('${item.id}')">MENTÉS</button>
+            `;
+
+            if(item.status === 'active') { 
+                div.addEventListener('touchstart', startDrag, {passive: true}); 
+                div.addEventListener('touchmove', moveDrag, {passive: false}); 
+                div.addEventListener('touchend', endDrag); 
+            }
+            
+            wrapper.appendChild(div);
+            wrapper.appendChild(noteDiv);
+            containers[item.status === 'active' ? 'active' : (item.status === 'done' ? 'done' : 'x')].appendChild(wrapper);
         });
     }
 
-    function addItem(t) { listRef.push({ text: t, status: 'active', order: Date.now(), time: Date.now() }); }
+    function toggleNoteEditor(id) {
+        const el = document.getElementById(`note-${id}`);
+        const allNotes = document.querySelectorAll('.note-area');
+        allNotes.forEach(n => { if(n.id !== `note-${id}`) n.style.display = 'none'; });
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        if(el.style.display === 'block') document.getElementById(`edit-note-${id}`).focus();
+    }
+
+    function saveNote(id) {
+        const newNote = document.getElementById(`edit-note-${id}`).value.trim();
+        listRef.child(id).update({ note: newNote });
+        document.getElementById(`note-${id}`).style.display = 'none';
+    }
+
     function updateStatus(id, s) { listRef.child(id).update({ status: s, time: Date.now() }); }
     function deleteItem(id) { if(confirm("Törlöd?")) listRef.child(id).remove(); }
     function toggleTheme() { document.body.classList.toggle('light'); const isLight = document.body.classList.contains('light'); document.getElementById('themeIcon').innerText = isLight ? '🌙' : '☀️'; }
     function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
     
+    function updateNotifButton() {
+        const btn = document.getElementById('notifBtn');
+        if (notifsEnabled && Notification.permission === "granted") { btn.innerText = "✅ Értesítések: BE"; btn.classList.add('active'); }
+        else { btn.innerText = "🔔 Értesítések: KI"; btn.classList.remove('active'); }
+    }
+    function toggleNotifications() {
+        if (!notifsEnabled) { Notification.requestPermission().then(p => { if(p==="granted") { notifsEnabled=true; localStorage.setItem('notifsEnabled','true'); } updateNotifButton(); }); }
+        else { notifsEnabled=false; localStorage.setItem('notifsEnabled','false'); updateNotifButton(); }
+    }
+
     // DRAG
     let dragTimer;
-    function startDrag(e) { if(e.target.tagName === 'BUTTON') return; const el = e.currentTarget; dragTimer = setTimeout(() => { el.classList.add('dragging'); if("vibrate" in navigator) navigator.vibrate(40); }, 350); }
+    function startDrag(e) { if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return; const el = e.currentTarget; dragTimer = setTimeout(() => { el.classList.add('dragging'); if("vibrate" in navigator) navigator.vibrate(40); }, 350); }
     function moveDrag(e) { const el = document.querySelector('.dragging'); if(!el) return; e.preventDefault(); const container = document.getElementById('activeItems'); const touch = e.touches[0]; const afterElement = [...container.querySelectorAll('.item:not(.dragging)')].reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = touch.clientY - box.top - box.height / 2; if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest; }, { offset: Number.NEGATIVE_INFINITY }).element; if (afterElement == null) container.appendChild(el); else container.insertBefore(el, afterElement); }
     function endDrag() { clearTimeout(dragTimer); const el = document.querySelector('.dragging'); if(!el) return; el.classList.remove('dragging'); const updates = {}; document.querySelectorAll('#activeItems .item').forEach((item, index) => { updates[`${item.dataset.id}/order`] = index; }); listRef.update(updates); }
 
