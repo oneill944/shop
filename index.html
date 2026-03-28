@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.5</title>
+    <title>Lista Pro v0.6</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -21,11 +21,10 @@
         
         .header { text-align: center; border-bottom: 1px solid #333; margin-bottom: 15px; padding-bottom: 10px; }
         
-        /* NOTIF BUTTON */
         #notifBtn { font-size: 11px; padding: 6px 15px; border-radius: 20px; border: 1px solid #444; background: #222; color: #888; cursor: pointer; transition: 0.3s; }
-        #notifBtn.active { background: var(--success); color: white; border: none; font-weight: bold; }
+        #notifBtn.active { background: var(--success); color: white; border: none; }
 
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
+        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; }
         .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; transition: transform 0.2s; touch-action: none; }
         
@@ -33,23 +32,26 @@
         .btn-sm { border: none; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; cursor: pointer; background: rgba(255,255,255,0.1); }
         .has-data { background: var(--yellow) !important; color: #000 !important; }
 
-        #doneItems .item { background: var(--success) !important; color: white; }
-        #missingItems .item { background: var(--danger) !important; color: white; }
+        #doneItems .item { background: var(--success) !important; }
+        #missingItems .item { background: var(--danger) !important; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 330px; border-radius: 18px; padding: 30px 20px 20px; position: relative; border: 1px solid #444; }
         .close-x { position: absolute; top: -15px; right: -15px; background: var(--danger); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; cursor: pointer; z-index: 2100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; }
         .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 75px; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; z-index: 1; font-weight: bold; }
         .col-label { text-align: center; font-size: 10px; color: #666; font-weight: bold; margin-bottom: 8px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .recording { animation: pulse 1s infinite; background: red !important; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar">
-        <div class="version">v0.5</div>
+        <div class="version">v0.6</div>
         <div>
             <button onclick="document.body.classList.toggle('light')" style="background:none; border:none; font-size:18px;">🌓</button>
             <button onclick="clearAll()" style="background:none; border:none; font-size:18px; margin-left:10px;">🗑️</button>
@@ -58,11 +60,11 @@
     
     <div class="header">
         <h2 style="margin:0 0 10px; font-size: 18px;">KÖZÖS LISTA</h2>
-        <button id="notifBtn" onclick="toggleNotifications()">🔔 Értesítések: KI</button>
+        <button id="notifBtn" onclick="toggleNotif()">🔔 Értesítések: KI</button>
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <button id="micBtn" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
+        <button id="micBtn" onclick="startDictation()" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
         <button onclick="openModal('inputModal')" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--grey); color:white; font-weight:bold;">ÍRÁS</button>
     </div>
 
@@ -78,18 +80,7 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('inputModal')">✕</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
-        <input type="text" id="noteInput" placeholder="Megjegyzés...">
         <button onclick="saveNew()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">HOZZÁADÁS</button>
-    </div>
-</div>
-
-<div id="infoModal" class="custom-modal">
-    <div class="modal-content">
-        <div class="close-x" onclick="closeModal('infoModal')">✕</div>
-        <h3 id="infoTitle" style="margin-top:0; text-align:center;"></h3>
-        <textarea id="infoNote" placeholder="Megjegyzés..."></textarea>
-        <button onclick="updateNote()" style="width:100%; background:var(--primary); border:none; padding:10px; color:white; border-radius:10px; margin-bottom:10px;">MENTÉS</button>
-        <div id="infoPhotoBox" style="position:relative; display:none;"><img id="infoImg" style="width:100%; border-radius:10px;"></div>
     </div>
 </div>
 
@@ -99,47 +90,36 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
 
-    let currentId = null;
     let isNotifActive = false;
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function toggleNotifications() {
+    function toggleNotif() {
         if (!isNotifActive) {
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    updateNotifButton(true);
-                } else {
-                    alert("Kérlek engedélyezd az értesítéseket a böngészőben!");
+            Notification.requestPermission().then(p => {
+                if (p === 'granted') {
+                    isNotifActive = true;
+                    document.getElementById('notifBtn').classList.add('active');
+                    document.getElementById('notifBtn').innerText = "✅ Értesítések: BE";
                 }
             });
         } else {
-            updateNotifButton(false);
-        }
-    }
-
-    function updateNotifButton(active) {
-        isNotifActive = active;
-        const btn = document.getElementById('notifBtn');
-        if (active) {
-            btn.classList.add('active');
-            btn.innerText = "✅ Értesítések: BE";
-        } else {
-            btn.classList.remove('active');
-            btn.innerText = "🔔 Értesítések: KI";
+            isNotifActive = false;
+            document.getElementById('notifBtn').classList.remove('active');
+            document.getElementById('notifBtn').innerText = "🔔 Értesítések: KI";
         }
     }
 
     function saveNew() {
         const text = document.getElementById('manualInput').value.trim();
         if(text) {
-            listRef.push({ text, note: document.getElementById('noteInput').value, status: 'active', order: Date.now() });
-            closeModal('inputModal'); document.getElementById('manualInput').value=""; document.getElementById('noteInput').value="";
+            listRef.push({ text, status: 'active', order: Date.now() });
+            closeModal('inputModal'); document.getElementById('manualInput').value="";
         }
     }
 
-    function clearAll() { if(confirm("Törlöd a TELJES listát?")) listRef.remove(); }
+    function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 
     listRef.on('value', snap => {
         const data = snap.val();
@@ -149,9 +129,9 @@
 
     function render(items) {
         const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
-        Object.values(conts).forEach(c => { if(c) c.innerHTML = ''; });
+        Object.values(conts).forEach(c => c.innerHTML = '');
 
-        items.sort((a,b) => a.order - b.order).forEach(it => {
+        items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
             wrap.innerHTML = `<div class="delete-reveal" onclick="db.ref('shoppingList/${it.id}').remove()">TÖRLÉS</div>`;
@@ -163,7 +143,6 @@
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${(it.note || it.photo) ? 'has-data' : ''}" onclick="showInfo('${it.id}')">ℹ️</button>
                     ${it.status === 'active' ? 
                     `<button class="btn-sm" style="background:var(--success)" onclick="db.ref('shoppingList/${it.id}').update({status:'done'})">✔</button>
                      <button class="btn-sm" style="background:var(--danger)" onclick="db.ref('shoppingList/${it.id}').update({status:'x'})">✖</button>` : 
@@ -178,10 +157,28 @@
         });
     }
 
+    function startDictation() {
+        if (!('webkitSpeechRecognition' in window)) return alert("Nem támogatott böngésző.");
+        const rec = new webkitSpeechRecognition();
+        rec.lang = 'hu-HU';
+        const btn = document.getElementById('micBtn');
+        btn.classList.add('recording');
+        
+        rec.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            if(t) listRef.push({ text: t.charAt(0).toUpperCase() + t.slice(1), status: 'active', order: Date.now() });
+        };
+        rec.onend = () => btn.classList.remove('recording');
+        rec.start();
+    }
+
     function initSwipe(el) {
         let sX = 0;
         el.addEventListener('touchstart', e => sX = e.touches[0].clientX);
-        el.addEventListener('touchmove', e => { let dX = sX - e.touches[0].clientX; if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; });
+        el.addEventListener('touchmove', e => { 
+            let dX = sX - e.touches[0].clientX; 
+            if(dX > 20 && dX < 90) el.style.transform = `translateX(-${dX}px)`; 
+        });
         el.addEventListener('touchend', e => el.style.transform = (sX - e.changedTouches[0].clientX > 50) ? 'translateX(-75px)' : 'translateX(0)');
     }
 
@@ -212,24 +209,6 @@
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp);
         });
-    }
-
-    function showInfo(id) {
-        currentId = id;
-        listRef.child(id).once('value', s => {
-            const it = s.val();
-            document.getElementById('infoTitle').innerText = it.text;
-            document.getElementById('infoNote').value = it.note || "";
-            openModal('infoModal');
-        });
-    }
-
-    function updateNote() { listRef.child(currentId).update({ note: document.getElementById('infoNote').value }).then(() => closeModal('infoModal')); }
-
-    if ('webkitSpeechRecognition' in window) {
-        const rec = new webkitSpeechRecognition(); rec.lang = 'hu-HU';
-        rec.onresult = (e) => { const t = e.results[0][0].transcript; listRef.push({ text: t.charAt(0).toUpperCase() + t.slice(1), status: 'active', order: Date.now() }); };
-        document.getElementById('micBtn').onclick = () => rec.start();
     }
 </script>
 </body>
