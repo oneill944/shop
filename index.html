@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.3.1</title>
+    <title>Lista Pro v0.3.2</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -31,22 +31,11 @@
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 40px 20px 20px; position: relative; border: 1px solid var(--border); }
         
-        /* X gomb pontosan 5px-re felülről */
-        .close-x { 
-            position: absolute; 
-            top: 5px; 
-            right: 10px; 
-            background: none; 
-            color: var(--text); 
-            font-size: 22px; 
-            cursor: pointer; 
-            border: none; 
-            padding: 8px; 
-            line-height: 1; 
-            opacity: 0.7;
-        }
+        .close-x { position: absolute; top: 5px; right: 10px; background: none; color: var(--text); font-size: 22px; cursor: pointer; border: none; padding: 8px; line-height: 1; opacity: 0.7; }
 
-        .img-area-box { width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); min-height: 100px; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        .img-area-box { width: 100%; border-radius: 12px; margin-bottom: 15px; overflow: hidden; background: #000; display: none; flex-direction: column; }
+        .img-area-box img { width: 100%; height: auto; display: block; }
+        
         .note-display-box { border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: rgba(255,255,255,0.02); }
         .note-text-content { padding: 15px; text-align: center; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
         .note-divider { height: 1px; background: var(--border); width: 90%; margin: 0 auto; }
@@ -55,13 +44,15 @@
         .icon-btn-plain { background: transparent; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; }
         
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; }
+        
+        .secondary-btn { background: var(--grey); color: #fff; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.3.1</div>
+        <div style="font-size:10px; color:#444;">v0.3.2</div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.5;">🗑️</button>
             <div onclick="document.body.classList.toggle('light')" style="cursor:pointer;">🌓</div>
@@ -96,7 +87,6 @@
             <textarea id="editNoteInput" rows="5" placeholder="Megjegyzés..."></textarea>
             <button onclick="saveNote()" style="width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">MENTÉS</button>
         </div>
-        <input type="file" id="fileInExtra" hidden accept="image/*">
     </div>
 </div>
 
@@ -105,7 +95,7 @@
         <button class="close-x" onclick="closeModal('inputModal')">✕</button>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés (nem kötelező)..." rows="2"></textarea>
-        <div id="fileBtn" onclick="document.getElementById('fileIn').click()" style="border:1px dashed #444; padding:15px; text-align:center; border-radius:10px; color:#888; cursor:pointer; margin-bottom:10px;">📷 Kép hozzáadása</div>
+        <div id="fileBtn" onclick="document.getElementById('fileIn').click()" style="border:1px dashed #444; padding:12px; text-align:center; border-radius:10px; color:#888; cursor:pointer; margin-bottom:10px; font-size: 13px;">📷 Kép kiválasztása</div>
         <input type="file" id="fileIn" hidden accept="image/*">
         <button onclick="addItem()" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:bold;">HOZZÁADÁS</button>
     </div>
@@ -138,10 +128,13 @@
         document.getElementById('detTitle').innerText = text;
         
         const imgArea = document.getElementById('detImgArea');
-        if(img) {
-            imgArea.innerHTML = `<img src="${img}" style="width:100%; display:block;" onclick="window.open('${img}')">`;
+        if(img && img !== "") {
+            imgArea.style.display = 'flex';
+            imgArea.innerHTML = `<img src="${img}" onclick="window.open('${img}')">
+                                 <button class="secondary-btn" onclick="deleteImage()">Kép törlése</button>`;
         } else {
-            imgArea.innerHTML = `<div onclick="document.getElementById('fileInExtra').click()" style="color:#555; cursor:pointer">📷 Kép hozzáadása</div>`;
+            imgArea.style.display = 'none';
+            imgArea.innerHTML = '';
         }
 
         const noteView = document.getElementById('detNoteView');
@@ -156,9 +149,16 @@
                     </div>
                 </div>`;
         } else {
-            noteView.innerHTML = `<div style="border:1px dashed var(--border); padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés hozzáadása</div>`;
+            noteView.innerHTML = `<div style="border:1px dashed var(--border); padding:20px; text-align:center; border-radius:12px; color:#666; cursor:pointer;" onclick="switchToEdit('')">➕ Megjegyzés írása</div>`;
         }
         openModal('detailsModal');
+    }
+
+    async function deleteImage() {
+        if(confirm("Törlöd a képet?")) {
+            await listRef.child(currentId).update({ img: "" });
+            document.getElementById('detImgArea').style.display = 'none';
+        }
     }
 
     function switchToEdit(val) {
@@ -189,7 +189,7 @@
             const div = document.createElement('div');
             div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             
-            const hasContent = (it.note && it.note.trim() !== "") || it.img;
+            const hasContent = (it.note && it.note.trim() !== "") || (it.img && it.img !== "");
             const infoClass = hasContent ? "info-has-content" : "";
             
             div.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${it.text}</span>
@@ -225,18 +225,8 @@
         const ref = storage.ref('photos/' + Date.now() + "_" + file.name);
         await ref.put(file);
         tempImgUrl = await ref.getDownloadURL();
-        document.getElementById('fileBtn').innerText = "✅ Kép OK";
+        document.getElementById('fileBtn').innerText = "✅ Kép csatolva";
     };
-
-    document.getElementById('fileInExtra').onchange = async (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const ref = storage.ref('photos/' + Date.now() + "_" + file.name);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        await listRef.child(currentId).update({ img: url });
-        closeModal('detailsModal');
-    }
 
     function addItem() {
         const t = document.getElementById('manualInput').value.trim();
@@ -246,7 +236,7 @@
             closeModal('inputModal');
             document.getElementById('manualInput').value=""; 
             document.getElementById('manualNote').value="";
-            document.getElementById('fileBtn').innerText = "📷 Kép hozzáadása";
+            document.getElementById('fileBtn').innerText = "📷 Kép kiválasztása";
             tempImgUrl = "";
         }
     }
