@@ -145,21 +145,16 @@
         const data = snap.val() || {};
         const conts = { active: document.getElementById('activeItems'), done: document.getElementById('doneItems'), x: document.getElementById('missingItems') };
         Object.values(conts).forEach(c => c.innerHTML = '');
-
         const items = Object.keys(data).map(id => ({ id, ...data[id] })).sort((a,b) => (a.order || 0) - (b.order || 0));
-
         items.forEach(it => {
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
             wrap.innerHTML = `<div class="delete-reveal" onclick="listRef.child('${it.id}').remove()">TÖRLÉS</div>`;
-            
             const div = document.createElement('div');
             div.className = 'item';
             div.dataset.id = it.id;
-            
             const hasExtra = (it.note || it.photo) ? 'has-data' : '';
             const handle = it.status === 'active' ? `<div class="drag-handle">≡</div>` : '';
-            
             div.innerHTML = `${handle}<span style="flex:1">${it.text}</span>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-sm ${hasExtra}" onclick="openInfo('${it.id}')">ℹ️</button>
@@ -168,10 +163,8 @@
                      <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : 
                     `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}
                 </div>`;
-            
             if(it.status === 'active') initDrag(div, wrap);
             initSwipe(div);
-            
             const target = it.status === 'done' ? conts.done : (it.status === 'x' ? conts.x : conts.active);
             target.appendChild(wrap);
         });
