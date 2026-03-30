@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló Lista</title>
+    <title>Bevásárló lista</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -43,21 +43,25 @@
         
         .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; }
         
-        /* MÓDOSÍTOTT: Fehér kontúr az i ikonnak ha van adat */
-        .has-data { 
-            border: 2px solid #ffffff !important; 
-            background: var(--danger) !important; 
-            box-shadow: 0 0 5px rgba(255,255,255,0.3);
-        }
+        /* JAVÍTVA: Piros kontúr cserélve FEHÉRRE */
+        .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 25px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+        .modal-content input, .modal-content textarea { user-select: text !important; -webkit-user-select: text !important; }
+        .close-x { position: absolute; top: 10px; right: 15px; font-size: 24px; color: var(--danger); cursor: pointer; }
+        
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 10px 0; border: 1px solid var(--border); }
+
+        #noteBox { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px; word-wrap: break-word; }
+        #noteDisplay { font-size: 14px; text-align: center; margin-bottom: 15px; line-height: 1.4; }
+        #noteActions { display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
     </style>
 </head>
 <body class="dark">
@@ -69,7 +73,7 @@
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
-    <h2 style="text-align:center; font-size:19px; margin-bottom:20px; letter-spacing:1px; text-transform: uppercase;">Bevásárló Lista</h2>
+    <h2 style="text-align:center; font-size:19px; margin-bottom:20px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
 
     <div style="margin-bottom:20px;">
         <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button>
@@ -92,7 +96,7 @@
 
 <div id="inputModal" class="custom-modal">
     <div class="modal-content">
-        <div style="position:absolute; top:10px; right:15px; font-size:24px; color:var(--danger); cursor:pointer;" onclick="closeModal('inputModal')">×</div>
+        <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
         <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
@@ -106,20 +110,23 @@
 
 <div id="infoModal" class="custom-modal">
     <div class="modal-content">
-        <div style="position:absolute; top:10px; right:15px; font-size:24px; color:var(--danger); cursor:pointer;" onclick="closeModal('infoModal')">×</div>
+        <div class="close-x" onclick="closeModal('infoModal')">×</div>
         <h3 id="infoTitle" style="text-align:center; margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;"></h3>
-        <div id="noteBox" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-            <div id="noteDisplay" style="font-size: 14px; text-align: center; margin-bottom: 15px;"></div>
-            <div id="noteActions" style="display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-                <button onclick="showNoteEditor(true)" style="background:none; border:none; font-size:22px;">✏️</button>
-                <button onclick="deleteNote()" style="background:none; border:none; font-size:22px;">🗑️</button>
+        
+        <div id="noteBox">
+            <div id="noteDisplay"></div>
+            <div id="noteActions">
+                <button onclick="showNoteEditor(true)" style="background:none; border:none; font-size:22px; cursor:pointer;">✏️</button>
+                <button onclick="deleteNote()" style="background:none; border:none; font-size:22px; cursor:pointer;">🗑️</button>
             </div>
-            <button id="addNoteBtn" onclick="showNoteEditor(false)" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:12px; border-radius:10px; font-weight:bold;">+ Megjegyzés hozzáadása</button>
+            <button id="addNoteBtn" onclick="showNoteEditor(false)" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:12px; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">+ Megjegyzés hozzáadása</button>
         </div>
+
         <div id="noteEditArea" style="display:none;">
-            <textarea id="noteTextarea" rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
+            <textarea id="noteTextarea" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
             <button class="action-btn" onclick="saveNote()">MENTÉS</button>
         </div>
+
         <img id="infoPhotoImg" class="img-preview-box" style="display:none; cursor:pointer; max-height:250px;" onclick="window.open(this.src)">
         <button class="action-btn" style="background:var(--grey); margin-top:15px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button>
     </div>
@@ -142,7 +149,9 @@
         handle: '.drag-handle',
         animation: 150,
         ghostClass: "sortable-ghost",
-        onStart: () => { document.querySelectorAll('.item').forEach(el => el.style.transform = 'translateX(0)'); },
+        onStart: (evt) => { 
+            document.querySelectorAll('.item').forEach(el => el.style.transform = 'translateX(0)');
+        },
         onEnd: () => {
             const items = document.querySelectorAll('#activeItems .item-wrapper');
             items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
@@ -184,37 +193,27 @@
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
             const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd a tételt?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
-            
-            const div = document.createElement('div'); 
-            div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
-            
-            const hasExtra = (it.note && it.note.trim() !== "") || (it.photo && it.photo.trim() !== "");
-            
-            div.innerHTML = `
-                ${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}
-                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${hasExtra ? 'has-data' : ''}" onclick="openInfo('${it.id}')">ℹ️</button>
-                    ${it.status === 'active' ? 
-                        `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button>
-                         <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : 
-                        `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}
-                </div>`;
+            const div = document.createElement('div'); div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
+            const hasExtra = (it.note && it.note.trim() !== "") || it.photo;
+            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             
             let startX = 0, currentX = 0, isDragging = false;
             div.addEventListener('touchstart', e => { startX = e.touches[0].clientX; div.style.transition = 'none'; isDragging = false; }, {passive: true});
             div.addEventListener('touchmove', e => { 
                 let diff = startX - e.touches[0].clientX; 
-                if (diff > 15) { isDragging = true; currentX = Math.min(diff, 85); div.style.transform = `translateX(-${currentX}px)`; }
+                if (diff > 10) { 
+                    isDragging = true;
+                    currentX = Math.min(diff, 85); 
+                    div.style.transform = `translateX(-${currentX}px)`; 
+                }
             }, {passive: true});
-            div.addEventListener('touchend', () => { 
+            div.addEventListener('touchend', e => { 
                 div.style.transition = 'transform 0.3s ease'; 
                 if (isDragging && currentX > 50) div.style.transform = `translateX(-80px)`; 
                 else div.style.transform = `translateX(0)`; 
             });
 
-            wrap.appendChild(div); 
-            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
+            wrap.appendChild(div); document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
     }
 
