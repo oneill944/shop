@@ -29,9 +29,10 @@
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         
         .notif-status-bar { text-align: center; margin-bottom: 15px; }
-        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 6px 15px; border-radius: 20px; transition: 0.3s; text-transform: uppercase; min-width: 140px; }
-        .notif-on { background-color: var(--success); }
-        .notif-off { background-color: var(--danger); }
+        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 8px 20px; border-radius: 20px; transition: background-color 0.3s, transform 0.1s; text-transform: uppercase; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .notif-on { background-color: var(--success) !important; }
+        .notif-off { background-color: var(--danger) !important; }
+        .notif-toggle-btn:active { transform: scale(0.96); }
 
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         
@@ -75,7 +76,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.4.1</div>
+        <div class="version-label">v1.4.3</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -143,7 +144,6 @@
     let currentItemId = null, tempPhotoData = "", isSorting = false;
     let notificationsEnabled = localStorage.getItem('notifEnabled') === 'true';
 
-    // iOS Service Worker Regisztráció
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
@@ -158,18 +158,12 @@
         render(items); 
     });
 
-    // Értesítés küldése, ha új tétel érkezik (más által)
     listRef.limitToLast(1).on('child_added', snapshot => {
         const it = snapshot.val();
-        // Csak akkor küldünk értesítést, ha nem mi adtuk hozzá épp most (< 3mp)
         if (notificationsEnabled && (Date.now() - it.order < 3000)) {
             if ('Notification' in window && Notification.permission === 'granted') {
                 navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification("Új tétel érkezett!", {
-                        body: it.text,
-                        icon: "IMG_4302.png",
-                        badge: "IMG_4302.png"
-                    });
+                    reg.showNotification("Új tétel érkezett!", { body: it.text, icon: "IMG_4302.png" });
                 });
             }
         }
@@ -177,13 +171,14 @@
 
     function updateNotifBtnUI() {
         const btn = document.getElementById('notifBtn');
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
         if(notificationsEnabled) {
             btn.innerText = "Értesítések: BE";
-            btn.className = "notif-toggle-btn notif-on";
+            btn.classList.add('notif-on');
+            btn.classList.remove('notif-off');
         } else {
-            btn.innerText = isStandalone ? "Értesítések: KI" : "Add a főképernyőhöz!";
-            btn.className = "notif-toggle-btn notif-off";
+            btn.innerText = "Értesítések: KI";
+            btn.classList.add('notif-off');
+            btn.classList.remove('notif-on');
         }
     }
 
@@ -198,7 +193,7 @@
                         reg.showNotification("Bevásárló lista", { body: "Értesítések aktívak!" });
                     });
                 } else {
-                    alert("iOS-en add a főképernyőhöz az appot az értesítésekhez!");
+                    alert("Az értesítések engedélyezéséhez engedd meg a felugró ablakban!");
                 }
                 updateNotifBtnUI();
             });
@@ -230,7 +225,6 @@
         document.getElementById('activeCountLabel').innerText = `Aktív tételek (${activeCount})`;
     }
 
-    // Alapvető funkciók (AddItem, Modal, etc)
     function updateStatus(id, status) { vibrate(40); listRef.child(id).update({status: status}); }
     function openInfo(id) { currentItemId = id; vibrate(15); document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn'); if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; document.getElementById('editNoteInput').value = ""; } const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn'); if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; } openModal('infoModal'); }); }
     function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; if(type==='photo') document.getElementById('editPhotoInput').click(); }
