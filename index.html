@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bevásárló lista</title>
     
-    <link rel="apple-touch-icon" href="IMG_4302.png">
-    <link rel="icon" type="image/png" href="IMG_4302.png">
+    <link rel="apple-touch-icon" href="IMG_4299.png">
+    <link rel="icon" type="image/png" href="IMG_4299.png">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,7 +25,8 @@
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
-        .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
+        .mode-toggle, .notif-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
+        .notif-on { color: var(--primary); }
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
@@ -54,7 +55,6 @@
         
         .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
         
-        /* JAVÍTVA: Csak akkor piros a kontúr, ha van adat (has-data osztály) */
         .has-data { border-color: var(--danger) !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
@@ -77,6 +77,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
+        <button id="notifBtn" class="notif-toggle" onclick="toggleNotifications()">🔔</button>
         <div class="version-label">v0.5.9</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
@@ -162,9 +163,34 @@
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
     let currentItemId = null, tempPhotoData = "";
+    let isInitialLoad = true;
+    let notificationsEnabled = localStorage.getItem('notifications') === 'true';
 
     function toggleMode() { document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); }
     if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+
+    function updateNotifUI() {
+        const btn = document.getElementById('notifBtn');
+        if (notificationsEnabled) { btn.classList.add('notif-on'); btn.innerText = '🔔'; }
+        else { btn.classList.remove('notif-on'); btn.innerText = '🔕'; }
+    }
+    updateNotifUI();
+
+    function toggleNotifications() {
+        if (!notificationsEnabled) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    notificationsEnabled = true;
+                    localStorage.setItem('notifications', 'true');
+                    updateNotifUI();
+                }
+            });
+        } else {
+            notificationsEnabled = false;
+            localStorage.setItem('notifications', 'false');
+            updateNotifUI();
+        }
+    }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
@@ -254,7 +280,22 @@
         const val = document.getElementById('manualInput').value.trim(), note = document.getElementById('manualNote').value.trim();
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
-    listRef.on('value', snap => { const d = snap.val(); render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); });
+
+    listRef.on('child_added', snap => {
+        if (!isInitialLoad && notificationsEnabled) {
+            const it = snap.val();
+            if (it.status === 'active') {
+                new Notification("Új tétel a listán!", { body: it.text, icon: 'IMG_4299.png' });
+            }
+        }
+    });
+
+    listRef.on('value', snap => { 
+        const d = snap.val(); 
+        render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); 
+        isInitialLoad = false;
+    });
+
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 </script>
 </body>
