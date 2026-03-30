@@ -11,7 +11,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; }
@@ -19,38 +18,40 @@
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s; }
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; }
         
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .version-label { font-size: 10px; opacity: 0.2; }
-
+        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
+        .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+        .version-label { font-size: 10px; color: #444; }
+        
         .notif-status-bar { text-align: center; margin-bottom: 15px; }
-        .notif-btn-text { background: none; border: none; color: var(--primary); font-size: 11px; font-weight: bold; cursor: pointer; text-decoration: underline; opacity: 0.7; }
-        .notif-btn-text.off { color: #888; }
+        .notif-btn-text { background: none; border: none; color: var(--primary); font-size: 11px; font-weight: bold; cursor: pointer; text-decoration: underline; opacity: 0.6; }
 
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
-        .list-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         
+        .list-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; width: 100%; }
-        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 1; }
+        
+        .delete-btn-bg { position: absolute; right: 2px; top: 2px; bottom: 2px; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 8px; z-index: 1; }
 
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s; border: 1px solid transparent; touch-action: pan-y; width: 100%; }
+        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s; border: 1px solid transparent; touch-action: pan-y; width: 100%; }
         .item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
         
         .status-done { border: 1.5px solid var(--success) !important; }
         .status-x { border: 1.5px solid var(--danger) !important; }
         
-        .btn-sm { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; border: none; flex-shrink: 0; }
-        .has-data { border: 1px solid var(--danger) !important; }
+        .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
+        .has-data { border-color: var(--danger) !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; border-radius: 24px; padding: 35px 20px 25px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; position: relative; }
-        .close-x { position: absolute; top: 10px; right: 20px; font-size: 28px; color: var(--danger); cursor: pointer; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; border-radius: 24px; padding: 35px 20px 25px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+        .close-x { position: absolute; top: 5px; right: 15px; font-size: 28px; color: var(--danger); cursor: pointer; }
         
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; font-size: 16px; outline: none; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; }
         .img-preview-box { width: 100%; border-radius: 10px; margin: 10px 0; border: 1px solid var(--border); }
     </style>
 </head>
@@ -58,9 +59,9 @@
 
 <div class="app-card">
     <div class="header-top">
-        <button onclick="toggleMode()" style="background:none; border:none; font-size:20px;">🌓</button>
-        <div class="version-label">v0.9.8</div>
-        <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.2;">🗑️</button>
+        <button class="mode-toggle" onclick="toggleMode()">🌓</button>
+        <div class="version-label">v0.9.9</div>
+        <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
     
     <h2 style="text-align:center; font-size:19px; margin:0; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
@@ -68,7 +69,7 @@
         <button id="notifBtn" class="notif-btn-text" onclick="toggleNotifications()">Értesítések bekapcsolása</button>
     </div>
 
-    <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; margin-bottom:20px;">HOZZÁADÁS</button>
+    <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px;">HOZZÁADÁS</button>
 
     <div class="col-label">Aktív tételek</div>
     <div id="activeItems" class="list-container"></div>
@@ -79,9 +80,9 @@
     </div>
 </div>
 
-<div id="inputModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('inputModal')">×</div><input type="text" id="manualInput" placeholder="Termék neve..."><textarea id="manualNote" placeholder="Megjegyzés..."></textarea><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer;">📷 Fotó hozzáadása<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label><img id="newPhotoPreview" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="addItem()">HOZZÁADÁS</button></div></div>
+<div id="inputModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('inputModal')">×</div><input type="text" id="manualInput" placeholder="Termék neve..."><textarea id="manualNote" placeholder="Megjegyzés..."></textarea><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; color:white;">📷 Fotó hozzáadása<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label><img id="newPhotoPreview" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="addItem()">HOZZÁADÁS</button></div></div>
 
-<div id="infoModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('infoModal')">×</div><h3 id="infoTitle" style="text-align:center;"></h3><div id="viewArea"><div id="noteDisplay" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; text-align:center; margin-bottom:10px;"></div><img id="infoPhotoImg" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="closeModal('infoModal')">BEZÁRÁS</button></div></div></div>
+<div id="infoModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('infoModal')">×</div><h3 id="infoTitle" style="text-align:center;"></h3><div id="viewArea"><div id="noteDisplay" style="background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; text-align:center; margin-bottom:10px;"></div><img id="infoPhotoImg" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="closeModal('infoModal')">BEZÁRÁS</button></div></div></div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
@@ -90,38 +91,29 @@
     let isInitialLoad = true, tempPhotoData = "", notificationsEnabled = localStorage.getItem('notifications') === 'true';
 
     function toggleMode() { document.body.classList.toggle('light-mode'); }
-    
     function updateNotifUI() {
         const btn = document.getElementById('notifBtn');
-        if (notificationsEnabled) { btn.innerText = "Értesítések: BE"; btn.classList.remove('off'); }
-        else { btn.innerText = "Értesítések: KI (Bekapcsoláshoz kattints ide)"; btn.classList.add('off'); }
+        btn.innerText = notificationsEnabled ? "Értesítések: AKTÍV" : "Értesítések: INAKTÍV (Kattints a bekapcsoláshoz)";
+        btn.style.opacity = notificationsEnabled ? "1" : "0.6";
     }
     updateNotifUI();
 
     function toggleNotifications() {
         if (!notificationsEnabled) {
-            Notification.requestPermission().then(perm => {
-                if (perm === "granted") { notificationsEnabled = true; localStorage.setItem('notifications', 'true'); updateNotifUI(); }
-            });
+            Notification.requestPermission().then(perm => { if (perm === "granted") { notificationsEnabled = true; localStorage.setItem('notifications', 'true'); updateNotifUI(); } });
         } else { notificationsEnabled = false; localStorage.setItem('notifications', 'false'); updateNotifUI(); }
     }
 
     listRef.on('child_added', snap => {
-        // Fontos: Minden értesítés egyedi ID-t kap (tag), így nem "nyomják el" egymást
         if (!isInitialLoad && notificationsEnabled && snap.val().status === 'active' && document.visibilityState !== 'visible') {
-            new Notification("Új termék!", { 
-                body: snap.val().text, 
-                icon: 'IMG_4302.png',
-                tag: 'item-' + Date.now(), // Egyedi azonosító a sorozatos üzenetekhez
-                renotify: true 
-            });
+            new Notification("Új termék!", { body: snap.val().text, icon: 'IMG_4302.png', tag: 'item-' + Date.now(), renotify: true });
         }
     });
 
     listRef.on('value', snap => {
         const d = snap.val();
         render(d ? Object.keys(d).map(k => ({id:k, ...d[k]})) : []);
-        if (isInitialLoad) setTimeout(() => { isInitialLoad = false; }, 2000);
+        isInitialLoad = false;
     });
 
     function render(items) {
@@ -161,12 +153,8 @@
 
     function previewPhoto(input, pId) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(input.files[0]); } }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; document.getElementById('newPhotoPreview').style.display='none'; }
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
-
-    new Sortable(document.getElementById('activeItems'), { animation: 150, onEnd: () => {
-        document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
-    }});
 </script>
 </body>
 </html>
