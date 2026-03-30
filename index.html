@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.4.3</title>
+    <title>Lista Pro v0.4.4</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,14 +14,18 @@
     
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; --yellow: #ffff00; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; }
+        .light-mode { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #d66d6d; --grey: #e5e5ea; --border: #c7c7cc; }
         
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; 
+            user-select: none; -webkit-user-select: none; }
+        
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s; }
+        
+        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: #421a18; width: 100%; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: var(--danger); width: 100%; }
         
         .item { 
             background: var(--item-bg); padding: 10px 12px; border-radius: 10px; 
@@ -31,32 +35,35 @@
         }
 
         .drag-handle { color: #555; font-size: 22px; padding-right: 5px; cursor: grab; flex-shrink: 0; }
-        .status-done { background: #1b3d26 !important; border-color: var(--success) !important; }
-        .status-x { background: #421a18 !important; border-color: var(--danger) !important; }
+        .status-done { background: var(--success) !important; color: white !important; }
+        .status-x { background: var(--danger) !important; color: white !important; }
         
         .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: none; flex-shrink: 0; }
         .has-data { background: var(--yellow) !important; color: #000 !important; }
 
-        /* Lenti rács javítása - Nincs kontúr */
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
         /* Modals */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); user-select: auto; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); }
+        .modal-content input, .modal-content textarea { user-select: text; -webkit-user-select: text; }
         .close-x { position: absolute; top: 5px; right: 15px; font-size: 30px; color: var(--danger); cursor: pointer; }
         
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; user-select: auto; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; }
         
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
+        
+        .mode-toggle { background: var(--grey); border: none; color: var(--text); padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.4.3</div>
+        <div style="font-size:10px; color:#444;">v0.4.4</div>
+        <button class="mode-toggle" onclick="toggleMode()">🌓 Mód</button>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
     
@@ -64,7 +71,7 @@
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
         <button id="micBtn" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:bold;">🎤 HANG</button>
-        <button onclick="openModal('inputModal')" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--grey); color:white; font-weight:bold;">⌨️ ÍRÁS</button>
+        <button onclick="openModal('inputModal')" style="flex:1; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold;">⌨️ ÍRÁS</button>
     </div>
 
     <div class="col-label">Aktív tételek</div>
@@ -87,7 +94,7 @@
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px;">
+        <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
             📷 Fotó hozzáadása
             <input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this)">
         </label>
@@ -117,9 +124,16 @@
     const listRef = db.ref('shoppingList');
     let tempPhotoData = "";
 
+    function toggleMode() {
+        document.body.classList.toggle('light-mode');
+        localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    }
+    if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    // Csak a felső listát engedjük rendezni
     new Sortable(document.getElementById('activeItems'), {
         handle: '.drag-handle',
         animation: 150,
@@ -153,8 +167,8 @@
     }
 
     function render(items) {
-        const c = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
-        Object.values(c).forEach(id => document.getElementById(id).innerHTML = '');
+        const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
+        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
 
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div');
@@ -167,7 +181,7 @@
             const hasExtra = it.note || it.photo;
 
             div.innerHTML = `
-                <div class="drag-handle">≡</div>
+                ${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}
                 <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>
@@ -190,7 +204,7 @@
             });
 
             wrap.appendChild(div);
-            document.getElementById(c[it.status] || 'activeItems').appendChild(wrap);
+            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
     }
 
