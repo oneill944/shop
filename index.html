@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.4.4</title>
+    <title>Lista Pro v0.4.5</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,12 +25,15 @@
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: var(--danger); width: 100%; }
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
         
+        /* Törlés gomb stílusa a háttérben */
+        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 0 10px 10px 0; z-index: 1; }
+
         .item { 
             background: var(--item-bg); padding: 10px 12px; border-radius: 10px; 
             display: flex; align-items: center; gap: 10px; position: relative; 
-            z-index: 5; transition: transform 0.1s; border: 1px solid transparent; 
+            z-index: 5; transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28); border: 1px solid transparent; 
             touch-action: pan-y; width: 100%;
         }
 
@@ -38,8 +41,10 @@
         .status-done { background: var(--success) !important; color: white !important; }
         .status-x { background: var(--danger) !important; color: white !important; }
         
-        .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: none; flex-shrink: 0; }
-        .has-data { background: var(--yellow) !important; color: #000 !important; }
+        .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; }
+        
+        /* Megjegyzés jelzése: piros kontúr */
+        .has-data { border-color: var(--danger) !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
@@ -55,15 +60,15 @@
         
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
         
-        .mode-toggle { background: var(--grey); border: none; color: var(--text); padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+        .mode-toggle { background: var(--grey); border: none; color: var(--text); width: 40px; height: 30px; border-radius: 15px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.4.4</div>
-        <button class="mode-toggle" onclick="toggleMode()">🌓 Mód</button>
+        <div style="font-size:10px; color:#444;">v0.4.5</div>
+        <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
     
@@ -133,10 +138,13 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Csak a felső listát engedjük rendezni
     new Sortable(document.getElementById('activeItems'), {
         handle: '.drag-handle',
         animation: 150,
+        onStart: function(evt) {
+            // Rendezéskor eltüntetjük a piros törlés hátteret az elem alól
+            evt.item.style.background = 'transparent';
+        },
         onEnd: function() {
             const items = document.querySelectorAll('#activeItems .item-wrapper');
             items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
@@ -174,7 +182,13 @@
             const wrap = document.createElement('div');
             wrap.className = 'item-wrapper';
             wrap.setAttribute('data-id', it.id);
-            wrap.innerHTML = `<div style="position:absolute;right:15px;top:50%;transform:translateY(-50%);color:white;font-size:10px;font-weight:bold;">TÖRLÉS</div>`;
+            
+            // Külön gomb a törléshez, ami csak elhúzás után látszik
+            const delBtn = document.createElement('div');
+            delBtn.className = 'delete-btn-bg';
+            delBtn.innerText = 'TÖRLÉS';
+            delBtn.onclick = () => { if(confirm("Törlöd a tételt?")) listRef.child(it.id).remove(); };
+            wrap.appendChild(delBtn);
 
             const div = document.createElement('div');
             div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
@@ -193,14 +207,31 @@
                 </div>`;
 
             let startX = 0;
-            div.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
+            let currentX = 0;
+            div.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                div.style.transition = 'none';
+            }, {passive: true});
+
             div.addEventListener('touchmove', e => {
                 let diff = startX - e.touches[0].clientX;
-                if (diff > 0 && diff < 100) div.style.transform = `translateX(-${diff}px)`;
+                // Csak balra húzást engedünk, max 80px-ig (a gomb szélessége)
+                if (diff > 0) {
+                    currentX = Math.min(diff, 85);
+                    div.style.transform = `translateX(-${currentX}px)`;
+                } else {
+                    currentX = 0;
+                    div.style.transform = `translateX(0)`;
+                }
             }, {passive: true});
+
             div.addEventListener('touchend', e => {
-                if (startX - e.changedTouches[0].clientX > 80) { if(confirm("Törlöd?")) listRef.child(it.id).remove(); else div.style.transform = `translateX(0)`; } 
-                else { div.style.transform = `translateX(0)`; }
+                div.style.transition = 'transform 0.3s ease';
+                if (currentX > 50) {
+                    div.style.transform = `translateX(-80px)`; // Kint marad a gomb
+                } else {
+                    div.style.transform = `translateX(0)`; // Visszaugrik
+                }
             });
 
             wrap.appendChild(div);
