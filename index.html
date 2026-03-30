@@ -53,7 +53,7 @@
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button id="notifBtn" class="notif-toggle" onclick="toggleNotifications()">🔔</button>
-        <div class="version-label">v0.6.6 FIXED</div>
+        <div class="version-label">v0.7.0 LEGACY</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -94,7 +94,7 @@
                 if (perm === "granted") {
                     notificationsEnabled = true;
                     localStorage.setItem('notifications', 'true');
-                    new Notification("Értesítések aktívak!", { icon: 'IMG_4302.png' });
+                    new Notification("Értesítések aktívak!");
                 }
             });
         } else {
@@ -104,7 +104,19 @@
         updateNotifUI();
     }
 
-    // --- FIREBASE ÉS RENDERELÉS ---
+    // --- REGEBBI "ÚJ TERMÉK A KOSÁRBA" LOGIKA ---
+    listRef.on('child_added', snap => {
+        if (!isInitialLoad && notificationsEnabled) {
+            const it = snap.val();
+            if (it.status === 'active') {
+                new Notification("Új termék a kosárba!", { 
+                    body: it.text, 
+                    icon: 'IMG_4302.png' 
+                });
+            }
+        }
+    });
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
 
@@ -138,31 +150,12 @@
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
 
-    // --- LEGEGYSZERŰBB ÉRTESÍTÉSI LOGIKA ---
-    listRef.on('child_added', snap => {
-        if (!isInitialLoad && notificationsEnabled) {
-            const it = snap.val();
-            // Csak az új, aktív tételekről szólunk
-            if (it.status === 'active') {
-                try {
-                    new Notification("Új tétel: " + it.text, { 
-                        icon: 'IMG_4302.png',
-                        body: 'Valaki hozzáadta a listához.'
-                    });
-                } catch (e) {
-                    console.log("Értesítési hiba: ", e);
-                }
-            }
-        }
-    });
-
     listRef.on('value', snap => { 
         const d = snap.val(); 
         render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); 
         isInitialLoad = false;
     });
 
-    // --- FOTÓ ÉS INFORMÁCIÓ KEZELÉS (VÁLTOZATLAN) ---
     function previewPhoto(input, previewId) { if(input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(previewId); p.src = tempPhotoData; p.style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
     function openInfo(id) { currentItemId = id; document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn'); if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; } else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; } const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn'); if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; } else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; } openModal('infoModal'); }); }
     function showEdit(type) { document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; listRef.child(currentItemId).once('value', snap => { const it = snap.val(); if(type === 'note') { const input = document.getElementById('editNoteInput'); input.value = it.note || ""; setTimeout(() => input.focus(), 100); } else { tempPhotoData = it.photo || ""; document.getElementById('editPhotoInput').click(); } }); }
