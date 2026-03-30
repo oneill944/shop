@@ -38,8 +38,9 @@
         .sortable-ghost { opacity: 0.4; }
         .sortable-chosen .item { transform: translateX(0) !important; }
 
-        .status-done { background: var(--success) !important; color: white !important; }
-        .status-x { background: var(--danger) !important; color: white !important; }
+        /* JAVÍTVA: Átlátszó színek erős kontúrral */
+        .status-done { background: rgba(50, 168, 82, 0.15) !important; color: var(--text) !important; border: 1.5px solid var(--success) !important; }
+        .status-x { background: rgba(235, 64, 52, 0.15) !important; color: var(--text) !important; border: 1.5px solid var(--danger) !important; }
         
         .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
         .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
@@ -48,13 +49,10 @@
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        
-        /* MEGNYÚJTVA: A modal szélessége és belső távolsága módosult */
         .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; border-radius: 24px; padding: 35px 20px 25px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
-        .modal-content input, .modal-content textarea { user-select: text !important; -webkit-user-select: text !important; }
         
-        /* ÚJ POZÍCIÓ: Az X gomb beljebb és lejjebb került */
-        .close-x { position: absolute; top: 12px; right: 18px; font-size: 26px; color: var(--danger); cursor: pointer; z-index: 2001; }
+        /* JAVÍTVA: X pozíciója még feljebb */
+        .close-x { position: absolute; top: 5px; right: 15px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
@@ -69,7 +67,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.5.8</div>
+        <div class="version-label">v0.5.9</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -97,7 +95,7 @@
 <div id="inputModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
-        <input type="text" id="manualInput" placeholder="Termék neve..." style="margin-top: 5px;">
+        <input type="text" id="manualInput" placeholder="Termék neve..." style="margin-top: 10px;">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
         <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
             📷 Fotó hozzáadása
@@ -140,7 +138,6 @@
             <div id="photoEditSection" style="display:none;">
                 <input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')">
                 <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
-                <p style="font-size:12px; color:#aaa; text-align:center;">Válassz új fotót a feltöltéshez</p>
             </div>
             <button class="action-btn" onclick="saveInfo()">MENTÉS</button>
         </div>
