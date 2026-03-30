@@ -1,6 +1,5 @@
-const CACHE_NAME = 'kozos-lista-v0.9.0';
+const CACHE_NAME = 'kozos-lista-v0.9.1';
 
-// Telepítéskor gyorsítótárazás (opcionális offline módhoz)
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -9,9 +8,8 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-// ÉRTESÍTÉS KEZELÉSE
 self.addEventListener('push', (event) => {
-    let data = { title: 'Új tétel!', body: 'Valaki frissítette a listát.' };
+    let data = { title: 'Új tétel!', body: 'Valaki írt a listára.' };
     
     if (event.data) {
         try {
@@ -25,13 +23,12 @@ self.addEventListener('push', (event) => {
         body: data.body,
         icon: 'IMG_4302.png',
         badge: 'IMG_4302.png',
-        // A 'tag' és a 'renotify' a kulcs: minden üzenet kapjon rezgést
-        tag: 'msg-' + Date.now(), 
+        // KRITIKUS: Az egyedi tag és a renotify kényszeríti ki az újabb hangot/rezgést
+        tag: 'notification-' + Date.now(), 
         renotify: true,
         vibrate: [100, 50, 100],
         data: {
-            dateOfArrival: Date.now(),
-            primaryKey: 1
+            dateOfArrival: Date.now()
         }
     };
 
@@ -40,7 +37,6 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// Kattintás az értesítésre: nyissa meg az appot
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     event.waitUntil(
