@@ -42,8 +42,6 @@
         .status-x { background: var(--danger) !important; color: white !important; }
         
         .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; }
-        
-        /* JAVÍTVA: Piros kontúr cserélve FEHÉRRE */
         .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
@@ -69,7 +67,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.5.2</div>
+        <div class="version-label">v0.5.3</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -101,7 +99,7 @@
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
         <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
             📷 Fotó hozzáadása
-            <input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+            <input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')">
         </label>
         <img id="newPhotoPreview" class="img-preview-box" style="display:none;">
         <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
@@ -119,11 +117,18 @@
                 <button onclick="showNoteEditor(true)" style="background:none; border:none; font-size:22px; cursor:pointer;">✏️</button>
                 <button onclick="deleteNote()" style="background:none; border:none; font-size:22px; cursor:pointer;">🗑️</button>
             </div>
-            <button id="addNoteBtn" onclick="showNoteEditor(false)" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:12px; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">+ Megjegyzés hozzáadása</button>
+            <button id="addNoteBtn" onclick="showNoteEditor(false)" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:12px; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">+ Adatok hozzáadása</button>
         </div>
 
         <div id="noteEditArea" style="display:none;">
             <textarea id="noteTextarea" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
+            
+            <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
+                📷 Fotó módosítása
+                <input type="file" id="editPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')">
+            </label>
+            <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
+            
             <button class="action-btn" onclick="saveNote()">MENTÉS</button>
         </div>
 
@@ -149,16 +154,24 @@
         handle: '.drag-handle',
         animation: 150,
         ghostClass: "sortable-ghost",
-        onStart: (evt) => { 
-            document.querySelectorAll('.item').forEach(el => el.style.transform = 'translateX(0)');
-        },
+        onStart: () => { document.querySelectorAll('.item').forEach(el => el.style.transform = 'translateX(0)'); },
         onEnd: () => {
             const items = document.querySelectorAll('#activeItems .item-wrapper');
             items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
         }
     });
 
-    function previewPhoto(input) { if(input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById('newPhotoPreview'); p.src = tempPhotoData; p.style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
+    function previewPhoto(input, previewId) { 
+        if(input.files && input.files[0]) { 
+            const reader = new FileReader(); 
+            reader.onload = e => { 
+                tempPhotoData = e.target.result; 
+                const p = document.getElementById(previewId); 
+                p.src = tempPhotoData; p.style.display = 'block'; 
+            }; 
+            reader.readAsDataURL(input.files[0]); 
+        } 
+    }
 
     function openInfo(id) {
         currentItemId = id;
@@ -168,8 +181,18 @@
             const noteDisp = document.getElementById('noteDisplay'), noteAct = document.getElementById('noteActions'), addBtn = document.getElementById('addNoteBtn'), noteBox = document.getElementById('noteBox');
             document.getElementById('noteEditArea').style.display = 'none';
             noteBox.style.display = 'block';
-            if(it.note && it.note.trim() !== "") { noteDisp.innerText = it.note; noteDisp.style.display = 'block'; noteAct.style.display = 'flex'; addBtn.style.display = 'none'; }
-            else { noteDisp.innerText = ""; noteDisp.style.display = 'none'; noteAct.style.display = 'none'; addBtn.style.display = 'block'; }
+            
+            if((it.note && it.note.trim() !== "") || it.photo) { 
+                noteDisp.innerText = it.note || ""; 
+                noteDisp.style.display = it.note ? 'block' : 'none';
+                noteAct.style.display = 'flex'; 
+                addBtn.style.display = 'none'; 
+            } else { 
+                noteDisp.style.display = 'none'; 
+                noteAct.style.display = 'none'; 
+                addBtn.style.display = 'block'; 
+            }
+            
             const img = document.getElementById('infoPhotoImg');
             if(it.photo) { img.src = it.photo; img.style.display = 'block'; } else { img.style.display = 'none'; }
             openModal('infoModal');
@@ -178,14 +201,34 @@
 
     function showNoteEditor(isEdit) {
         document.getElementById('noteBox').style.display = 'none';
+        document.getElementById('infoPhotoImg').style.display = 'none';
         document.getElementById('noteEditArea').style.display = 'block';
+        
         const area = document.getElementById('noteTextarea');
-        area.value = isEdit ? document.getElementById('noteDisplay').innerText : "";
+        const preview = document.getElementById('editPhotoPreview');
+        
+        listRef.child(currentItemId).once('value', snap => {
+            const it = snap.val();
+            area.value = isEdit ? (it.note || "") : "";
+            if(isEdit && it.photo) { preview.src = it.photo; preview.style.display = 'block'; tempPhotoData = it.photo; }
+            else { preview.style.display = 'none'; tempPhotoData = ""; }
+        });
         setTimeout(() => area.focus(), 100);
     }
 
-    function deleteNote() { if(confirm("Törlöd a megjegyzést?")) listRef.child(currentItemId).update({ note: "" }).then(() => openInfo(currentItemId)); }
-    function saveNote() { const val = document.getElementById('noteTextarea').value.trim(); listRef.child(currentItemId).update({ note: val }).then(() => openInfo(currentItemId)); }
+    function deleteNote() { 
+        if(confirm("Törlöd a megjegyzést és a fotót?")) {
+            listRef.child(currentItemId).update({ note: "", photo: "" }).then(() => openInfo(currentItemId)); 
+        }
+    }
+
+    function saveNote() { 
+        const val = document.getElementById('noteTextarea').value.trim(); 
+        listRef.child(currentItemId).update({ note: val, photo: tempPhotoData }).then(() => {
+            tempPhotoData = "";
+            openInfo(currentItemId);
+        }); 
+    }
 
     function render(items) {
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
@@ -201,13 +244,9 @@
             div.addEventListener('touchstart', e => { startX = e.touches[0].clientX; div.style.transition = 'none'; isDragging = false; }, {passive: true});
             div.addEventListener('touchmove', e => { 
                 let diff = startX - e.touches[0].clientX; 
-                if (diff > 10) { 
-                    isDragging = true;
-                    currentX = Math.min(diff, 85); 
-                    div.style.transform = `translateX(-${currentX}px)`; 
-                }
+                if (diff > 10) { isDragging = true; currentX = Math.min(diff, 85); div.style.transform = `translateX(-${currentX}px)`; }
             }, {passive: true});
-            div.addEventListener('touchend', e => { 
+            div.addEventListener('touchend', () => { 
                 div.style.transition = 'transform 0.3s ease'; 
                 if (isDragging && currentX > 50) div.style.transform = `translateX(-80px)`; 
                 else div.style.transform = `translateX(0)`; 
