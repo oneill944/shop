@@ -8,6 +8,8 @@
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
     
+    <link rel="manifest" href="data:application/json;base64,ewogICJkZWZhdWx0X2xvY2FsZSI6ICJodSIsCiAgIm5hbWUiOiAiQmV2w6FzcmzDsyBsaXN0YSIsCiAgInNob3J0X25hbWUiOiAiTGlzdGEiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBiMGIwYiIsCiAgInRoZW1lX2NvbG9yIjogIiMwYjBiMGIiCn0=">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -24,25 +26,9 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
         .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
         
-        /* Felirat alatti kapcsoló gomb */
-        .notif-container { text-align: center; margin-bottom: 20px; }
-        .notif-toggle-btn { 
-            background: var(--item-bg); 
-            color: var(--text); 
-            border: 1px solid var(--border); 
-            padding: 8px 20px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-        }
-        .notif-toggle-btn.active { 
-            background: var(--success); 
-            color: white; 
-            border-color: var(--success);
-            box-shadow: 0 0 10px rgba(50, 168, 82, 0.3);
-        }
+        .notif-container { text-align: center; margin-bottom: 15px; }
+        .notif-toggle-btn { background: var(--item-bg); color: var(--text); border: 1px solid var(--border); padding: 7px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.3s; text-transform: uppercase; }
+        .notif-toggle-btn.active { background: var(--success); color: white; border-color: var(--success); }
 
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
@@ -72,18 +58,20 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.7.5 FINAL</div>
+        <div class="version-label">v0.8.0 PWA</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
-    <h2 style="text-align:center; font-size:19px; margin-bottom:8px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
+    <h2 style="text-align:center; font-size:19px; margin-bottom:5px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
     
     <div class="notif-container">
         <button id="notifBtn" class="notif-toggle-btn" onclick="toggleNotifications()">Értesítések: KI</button>
     </div>
 
-    <div style="margin-bottom:20px;"><button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button></div>
-    
+    <div style="margin-bottom:20px;">
+        <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button>
+    </div>
+
     <div class="col-label">Aktív tételek</div>
     <div id="activeItems" class="list-container"></div>
     
@@ -97,67 +85,62 @@
 <div id="infoModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('infoModal')">×</div><h3 id="infoTitle" style="text-align:center; margin-top:5px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"></h3><div id="viewArea"><div id="noteBox" class="info-box"><div id="noteDisplay" style="font-size:14px; text-align:center; margin-bottom:10px; word-wrap: break-word;"></div><div class="info-actions" id="noteActions"><button onclick="showEdit('note')" style="background:none; border:none; font-size:20px; cursor:pointer;">✏️</button><button onclick="deleteField('note')" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button></div><button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:13px; font-weight:bold;">+ Megjegyzés hozzáadása</button></div><div id="photoBox" class="info-box" style="text-align:center;"><img id="infoPhotoImg" class="img-preview-box" style="max-height:220px; width:100%; cursor:pointer;" onclick="window.open(this.src)"><div class="info-actions" id="photoActions"><button onclick="showEdit('photo')" style="background:none; border:none; font-size:20px; cursor:pointer;">✏️</button><button onclick="deleteField('photo')" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button></div><button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:13px; font-weight:bold;">+ Fotó hozzáadása</button></div></div><div id="editArea" style="display:none;"><div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea></div><div id="photoEditSection" style="display:none;"><input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"><img id="editPhotoPreview" class="img-preview-box" style="display:none;"></div><button class="action-btn" onclick="saveInfo()">MENTÉS</button></div><button class="action-btn" style="background:var(--grey); margin-top:10px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button></div></div>
 
 <script>
+    // --- FIREBASE ---
     const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
+
     let currentItemId = null, tempPhotoData = "", isInitialLoad = true;
     let notificationsEnabled = localStorage.getItem('notifications') === 'true';
+
+    // --- SERVICE WORKER REG ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => console.log("SW kész.")).catch(err => console.log("SW hiba:", err));
+    }
 
     function toggleMode() { document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); }
     if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
 
     function updateNotifUI() {
         const btn = document.getElementById('notifBtn');
-        if (notificationsEnabled) {
-            btn.innerText = "Értesítések: BE";
-            btn.classList.add('active');
-        } else {
-            btn.innerText = "Értesítések: KI";
-            btn.classList.remove('active');
-        }
+        btn.innerText = notificationsEnabled ? "Értesítések: BE" : "Értesítések: KI";
+        btn.classList.toggle('active', notificationsEnabled);
     }
     updateNotifUI();
 
-    function toggleNotifications() {
+    async function toggleNotifications() {
         if (!notificationsEnabled) {
-            Notification.requestPermission().then(perm => {
-                if (perm === "granted") {
-                    notificationsEnabled = true;
-                    localStorage.setItem('notifications', 'true');
-                    updateNotifUI();
-                    new Notification("Értesítések bekapcsolva!");
-                }
-            });
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                notificationsEnabled = true;
+                localStorage.setItem('notifications', 'true');
+                new Notification("Értesítések bekapcsolva!");
+            }
         } else {
             notificationsEnabled = false;
             localStorage.setItem('notifications', 'false');
-            updateNotifUI();
         }
+        updateNotifUI();
     }
 
-    // ÉRTESÍTÉSI LOGIKA - ÚJ TERMÉK A KOSÁRBA!
+    // --- ÉRTESÍTÉSI LOGIKA (A RÉGI) ---
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
-            // Csak akkor szól, ha aktív tétel és nem mi nézzük éppen az appot
             if (it.status === 'active' && document.visibilityState !== 'visible') {
-                new Notification("Új termék a kosárba!", { 
-                    body: it.text, 
-                    icon: 'IMG_4302.png' 
-                });
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification("Új termék a kosárba!", {
+                            body: it.text,
+                            icon: 'IMG_4302.png',
+                            badge: 'IMG_4302.png'
+                        });
+                    });
+                } else {
+                    new Notification("Új termék a kosárba!", { body: it.text, icon: 'IMG_4302.png' });
+                }
             }
-        }
-    });
-
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
-
-    new Sortable(document.getElementById('activeItems'), {
-        handle: '.drag-handle', animation: 150,
-        onEnd: () => {
-            const items = document.querySelectorAll('#activeItems .item-wrapper');
-            items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
         }
     });
 
@@ -183,12 +166,10 @@
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
 
-    listRef.on('value', snap => { 
-        const d = snap.val(); 
-        render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); 
-        isInitialLoad = false;
-    });
-
+    listRef.on('value', snap => { const d = snap.val(); render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); isInitialLoad = false; });
+    new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 150, onEnd: () => { const items = document.querySelectorAll('#activeItems .item-wrapper'); items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index })); } });
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
     function previewPhoto(input, previewId) { if(input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(previewId); p.src = tempPhotoData; p.style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
     function openInfo(id) { currentItemId = id; document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn'); if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; } else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; } const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn'); if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; } else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; } openModal('infoModal'); }); }
     function showEdit(type) { document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; listRef.child(currentItemId).once('value', snap => { const it = snap.val(); if(type === 'note') { const input = document.getElementById('editNoteInput'); input.value = it.note || ""; setTimeout(() => input.focus(), 100); } else { tempPhotoData = it.photo || ""; document.getElementById('editPhotoInput').click(); } }); }
