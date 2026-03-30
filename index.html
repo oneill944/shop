@@ -38,7 +38,6 @@
         .sortable-ghost { opacity: 0.4; }
         .sortable-chosen .item { transform: translateX(0) !important; }
 
-        /* JAVÍTVA: A háttérszín elé betettem a --card-bg-t, hogy ne látszódjon át a törlés gomb */
         .status-done { 
             background: linear-gradient(rgba(50, 168, 82, 0.15), rgba(50, 168, 82, 0.15)), var(--card-bg) !important; 
             color: var(--text) !important; 
@@ -50,7 +49,7 @@
             border: 1.5px solid var(--danger) !important; 
         }
         
-        .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
+        .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1.5px solid var(--danger); flex-shrink: 0; font-size: 14px; }
         .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
