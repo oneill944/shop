@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.4.7</title>
+    <title>Lista Pro v0.4.8</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,22 +45,27 @@
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 25px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         .modal-content input, .modal-content textarea { user-select: text; -webkit-user-select: text; }
-        .close-x { position: absolute; top: 5px; right: 15px; font-size: 30px; color: var(--danger); cursor: pointer; }
+        .close-x { position: absolute; top: 10px; right: 15px; font-size: 24px; color: var(--danger); cursor: pointer; }
         
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; }
         
-        .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 10px 0; border: 1px solid var(--border); }
         .mode-toggle { background: var(--grey); border: none; color: var(--text); width: 40px; height: 30px; border-radius: 15px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Megjegyzés doboz javítás */
+        #noteBox { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px; word-wrap: break-word; overflow-wrap: break-word; }
+        #noteDisplay { font-size: 14px; text-align: center; margin-bottom: 10px; line-height: 1.4; }
+        #noteActions { display: flex; justify-content: center; gap: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.4.7</div>
+        <div style="font-size:10px; color:#444;">v0.4.8</div>
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
@@ -104,21 +109,24 @@
 <div id="infoModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">×</div>
-        <h3 id="infoTitle" style="text-align:center; margin-top:0;"></h3>
-        <div id="noteBox" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:10px; position:relative; min-height:50px; display:flex; align-items:center; justify-content:center;">
-            <div id="noteDisplay" style="font-size:14px; text-align:center; padding-right:50px;"></div>
-            <div id="noteActions" style="position:absolute; right:10px; display:flex; gap:8px;">
-                <button onclick="editNote()" style="background:none; border:none; font-size:16px;">✏️</button>
-                <button onclick="deleteNote()" style="background:none; border:none; font-size:16px;">🗑️</button>
+        <h3 id="infoTitle" style="text-align:center; margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;"></h3>
+        
+        <div id="noteBox">
+            <div id="noteDisplay"></div>
+            <div id="noteActions">
+                <button onclick="editNote()" style="background:none; border:none; font-size:20px;">✏️</button>
+                <button onclick="deleteNote()" style="background:none; border:none; font-size:20px;">🗑️</button>
             </div>
-            <button id="addNoteBtn" onclick="editNote()" style="display:none; width:100%; background:none; border:none; color:var(--primary); font-size:14px; font-weight:bold;">+ Megjegyzés hozzáadása</button>
+            <button id="addNoteBtn" onclick="editNote()" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:10px; font-size:14px;">+ Megjegyzés hozzáadása</button>
         </div>
+
         <div id="noteEditArea" style="display:none;">
-            <textarea id="noteTextarea" rows="3"></textarea>
+            <textarea id="noteTextarea" placeholder="Megjegyzés írása..." rows="4" style="background:#111;"></textarea>
             <button class="action-btn" onclick="saveNote()">MENTÉS</button>
         </div>
-        <img id="infoPhotoImg" class="img-preview-box" style="display:none; max-height:200px; cursor:pointer;" onclick="window.open(this.src)">
-        <button class="action-btn" style="background:var(--grey); margin-top:10px;" onclick="closeModal('infoModal')">BEZÁRÁS</button>
+
+        <img id="infoPhotoImg" class="img-preview-box" style="display:none; cursor:pointer;" onclick="window.open(this.src)">
+        <button class="action-btn" style="background:var(--grey); margin-top:10px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button>
     </div>
 </div>
 
@@ -152,7 +160,6 @@
         }
     });
 
-    // Hangfelismerés
     const micBtn = document.getElementById('micBtn');
     if ('webkitSpeechRecognition' in window) {
         const rec = new webkitSpeechRecognition();
@@ -182,13 +189,25 @@
         listRef.child(id).once('value', snap => {
             const it = snap.val();
             document.getElementById('infoTitle').innerText = it.text;
-            const noteDisp = document.getElementById('noteDisplay'), noteAct = document.getElementById('noteActions'), addBtn = document.getElementById('addNoteBtn');
+            const noteDisp = document.getElementById('noteDisplay'), 
+                  noteAct = document.getElementById('noteActions'), 
+                  addBtn = document.getElementById('addNoteBtn'),
+                  noteBox = document.getElementById('noteBox');
+            
             document.getElementById('noteEditArea').style.display = 'none';
-            if(it.note) {
-                noteDisp.innerText = it.note; noteDisp.style.display = 'block'; noteAct.style.display = 'flex'; addBtn.style.display = 'none';
+            
+            if(it.note && it.note.trim() !== "") {
+                noteDisp.innerText = it.note;
+                noteBox.style.display = 'block';
+                noteDisp.style.display = 'block';
+                noteAct.style.display = 'flex';
+                addBtn.style.display = 'none';
             } else {
-                noteDisp.style.display = 'none'; noteAct.style.display = 'none'; addBtn.style.display = 'block';
+                noteDisp.style.display = 'none';
+                noteAct.style.display = 'none';
+                addBtn.style.display = 'block';
             }
+            
             const img = document.getElementById('infoPhotoImg');
             if(it.photo) { img.src = it.photo; img.style.display = 'block'; } else { img.style.display = 'none'; }
             openModal('infoModal');
@@ -196,11 +215,11 @@
     }
 
     function editNote() {
-        document.getElementById('noteDisplay').style.display = 'none';
-        document.getElementById('noteActions').style.display = 'none';
-        document.getElementById('addNoteBtn').style.display = 'none';
+        document.getElementById('noteBox').style.display = 'none';
         document.getElementById('noteEditArea').style.display = 'block';
-        document.getElementById('noteTextarea').value = document.getElementById('noteDisplay').innerText;
+        const currentNote = document.getElementById('noteDisplay').innerText;
+        document.getElementById('noteTextarea').value = currentNote === "" ? "" : currentNote;
+        document.getElementById('noteTextarea').focus();
     }
 
     function deleteNote() {
@@ -231,7 +250,7 @@
 
             const div = document.createElement('div');
             div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
-            const hasExtra = it.note || it.photo;
+            const hasExtra = it.note && it.note.trim() !== "" || it.photo;
 
             div.innerHTML = `
                 ${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}
