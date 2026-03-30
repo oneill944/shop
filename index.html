@@ -55,11 +55,9 @@
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
         
-        .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 10px 0; border: 1px solid var(--border); }
-
-        #noteBox { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px; word-wrap: break-word; }
-        #noteDisplay { font-size: 14px; text-align: center; margin-bottom: 15px; line-height: 1.4; }
-        #noteActions { display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .img-preview-box { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin: 10px 0; border: 1px solid var(--border); }
+        .info-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+        .info-actions { display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
     </style>
 </head>
 <body class="dark">
@@ -67,7 +65,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.5.3</div>
+        <div class="version-label">v0.5.6</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -111,29 +109,41 @@
         <div class="close-x" onclick="closeModal('infoModal')">×</div>
         <h3 id="infoTitle" style="text-align:center; margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;"></h3>
         
-        <div id="noteBox">
-            <div id="noteDisplay"></div>
-            <div id="noteActions">
-                <button onclick="showNoteEditor(true)" style="background:none; border:none; font-size:22px; cursor:pointer;">✏️</button>
-                <button onclick="deleteNote()" style="background:none; border:none; font-size:22px; cursor:pointer;">🗑️</button>
+        <div id="viewArea">
+            <div id="noteBox" class="info-box">
+                <div id="noteDisplay" style="font-size:14px; text-align:center; margin-bottom:10px; word-wrap: break-word;"></div>
+                <div class="info-actions" id="noteActions">
+                    <button onclick="showEdit('note')" style="background:none; border:none; font-size:20px; cursor:pointer;">✏️</button>
+                    <button onclick="deleteField('note')" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button>
+                </div>
+                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:13px; font-weight:bold;">+ Megjegyzés hozzáadása</button>
             </div>
-            <button id="addNoteBtn" onclick="showNoteEditor(false)" style="display:none; width:100%; background:var(--grey); border:none; color:var(--text); padding:12px; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer;">+ Adatok hozzáadása</button>
+
+            <div id="photoBox" class="info-box" style="text-align:center;">
+                <img id="infoPhotoImg" class="img-preview-box" style="max-height:220px; width:100%; cursor:pointer;" onclick="window.open(this.src)">
+                <div class="info-actions" id="photoActions">
+                    <button onclick="showEdit('photo')" style="background:none; border:none; font-size:20px; cursor:pointer;">✏️</button>
+                    <button onclick="deleteField('photo')" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button>
+                </div>
+                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:13px; font-weight:bold;">+ Fotó hozzáadása</button>
+            </div>
         </div>
 
-        <div id="noteEditArea" style="display:none;">
-            <textarea id="noteTextarea" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
+        <div id="editArea" style="display:none;">
+            <div id="noteEditSection" style="display:none;">
+                <textarea id="editNoteInput" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
+            </div>
             
-            <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer; font-size:14px; color: white;">
-                📷 Fotó módosítása
-                <input type="file" id="editPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')">
-            </label>
-            <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
+            <div id="photoEditSection" style="display:none;">
+                <input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')">
+                <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
+                <p style="font-size:12px; color:#aaa; text-align:center;">Válassz új fotót a feltöltéshez</p>
+            </div>
             
-            <button class="action-btn" onclick="saveNote()">MENTÉS</button>
+            <button class="action-btn" onclick="saveInfo()">MENTÉS</button>
         </div>
 
-        <img id="infoPhotoImg" class="img-preview-box" style="display:none; cursor:pointer; max-height:250px;" onclick="window.open(this.src)">
-        <button class="action-btn" style="background:var(--grey); margin-top:15px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button>
+        <button class="action-btn" style="background:var(--grey); margin-top:10px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button>
     </div>
 </div>
 
@@ -148,12 +158,11 @@
     if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
 
     new Sortable(document.getElementById('activeItems'), {
         handle: '.drag-handle',
         animation: 150,
-        ghostClass: "sortable-ghost",
         onStart: () => { document.querySelectorAll('.item').forEach(el => el.style.transform = 'translateX(0)'); },
         onEnd: () => {
             const items = document.querySelectorAll('#activeItems .item-wrapper');
@@ -175,59 +184,63 @@
 
     function openInfo(id) {
         currentItemId = id;
+        document.getElementById('viewArea').style.display = 'block';
+        document.getElementById('editArea').style.display = 'none';
         listRef.child(id).once('value', snap => {
             const it = snap.val();
             document.getElementById('infoTitle').innerText = it.text;
-            const noteDisp = document.getElementById('noteDisplay'), noteAct = document.getElementById('noteActions'), addBtn = document.getElementById('addNoteBtn'), noteBox = document.getElementById('noteBox');
-            document.getElementById('noteEditArea').style.display = 'none';
-            noteBox.style.display = 'block';
             
-            if((it.note && it.note.trim() !== "") || it.photo) { 
-                noteDisp.innerText = it.note || ""; 
-                noteDisp.style.display = it.note ? 'block' : 'none';
-                noteAct.style.display = 'flex'; 
-                addBtn.style.display = 'none'; 
-            } else { 
-                noteDisp.style.display = 'none'; 
-                noteAct.style.display = 'none'; 
-                addBtn.style.display = 'block'; 
-            }
+            const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn');
+            if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; }
+            else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; }
             
-            const img = document.getElementById('infoPhotoImg');
-            if(it.photo) { img.src = it.photo; img.style.display = 'block'; } else { img.style.display = 'none'; }
+            const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn');
+            if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; }
+            else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; }
             openModal('infoModal');
         });
     }
 
-    function showNoteEditor(isEdit) {
-        document.getElementById('noteBox').style.display = 'none';
-        document.getElementById('infoPhotoImg').style.display = 'none';
-        document.getElementById('noteEditArea').style.display = 'block';
-        
-        const area = document.getElementById('noteTextarea');
-        const preview = document.getElementById('editPhotoPreview');
+    function showEdit(type) {
+        document.getElementById('viewArea').style.display = 'none';
+        document.getElementById('editArea').style.display = 'block';
+        document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none';
+        document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none';
         
         listRef.child(currentItemId).once('value', snap => {
             const it = snap.val();
-            area.value = isEdit ? (it.note || "") : "";
-            if(isEdit && it.photo) { preview.src = it.photo; preview.style.display = 'block'; tempPhotoData = it.photo; }
-            else { preview.style.display = 'none'; tempPhotoData = ""; }
+            if(type === 'note') {
+                const input = document.getElementById('editNoteInput');
+                input.value = it.note || "";
+                setTimeout(() => input.focus(), 100);
+            } else {
+                tempPhotoData = it.photo || "";
+                document.getElementById('editPhotoInput').click();
+            }
         });
-        setTimeout(() => area.focus(), 100);
     }
 
-    function deleteNote() { 
-        if(confirm("Törlöd a megjegyzést és a fotót?")) {
-            listRef.child(currentItemId).update({ note: "", photo: "" }).then(() => openInfo(currentItemId)); 
+    function deleteField(field) {
+        if(confirm("Törlöd ezt az adatot?")) {
+            let update = {};
+            update[field] = "";
+            listRef.child(currentItemId).update(update).then(() => openInfo(currentItemId));
         }
     }
 
-    function saveNote() { 
-        const val = document.getElementById('noteTextarea').value.trim(); 
-        listRef.child(currentItemId).update({ note: val, photo: tempPhotoData }).then(() => {
-            tempPhotoData = "";
-            openInfo(currentItemId);
-        }); 
+    function saveInfo() {
+        const note = document.getElementById('editNoteInput').value.trim();
+        listRef.child(currentItemId).once('value', snap => {
+            const it = snap.val();
+            // Csak azt frissítjük, amit épp szerkesztettünk, a többit megtartjuk
+            const finalNote = document.getElementById('noteEditSection').style.display === 'block' ? note : (it.note || "");
+            const finalPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
+            
+            listRef.child(currentItemId).update({ note: finalNote, photo: finalPhoto }).then(() => {
+                tempPhotoData = "";
+                openInfo(currentItemId);
+            });
+        });
     }
 
     function render(items) {
@@ -235,23 +248,15 @@
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
-            const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd a tételt?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
+            const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
             const div = document.createElement('div'); div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
             const hasExtra = (it.note && it.note.trim() !== "") || it.photo;
             div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             
-            let startX = 0, currentX = 0, isDragging = false;
-            div.addEventListener('touchstart', e => { startX = e.touches[0].clientX; div.style.transition = 'none'; isDragging = false; }, {passive: true});
-            div.addEventListener('touchmove', e => { 
-                let diff = startX - e.touches[0].clientX; 
-                if (diff > 10) { isDragging = true; currentX = Math.min(diff, 85); div.style.transform = `translateX(-${currentX}px)`; }
-            }, {passive: true});
-            div.addEventListener('touchend', () => { 
-                div.style.transition = 'transform 0.3s ease'; 
-                if (isDragging && currentX > 50) div.style.transform = `translateX(-80px)`; 
-                else div.style.transform = `translateX(0)`; 
-            });
-
+            let sX = 0, cX = 0, isD = false;
+            div.addEventListener('touchstart', e => { sX = e.touches[0].clientX; div.style.transition = 'none'; isD = false; }, {passive:true});
+            div.addEventListener('touchmove', e => { let d = sX - e.touches[0].clientX; if (d > 10) { isD = true; cX = Math.min(d, 85); div.style.transform = `translateX(-${cX}px)`; } }, {passive:true});
+            div.addEventListener('touchend', () => { div.style.transition = 'transform 0.3s ease'; div.style.transform = (isD && cX > 50) ? 'translateX(-80px)' : 'translateX(0)'; });
             wrap.appendChild(div); document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
     }
@@ -261,7 +266,7 @@
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
     listRef.on('value', snap => { const d = snap.val(); render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); });
-    function clearAllItems() { if(confirm("Mindent törölsz a listából?")) listRef.remove(); }
+    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 </script>
 </body>
 </html>
