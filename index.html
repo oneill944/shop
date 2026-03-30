@@ -26,8 +26,7 @@
         
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
         .mode-toggle, .notif-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
-        .notif-on { color: var(--primary); opacity: 1; }
-        .notif-off { opacity: 0.3; }
+        .notif-on { color: var(--primary); }
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
@@ -79,7 +78,7 @@
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button id="notifBtn" class="notif-toggle" onclick="toggleNotifications()">🔔</button>
-        <div class="version-label">v0.6.0</div>
+        <div class="version-label">v0.6.3</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -172,27 +171,21 @@
 
     function updateNotifUI() {
         const btn = document.getElementById('notifBtn');
-        if (notificationsEnabled) { btn.classList.add('notif-on'); btn.classList.remove('notif-off'); btn.innerText = '🔔'; }
-        else { btn.classList.remove('notif-on'); btn.classList.add('notif-off'); btn.innerText = '🔕'; }
+        if (notificationsEnabled) { btn.classList.add('notif-on'); btn.innerText = '🔔'; }
+        else { btn.classList.remove('notif-on'); btn.innerText = '🔕'; }
     }
     updateNotifUI();
 
     function toggleNotifications() {
         if (!notificationsEnabled) {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        notificationsEnabled = true;
-                        localStorage.setItem('notifications', 'true');
-                        updateNotifUI();
-                        new Notification("Értesítések bekapcsolva!");
-                    } else {
-                        alert("Kérlek engedélyezd az értesítéseket a böngésző beállításaiban!");
-                    }
-                });
-            } else {
-                alert("Ez a böngésző nem támogatja az értesítéseket.");
-            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    notificationsEnabled = true;
+                    localStorage.setItem('notifications', 'true');
+                    updateNotifUI();
+                    new Notification("Értesítések bekapcsolva!", { icon: 'IMG_4302.png' });
+                }
+            });
         } else {
             notificationsEnabled = false;
             localStorage.setItem('notifications', 'false');
@@ -289,17 +282,11 @@
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
 
-    // Értesítés kezelés: csak ha aktív az ablak
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
-            if (it.status === 'active') {
-                if (document.visibilityState !== 'visible') {
-                    new Notification("Új termék!", { body: it.text, icon: 'IMG_4302.png' });
-                } else {
-                    // Ha nyitva van az app, csak egy halk jelzést kapunk (opcionális)
-                    console.log("Új elem hozzáadva: " + it.text);
-                }
+            if (it.status === 'active' && document.visibilityState !== 'visible') {
+                new Notification("Új termék a listán!", { body: it.text, icon: 'IMG_4302.png' });
             }
         }
     });
