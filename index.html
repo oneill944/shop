@@ -78,7 +78,7 @@
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button id="notifBtn" class="notif-toggle" onclick="toggleNotifications()">🔔</button>
-        <div class="version-label">v0.6.3</div>
+        <div class="version-label">v0.6.4</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -183,7 +183,7 @@
                     notificationsEnabled = true;
                     localStorage.setItem('notifications', 'true');
                     updateNotifUI();
-                    new Notification("Értesítések bekapcsolva!", { icon: 'IMG_4302.png' });
+                    new Notification("Értesítések engedélyezve!");
                 }
             });
         } else {
@@ -282,11 +282,12 @@
         if (val) { listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() }); document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal'); }
     }
 
+    // Visszatérés az eredeti, egyszerű értesítési logikához
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
-            if (it.status === 'active' && document.visibilityState !== 'visible') {
-                new Notification("Új termék a listán!", { body: it.text, icon: 'IMG_4302.png' });
+            if (it.status === 'active') {
+                new Notification("Új tétel!", { body: it.text, icon: 'IMG_4302.png' });
             }
         }
     });
