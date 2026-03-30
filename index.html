@@ -54,10 +54,13 @@
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         
-        /* JAVÍTÁS: Nagyobb modal doboz */
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 28px; padding: 40px 25px 25px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+        /* ALAP MODAL (Infohoz) */
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 24px; padding: 30px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
         
-        .close-x { position: absolute; top: 10px; right: 20px; font-size: 30px; color: var(--danger); cursor: pointer; z-index: 2001; }
+        /* CSAK A HOZZÁADÁS MODAL LEGYEN NAGYOBB */
+        #inputModal .modal-content { max-width: 380px; border-radius: 28px; padding: 40px 25px 25px; }
+
+        .close-x { position: absolute; top: 8px; right: 18px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
         #manualInput { width: 100%; padding: 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 18px; }
         
@@ -79,7 +82,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.2.9</div>
+        <div class="version-label">v1.3.0</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -146,9 +149,11 @@
     const db = firebase.database(), listRef = db.ref('shoppingList');
     let currentItemId = null, tempPhotoData = "", isSorting = false;
 
-    // JAVÍTÁS: Rezgés funkció (Haptic feedback)
-    function vibrate(ms = 20) {
-        if (navigator.vibrate) navigator.vibrate(ms);
+    // Haptic funkció kényszerített próbálkozással
+    function vibrate(ms = 30) {
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+            navigator.vibrate(ms);
+        }
     }
 
     listRef.on('value', snap => {
@@ -156,7 +161,7 @@
     });
 
     function updateStatus(id, status) {
-        vibrate(30); // Rezgés kijelöléskor
+        vibrate(40); 
         listRef.child(id).update({status: status});
     }
 
@@ -165,7 +170,7 @@
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
-            const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { listRef.child(it.id).remove(); };
+            const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
             const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             const hasExtra = (it.note && it.note.trim()) || it.photo;
             
@@ -188,7 +193,8 @@
             div.addEventListener('touchend', () => { 
                 if(isSorting) return;
                 div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; 
-                div.style.transform = (cX > 50) ? 'translateX(-80px)' : 'translateX(0)'; 
+                if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; }
+                else { div.style.transform = 'translateX(0)'; }
             });
             
             wrap.appendChild(del); wrap.appendChild(div);
@@ -197,10 +203,9 @@
     }
 
     function openInfo(id) {
-        currentItemId = id;
+        currentItemId = id; vibrate(15);
         document.getElementById('viewArea').style.display = 'block';
         document.getElementById('editArea').style.display = 'none';
-        document.getElementById('editNoteInput').value = '';
         listRef.child(id).once('value', snap => {
             const it = snap.val(); document.getElementById('infoTitle').innerText = it.text;
             const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn');
@@ -214,6 +219,7 @@
     }
 
     function showEdit(type) {
+        vibrate(15);
         document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block';
         document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none';
         document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none';
@@ -226,17 +232,17 @@
             const it = snap.val();
             const fNote = document.getElementById('noteEditSection').style.display === 'block' ? noteValue : (it.note || "");
             const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
-            listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; vibrate(20); openInfo(currentItemId); });
+            listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; vibrate(30); openInfo(currentItemId); });
         });
     }
 
-    function deleteField(f) { if(confirm("Törlöd?")) { let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => openInfo(currentItemId)); } }
+    function deleteField(f) { if(confirm("Törlöd?")) { vibrate(50); let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => openInfo(currentItemId)); } }
     function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(i.files[0]); } }
     
     function addItem() { 
         const v = document.getElementById('manualInput').value.trim(); 
         if(v) { 
-            vibrate(50); // Rezgés hozzáadáskor
+            vibrate(50); 
             listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); 
             closeModal('inputModal'); 
         } 
@@ -244,22 +250,20 @@
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; }
-    function toggleMode() { document.body.classList.toggle('light-mode'); }
-    function clearAllItems() { if(confirm("Mindent törölsz a teljes listáról?")) listRef.remove(); }
-    function toggleNotifications() { Notification.requestPermission(); }
+    function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
+    function clearAllItems() { if(confirm("Mindent törölsz a teljes listáról?")) { vibrate(100); listRef.remove(); } }
+    function toggleNotifications() { vibrate(20); Notification.requestPermission(); }
 
     new Sortable(document.getElementById('activeItems'), { 
         handle: '.drag-handle', 
         animation: 200, 
         onStart: () => { 
-            vibrate(40); // Rezgés mozgatás megkezdésekor
+            vibrate(40); 
             isSorting = true; 
         }, 
         onEnd: () => {
             isSorting = false;
-            document.querySelectorAll('.item').forEach(el => {
-                el.style.transform = 'translateX(0)';
-            });
+            document.querySelectorAll('.item').forEach(el => { el.style.transform = 'translateX(0)'; });
             document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
         }
     });
