@@ -23,13 +23,28 @@
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
         .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
-        .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         
-        /* Értesítés kapcsoló stílusa a felirat alatt */
-        .notif-control { text-align: center; margin-bottom: 20px; }
-        .notif-btn { background: var(--grey); color: var(--text); border: none; padding: 6px 15px; border-radius: 15px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
-        .notif-btn.active { background: var(--success); color: white; }
+        /* Felirat alatti kapcsoló gomb */
+        .notif-container { text-align: center; margin-bottom: 20px; }
+        .notif-toggle-btn { 
+            background: var(--item-bg); 
+            color: var(--text); 
+            border: 1px solid var(--border); 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+        }
+        .notif-toggle-btn.active { 
+            background: var(--success); 
+            color: white; 
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(50, 168, 82, 0.3);
+        }
 
+        .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
@@ -57,20 +72,18 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.7.1</div>
+        <div class="version-label">v0.7.5 FINAL</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
-    <h2 style="text-align:center; font-size:19px; margin-bottom:5px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
+    <h2 style="text-align:center; font-size:19px; margin-bottom:8px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
     
-    <div class="notif-control">
-        <button id="notifBtn" class="notif-btn" onclick="toggleNotifications()">Értesítések: KI</button>
+    <div class="notif-container">
+        <button id="notifBtn" class="notif-toggle-btn" onclick="toggleNotifications()">Értesítések: KI</button>
     </div>
 
-    <div style="margin-bottom:20px;">
-        <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button>
-    </div>
-
+    <div style="margin-bottom:20px;"><button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button></div>
+    
     <div class="col-label">Aktív tételek</div>
     <div id="activeItems" class="list-container"></div>
     
@@ -112,8 +125,8 @@
                 if (perm === "granted") {
                     notificationsEnabled = true;
                     localStorage.setItem('notifications', 'true');
-                    new Notification("Értesítések aktívak!");
                     updateNotifUI();
+                    new Notification("Értesítések bekapcsolva!");
                 }
             });
         } else {
@@ -123,11 +136,12 @@
         }
     }
 
-    // A keresett régi logika
+    // ÉRTESÍTÉSI LOGIKA - ÚJ TERMÉK A KOSÁRBA!
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
-            if (it.status === 'active') {
+            // Csak akkor szól, ha aktív tétel és nem mi nézzük éppen az appot
+            if (it.status === 'active' && document.visibilityState !== 'visible') {
                 new Notification("Új termék a kosárba!", { 
                     body: it.text, 
                     icon: 'IMG_4302.png' 
