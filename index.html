@@ -54,24 +54,22 @@
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         
-        /* ALAP MODAL (Infohoz) */
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 24px; padding: 30px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
+        /* Kisebb, eredeti méretű modal tartalom */
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 20px; padding: 25px 15px 15px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
         
-        /* CSAK A HOZZÁADÁS MODAL LEGYEN NAGYOBB */
-        #inputModal .modal-content { max-width: 380px; border-radius: 28px; padding: 40px 25px 25px; }
-
+        /* Pontosított bezáró gomb pozíció */
         .close-x { position: absolute; top: 3px; right: 13px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
-        #manualInput { width: 100%; padding: 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 18px; }
+        #manualInput { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         
-        textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
-        .action-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .img-preview-box { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; margin: 10px 0; border: 1px solid var(--border); }
-        .info-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        textarea { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 14px; }
+        .action-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .img-preview-box { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin: 8px 0; border: 1px solid var(--border); }
+        .info-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
         
         #infoTitle { 
-            text-align: center; margin: 0 0 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
-            font-size: 18px; line-height: 1.3; font-weight: bold;
+            text-align: center; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+            font-size: 16px; line-height: 1.3; font-weight: bold;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;
             white-space: normal; word-break: break-word;
         }
@@ -82,7 +80,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.3.0</div>
+        <div class="version-label">v1.3.2</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -107,7 +105,7 @@
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve...">
         <textarea id="manualNote" placeholder="Megjegyzés hozzáadása..." rows="2"></textarea>
-        <label style="display:block; text-align:center; padding:15px; background:#333; border-radius:12px; margin-bottom:12px; cursor:pointer; color: white; font-size: 14px;">📷 Fotó hozzáadása<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label>
+        <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px;">📷 Fotó hozzáadása<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label>
         <img id="newPhotoPreview" class="img-preview-box" style="display:none;">
         <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
     </div>
@@ -119,12 +117,12 @@
         <h3 id="infoTitle"></h3>
         <div id="viewArea">
             <div id="noteBox" class="info-box">
-                <div id="noteDisplay" style="font-size:14px; text-align:center; margin-bottom:10px; word-wrap: break-word; color: #ccc;"></div>
+                <div id="noteDisplay" style="font-size:13px; text-align:center; margin-bottom:10px; word-wrap: break-word; color: #ccc;"></div>
                 <div class="info-actions" id="noteActions" style="display:flex; justify-content:center; gap:20px;">
                     <button onclick="showEdit('note')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('note')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:13px;">+ Megjegyzés hozzáadása</button>
+                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Megjegyzés hozzáadása</button>
             </div>
             <div id="photoBox" class="info-box" style="text-align:center;">
                 <img id="infoPhotoImg" class="img-preview-box" style="cursor:pointer;" onclick="window.open(this.src)">
@@ -132,7 +130,7 @@
                     <button onclick="showEdit('photo')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('photo')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:13px;">+ Fotó hozzáadása</button>
+                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Fotó hozzáadása</button>
             </div>
         </div>
         <div id="editArea" style="display:none;">
@@ -149,7 +147,6 @@
     const db = firebase.database(), listRef = db.ref('shoppingList');
     let currentItemId = null, tempPhotoData = "", isSorting = false;
 
-    // Haptic funkció kényszerített próbálkozással
     function vibrate(ms = 30) {
         if (typeof navigator !== "undefined" && navigator.vibrate) {
             navigator.vibrate(ms);
