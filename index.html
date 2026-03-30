@@ -27,48 +27,37 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
         .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
-        
-        .notif-status-bar { text-align: center; margin-bottom: 15px; }
-        .notif-btn-text { background: none; border: none; color: var(--primary); font-size: 11px; font-weight: bold; cursor: pointer; text-decoration: underline; opacity: 0.6; }
 
-        .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
+        /* MODAL ÉS BEZÁRÓ X */
+        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 24px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
+        .close-x { position: absolute; top: 8px; right: 15px; font-size: 26px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
+        /* NAGYOBB HOZZÁADÁS MEZŐ */
+        #manualInput { width: 100%; padding: 18px; margin-bottom: 12px; border-radius: 12px; border: 1.5px solid var(--border); background: #000; color: #fff; outline: none; font-size: 18px; }
+
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
-        
         .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 10px; z-index: 1; }
 
-        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; touch-action: pan-y; width: 100%; }
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; touch-action: pan-y; width: 100%; }
         .drag-handle { color: #555; font-size: 18px; padding-right: 8px; cursor: grab; flex-shrink: 0; }
-        
-        /* Szövegkezelés: egy soros, kipontozva */
         .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; padding-right: 10px; }
         
-        /* Gombok csoportja: Mindig a jobb szélre igazítva */
-        .item-controls { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
+        /* IKONOK A SZÉLÉN */
+        .item-controls { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
 
-        .status-done { background: linear-gradient(rgba(50, 168, 82, 0.1), rgba(50, 168, 82, 0.1)), var(--card-bg) !important; border-color: var(--success) !important; }
-        .status-x { background: linear-gradient(rgba(235, 64, 52, 0.1), rgba(235, 64, 52, 0.1)), var(--card-bg) !important; border-color: var(--danger) !important; }
-        
-        .btn-sm { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.08); color: white; border: 1px solid transparent; font-size: 12px; }
+        .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.08); color: white; border: 1px solid transparent; font-size: 12px; }
         .has-data { border-color: var(--danger) !important; background: rgba(235, 64, 52, 0.15); }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; width: 100%; overflow: hidden; }
+        .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
 
-        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 24px; padding: 30px 20px 20px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
-        .close-x { position: absolute; top: 10px; right: 15px; font-size: 24px; color: var(--danger); cursor: pointer; z-index: 2001; }
+        /* KÉT SOROS CÍM */
+        #infoTitle { text-align: center; margin: 0 0 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border); font-size: 18px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; word-break: break-word; }
         
-        /* Modal Cím: Két sor, utána kipontozva */
-        #infoTitle { 
-            text-align: center; margin: 0 0 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
-            font-size: 18px; line-height: 1.4; font-weight: bold;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;
-            white-space: normal; word-break: break-word;
-        }
-
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
+        textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
         .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 15px; }
         .img-preview-box { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin: 10px 0; border: 1px solid var(--border); }
         .info-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
@@ -79,16 +68,16 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.2.0</div>
+        <div class="version-label">v1.2.2</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
     <h2 style="text-align:center; font-size:18px; margin:0; letter-spacing:1px; font-weight:900;">BEVÁSÁRLÓ LISTA</h2>
     <div class="notif-status-bar">
-        <button id="notifBtn" class="notif-btn-text" onclick="toggleNotifications()">Értesítések bekapcsolása</button>
+        <button id="notifBtn" onclick="toggleNotifications()" style="background:none; border:none; color:var(--primary); font-size:11px; opacity:0.6; text-decoration:underline; cursor:pointer;">Értesítések kezelése</button>
     </div>
 
-    <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px; font-size:14px;">HOZZÁADÁS</button>
+    <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px;">HOZZÁADÁS</button>
 
     <div class="col-label">Aktív tételek</div>
     <div id="activeItems" class="list-container"></div>
@@ -116,58 +105,35 @@
         <h3 id="infoTitle"></h3>
         <div id="viewArea">
             <div id="noteBox" class="info-box">
-                <div id="noteDisplay" style="font-size:14px; text-align:center; margin-bottom:10px; word-wrap: break-word; color: #ccc;"></div>
-                <div class="info-actions" id="noteActions" style="display:flex; justify-content:center; gap:20px;">
+                <div id="noteDisplay" style="font-size:14px; text-align:center; margin-bottom:10px; color:#ccc;"></div>
+                <div id="noteActions" style="display:flex; justify-content:center; gap:20px;">
                     <button onclick="showEdit('note')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('note')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:13px;">+ Megjegyzés hozzáadása</button>
+                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold;">+ Megjegyzés</button>
             </div>
             <div id="photoBox" class="info-box" style="text-align:center;">
                 <img id="infoPhotoImg" class="img-preview-box" style="cursor:pointer;" onclick="window.open(this.src)">
-                <div class="info-actions" id="photoActions" style="display:flex; justify-content:center; gap:20px;">
+                <div id="photoActions" style="display:flex; justify-content:center; gap:20px;">
                     <button onclick="showEdit('photo')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('photo')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:13px;">+ Fotó hozzáadása</button>
+                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold;">+ Fotó</button>
             </div>
         </div>
         <div id="editArea" style="display:none;">
-            <div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" placeholder="Megjegyzés hozzáadása..." rows="4"></textarea></div>
+            <div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" rows="4"></textarea></div>
             <div id="photoEditSection" style="display:none;"><input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"><img id="editPhotoPreview" class="img-preview-box" style="display:none;"></div>
             <button class="action-btn" onclick="saveInfo()">MENTÉS</button>
         </div>
-        <button class="action-btn" style="background:var(--grey); margin-top:10px; color:var(--text);" onclick="closeModal('infoModal')">BEZÁRÁS</button>
     </div>
 </div>
 
 <script>
-    // Firebase Config (Az eredeti adataiddal)
     const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(), listRef = db.ref('shoppingList');
-    let currentItemId = null, tempPhotoData = "", isInitialLoad = true, notificationsEnabled = localStorage.getItem('notifications') === 'true';
-
-    function toggleMode() { document.body.classList.toggle('light-mode'); }
-    function updateNotifUI() { document.getElementById('notifBtn').innerText = notificationsEnabled ? "Értesítések: BE" : "Értesítések: KI (Bekapcsoláshoz kattints ide)"; }
-    updateNotifUI();
-
-    function toggleNotifications() {
-        if (!notificationsEnabled) {
-            Notification.requestPermission().then(perm => { if (perm === "granted") { notificationsEnabled = true; localStorage.setItem('notifications', 'true'); updateNotifUI(); } });
-        } else { notificationsEnabled = false; localStorage.setItem('notifications', 'false'); updateNotifUI(); }
-    }
-
-    listRef.on('child_added', snap => {
-        if (!isInitialLoad && notificationsEnabled && snap.val().status === 'active' && document.visibilityState !== 'visible') {
-            new Notification("Új termék!", { body: snap.val().text, icon: 'IMG_4302.png', tag: 'item-' + Date.now(), renotify: true });
-        }
-    });
-
-    listRef.on('value', snap => {
-        const d = snap.val(); render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []);
-        isInitialLoad = false;
-    });
+    let currentItemId = null, tempPhotoData = "";
 
     function render(items) {
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
@@ -190,42 +156,56 @@
                     }
                 </div>`;
             
+            // Swipe törlés logika
             let sX = 0, cX = 0, isD = false;
             div.addEventListener('touchstart', e => { sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
             div.addEventListener('touchmove', e => { let d = sX - e.touches[0].clientX; if(d > 10){ isD=true; cX = Math.min(d, 85); div.style.transform = `translateX(-${cX}px)`; } }, {passive:true});
             div.addEventListener('touchend', () => { div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; div.style.transform = (isD && cX > 50) ? 'translateX(-80px)' : 'translateX(0)'; });
-            
+
             wrap.appendChild(del); wrap.appendChild(div);
             document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
     }
 
+    listRef.on('value', snap => { const d = snap.val(); render(d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []); });
+
     function openInfo(id) {
-        currentItemId = id; document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none';
+        currentItemId = id;
+        document.getElementById('viewArea').style.display = 'block';
+        document.getElementById('editArea').style.display = 'none';
+        document.getElementById('editNoteInput').value = ''; // BERAGADÁS ELLENI VÉDELEM
+        tempPhotoData = "";
+
         listRef.child(id).once('value', snap => {
-            const it = snap.val(); document.getElementById('infoTitle').innerText = it.text;
+            const it = snap.val();
+            document.getElementById('infoTitle').innerText = it.text;
+            
             const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn');
-            if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; } else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; }
+            if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } 
+            else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; }
+            
             const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn');
-            if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; }
+            if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } 
+            else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; }
+            
             openModal('infoModal');
         });
     }
 
     function showEdit(type) {
-        document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block';
+        document.getElementById('viewArea').style.display = 'none';
+        document.getElementById('editArea').style.display = 'block';
         document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none';
         document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none';
         if(type==='photo') document.getElementById('editPhotoInput').click();
     }
 
     function saveInfo() {
-        const note = document.getElementById('editNoteInput').value;
         listRef.child(currentItemId).once('value', snap => {
             const it = snap.val();
-            const fNote = document.getElementById('noteEditSection').style.display === 'block' ? note : (it.note || "");
-            const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
-            listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; openInfo(currentItemId); });
+            const newNote = document.getElementById('noteEditSection').style.display === 'block' ? document.getElementById('editNoteInput').value : (it.note || "");
+            const newPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
+            listRef.child(currentItemId).update({ note: newNote, photo: newPhoto }).then(() => openInfo(currentItemId));
         });
     }
 
@@ -235,9 +215,11 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; }
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
+    function toggleMode() { document.body.classList.toggle('light-mode'); }
+    function toggleNotifications() { Notification.requestPermission(); }
 
-    new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: () => {
-        document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
+    new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, onEnd: () => {
+        document.querySelectorAll('#activeItems .item-wrapper').forEach((el, i) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + i }));
     }});
 </script>
 </body>
