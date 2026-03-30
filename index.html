@@ -38,9 +38,17 @@
         .sortable-ghost { opacity: 0.4; }
         .sortable-chosen .item { transform: translateX(0) !important; }
 
-        /* JAVÍTVA: Átlátszó színek erős kontúrral */
-        .status-done { background: rgba(50, 168, 82, 0.15) !important; color: var(--text) !important; border: 1.5px solid var(--success) !important; }
-        .status-x { background: rgba(235, 64, 52, 0.15) !important; color: var(--text) !important; border: 1.5px solid var(--danger) !important; }
+        /* JAVÍTVA: A háttérszín elé betettem a --card-bg-t, hogy ne látszódjon át a törlés gomb */
+        .status-done { 
+            background: linear-gradient(rgba(50, 168, 82, 0.15), rgba(50, 168, 82, 0.15)), var(--card-bg) !important; 
+            color: var(--text) !important; 
+            border: 1.5px solid var(--success) !important; 
+        }
+        .status-x { 
+            background: linear-gradient(rgba(235, 64, 52, 0.15), rgba(235, 64, 52, 0.15)), var(--card-bg) !important; 
+            color: var(--text) !important; 
+            border: 1.5px solid var(--danger) !important; 
+        }
         
         .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
         .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
@@ -50,8 +58,6 @@
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; border-radius: 24px; padding: 35px 20px 25px; position: relative; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
-        
-        /* JAVÍTVA: X pozíciója még feljebb */
         .close-x { position: absolute; top: 5px; right: 15px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 16px; }
