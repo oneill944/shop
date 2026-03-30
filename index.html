@@ -51,9 +51,8 @@
         
         .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
         
-        /* JAVÍTVA: Az i ikon kontúrja mindig piros marad */
-        .btn-info-style { border: 1.5px solid var(--danger) !important; }
-        .has-data { background: rgba(255,255,255,0.1) !important; color: white !important; }
+        /* JAVÍTVA: Csak akkor piros a kontúr, ha van adat (has-data osztály) */
+        .has-data { border-color: var(--danger) !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
@@ -238,9 +237,7 @@
             const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
             const div = document.createElement('div'); div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
             const hasExtra = (it.note && it.note.trim() !== "") || it.photo;
-            
-            /* Az i gomb mostantól mindig megkapja a btn-info-style osztályt (piros keret) */
-            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm btn-info-style ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
+            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             
             let sX = 0, cX = 0, isD = false;
             div.addEventListener('touchstart', e => { sX = e.touches[0].clientX; div.style.transition = 'none'; isD = false; }, {passive:true});
