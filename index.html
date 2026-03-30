@@ -21,10 +21,15 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s; }
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
-        .mode-toggle, .notif-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
-        .notif-on { color: var(--primary); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
+        .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
+        
+        /* Értesítés kapcsoló stílusa a felirat alatt */
+        .notif-control { text-align: center; margin-bottom: 20px; }
+        .notif-btn { background: var(--grey); color: var(--text); border: none; padding: 6px 15px; border-radius: 15px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .notif-btn.active { background: var(--success); color: white; }
+
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
@@ -52,15 +57,23 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <button id="notifBtn" class="notif-toggle" onclick="toggleNotifications()">🔔</button>
-        <div class="version-label">v0.7.0 LEGACY</div>
+        <div class="version-label">v0.7.1</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
-    <h2 style="text-align:center; font-size:19px; margin-bottom:20px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
-    <div style="margin-bottom:20px;"><button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button></div>
+    <h2 style="text-align:center; font-size:19px; margin-bottom:5px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
+    
+    <div class="notif-control">
+        <button id="notifBtn" class="notif-btn" onclick="toggleNotifications()">Értesítések: KI</button>
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <button onclick="openModal('inputModal')" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer;">HOZZÁADÁS</button>
+    </div>
+
     <div class="col-label">Aktív tételek</div>
     <div id="activeItems" class="list-container"></div>
+    
     <div class="bottom-grid">
         <div class="sub-col"><div class="col-label">Megvan</div><div id="doneItems" class="list-container"></div></div>
         <div class="sub-col"><div class="col-label">Nincs</div><div id="missingItems" class="list-container"></div></div>
@@ -83,8 +96,13 @@
 
     function updateNotifUI() {
         const btn = document.getElementById('notifBtn');
-        btn.classList.toggle('notif-on', notificationsEnabled);
-        btn.innerText = notificationsEnabled ? '🔔' : '🔕';
+        if (notificationsEnabled) {
+            btn.innerText = "Értesítések: BE";
+            btn.classList.add('active');
+        } else {
+            btn.innerText = "Értesítések: KI";
+            btn.classList.remove('active');
+        }
     }
     updateNotifUI();
 
@@ -95,16 +113,17 @@
                     notificationsEnabled = true;
                     localStorage.setItem('notifications', 'true');
                     new Notification("Értesítések aktívak!");
+                    updateNotifUI();
                 }
             });
         } else {
             notificationsEnabled = false;
             localStorage.setItem('notifications', 'false');
+            updateNotifUI();
         }
-        updateNotifUI();
     }
 
-    // --- REGEBBI "ÚJ TERMÉK A KOSÁRBA" LOGIKA ---
+    // A keresett régi logika
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
