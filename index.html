@@ -89,6 +89,14 @@
     let currentItemId = null, tempPhotoData = "", isInitialLoad = true;
     let notificationsEnabled = localStorage.getItem('notifications') === 'true';
 
+    // --- SERVICE WORKER REGISZTRÁCIÓ ---
+    // Ez tartja életben a kapcsolatot a háttérben!
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log("SW Regisztrálva");
+        });
+    }
+
     function toggleMode() { document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); }
     if(localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
 
@@ -116,15 +124,22 @@
         }
     }
 
-    // --- RÉGI ÉRTESÍTÉSI LOGIKA ---
+    // --- HÁTTÉR ÉRTESÍTÉSI LOGIKA ---
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled) {
             const it = snap.val();
             if (it.status === 'active' && document.visibilityState !== 'visible') {
-                new Notification("Új termék a kosárba!", { 
-                    body: it.text, 
-                    icon: 'IMG_4302.png' 
-                });
+                const title = "Új termék a kosárba!";
+                const options = { body: it.text, icon: 'IMG_4302.png', badge: 'IMG_4302.png' };
+                
+                // Ha van SW, a registration-ön keresztül küldjük, ez "átüti" a háttér-korlátozást
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, options);
+                    });
+                } else {
+                    new Notification(title, options);
+                }
             }
         }
     });
@@ -139,44 +154,24 @@
         items.sort((a,b) => a.order - b.order).forEach(it => {
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
             const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
-            
             const div = document.createElement('div'); 
             div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
             const hasExtra = (it.note && it.note.trim() !== "") || it.photo;
-            
-            div.innerHTML = `
-                ${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}
-                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px;">${it.text}</span>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>
-                    ${it.status === 'active' ? 
-                        `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button>
-                         <button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : 
-                        `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`
-                    }
-                </div>`;
-
-            // SWIPE TÖRLÉS LOGIKA
+            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             let sX = 0, cX = 0, isD = false;
             div.addEventListener('touchstart', e => { sX = e.touches[0].clientX; div.style.transition = 'none'; isD = false; }, {passive:true});
             div.addEventListener('touchmove', e => { let d = sX - e.touches[0].clientX; if (d > 10) { isD = true; cX = Math.min(d, 85); div.style.transform = `translateX(-${cX}px)`; } }, {passive:true});
             div.addEventListener('touchend', () => { div.style.transition = 'transform 0.3s ease'; div.style.transform = (isD && cX > 50) ? 'translateX(-80px)' : 'translateX(0)'; });
-            
             wrap.appendChild(div);
             document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
     }
 
-    // --- FUNKCIÓK ---
     function addItem() {
         const val = document.getElementById('manualInput').value.trim(), note = document.getElementById('manualNote').value.trim();
         if (val) {
             listRef.push({ text: val, note: note, photo: tempPhotoData, status: 'active', order: Date.now() });
-            document.getElementById('manualInput').value = '';
-            document.getElementById('manualNote').value = '';
-            document.getElementById('newPhotoPreview').style.display = 'none';
-            tempPhotoData = "";
-            closeModal('inputModal');
+            document.getElementById('manualInput').value = ''; document.getElementById('manualNote').value = ''; document.getElementById('newPhotoPreview').style.display = 'none'; tempPhotoData = ""; closeModal('inputModal');
         }
     }
 
@@ -189,46 +184,9 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
     function previewPhoto(input, previewId) { if(input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(previewId); p.src = tempPhotoData; p.style.display = 'block'; }; reader.readAsDataURL(input.files[0]); } }
-    
-    // INFO MODAL FUNKCIÓK
-    function openInfo(id) {
-        currentItemId = id;
-        document.getElementById('viewArea').style.display = 'block';
-        document.getElementById('editArea').style.display = 'none';
-        listRef.child(id).once('value', snap => {
-            const it = snap.val();
-            document.getElementById('infoTitle').innerText = it.text;
-            const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn');
-            if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; }
-            else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; }
-            const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn');
-            if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; }
-            else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; }
-            openModal('infoModal');
-        });
-    }
-
-    function showEdit(type) {
-        document.getElementById('viewArea').style.display = 'none';
-        document.getElementById('editArea').style.display = 'block';
-        document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none';
-        document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none';
-        listRef.child(currentItemId).once('value', snap => {
-            if(type === 'note') document.getElementById('editNoteInput').value = snap.val().note || "";
-            else document.getElementById('editPhotoInput').click();
-        });
-    }
-
-    function saveInfo() {
-        const note = document.getElementById('editNoteInput').value.trim();
-        listRef.child(currentItemId).once('value', snap => {
-            const it = snap.val();
-            const finalNote = document.getElementById('noteEditSection').style.display === 'block' ? note : (it.note || "");
-            const finalPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
-            listRef.child(currentItemId).update({ note: finalNote, photo: finalPhoto }).then(() => { openInfo(currentItemId); });
-        });
-    }
-
+    function openInfo(id) { currentItemId = id; document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn'); if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; } else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; } const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn'); if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; } else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; } openModal('infoModal'); }); }
+    function showEdit(type) { document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; listRef.child(currentItemId).once('value', snap => { if(type === 'note') document.getElementById('editNoteInput').value = snap.val().note || ""; else document.getElementById('editPhotoInput').click(); }); }
+    function saveInfo() { const note = document.getElementById('editNoteInput').value.trim(); listRef.child(currentItemId).once('value', snap => { const it = snap.val(); const finalNote = document.getElementById('noteEditSection').style.display === 'block' ? note : (it.note || ""); const finalPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || ""); listRef.child(currentItemId).update({ note: finalNote, photo: finalPhoto }).then(() => { openInfo(currentItemId); }); }); }
     function deleteField(field) { if(confirm("Törlöd?")) { let u = {}; u[field] = ""; listRef.child(currentItemId).update(u).then(() => openInfo(currentItemId)); } }
     function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 </script>
