@@ -28,9 +28,8 @@
         .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
         .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); }
         
-        /* Értesítés gomb stílusa */
         .notif-status-bar { text-align: center; margin-bottom: 15px; }
-        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 6px 15px; border-radius: 20px; transition: 0.3s; text-transform: uppercase; }
+        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 6px 15px; border-radius: 20px; transition: 0.3s; text-transform: uppercase; min-width: 140px; }
         .notif-on { background-color: var(--success); }
         .notif-off { background-color: var(--danger); }
 
@@ -76,7 +75,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.4.0</div>
+        <div class="version-label">v1.4.1</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -144,9 +143,13 @@
     let currentItemId = null, tempPhotoData = "", isSorting = false;
     let notificationsEnabled = localStorage.getItem('notifEnabled') === 'true';
 
+    // iOS Service Worker Regisztráció
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
     function vibrate(ms = 30) { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(ms); }
     
-    // Kezdeti gomb állapot beállítása
     updateNotifBtnUI();
 
     listRef.on('value', snap => { 
@@ -155,55 +158,31 @@
         render(items); 
     });
 
-    function updateStatus(id, status) { vibrate(40); listRef.child(id).update({status: status}); }
+    // Értesítés küldése, ha új tétel érkezik (más által)
+    listRef.limitToLast(1).on('child_added', snapshot => {
+        const it = snapshot.val();
+        // Csak akkor küldünk értesítést, ha nem mi adtuk hozzá épp most (< 3mp)
+        if (notificationsEnabled && (Date.now() - it.order < 3000)) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification("Új tétel érkezett!", {
+                        body: it.text,
+                        icon: "IMG_4302.png",
+                        badge: "IMG_4302.png"
+                    });
+                });
+            }
+        }
+    });
 
-    function render(items) {
-        const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
-        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
-        
-        let activeCount = 0;
-
-        items.sort((a,b) => a.order - b.order).forEach(it => {
-            if(it.status === 'active') activeCount++;
-            
-            const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
-            const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
-            const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
-            const hasExtra = (it.note && it.note.trim()) || it.photo;
-            div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
-            
-            let sX = 0, cX = 0;
-            div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
-            div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(-10, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
-            div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; } });
-            
-            wrap.appendChild(del); wrap.appendChild(div);
-            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
-        });
-
-        // Számláló frissítése
-        document.getElementById('activeCountLabel').innerText = `Aktív tételek (${activeCount})`;
-    }
-
-    function openInfo(id) { currentItemId = id; vibrate(15); document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn'); if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; document.getElementById('editNoteInput').value = ""; } const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn'); if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; } openModal('infoModal'); }); }
-    function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; if(type==='photo') document.getElementById('editPhotoInput').click(); }
-    function saveInfo() { const noteValue = document.getElementById('editNoteInput').value; listRef.child(currentItemId).once('value', snap => { const it = snap.val(); const fNote = document.getElementById('noteEditSection').style.display === 'block' ? noteValue : (it.note || ""); const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || ""); listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; document.getElementById('editNoteInput').value = ""; vibrate(30); openInfo(currentItemId); }); }); }
-    function deleteField(f) { if(confirm("Törlöd?")) { vibrate(50); let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => { if(f==='note') document.getElementById('editNoteInput').value = ""; openInfo(currentItemId); }); } }
-    function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(i.files[0]); } }
-    function addItem() { const v = document.getElementById('manualInput').value.trim(); if(v) { vibrate(50); listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); closeModal('inputModal'); } }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; }
-    function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
-    function clearAllItems() { if(confirm("Mindent törölsz a teljes listáról?")) { vibrate(100); listRef.remove(); } }
-
-    // JAVÍTOTT ÉRTESÍTÉS KEZELÉS
     function updateNotifBtnUI() {
         const btn = document.getElementById('notifBtn');
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
         if(notificationsEnabled) {
             btn.innerText = "Értesítések: BE";
             btn.className = "notif-toggle-btn notif-on";
         } else {
-            btn.innerText = "Értesítések: KI";
+            btn.innerText = isStandalone ? "Értesítések: KI" : "Add a főképernyőhöz!";
             btn.className = "notif-toggle-btn notif-off";
         }
     }
@@ -215,11 +194,11 @@
                 if (permission === "granted") {
                     notificationsEnabled = true;
                     localStorage.setItem('notifEnabled', 'true');
-                    new Notification("Bevásárló lista", { body: "Értesítések bekapcsolva!" });
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification("Bevásárló lista", { body: "Értesítések aktívak!" });
+                    });
                 } else {
-                    alert("Kérlek engedélyezd az értesítéseket a böngésző beállításaiban!");
-                    notificationsEnabled = false;
-                    localStorage.setItem('notifEnabled', 'false');
+                    alert("iOS-en add a főképernyőhöz az appot az értesítésekhez!");
                 }
                 updateNotifBtnUI();
             });
@@ -230,6 +209,39 @@
         }
     }
 
+    function render(items) {
+        const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
+        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
+        let activeCount = 0;
+        items.sort((a,b) => a.order - b.order).forEach(it => {
+            if(it.status === 'active') activeCount++;
+            const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
+            const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
+            const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
+            const hasExtra = (it.note && it.note.trim()) || it.photo;
+            div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
+            let sX = 0, cX = 0;
+            div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
+            div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(-10, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
+            div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; } });
+            wrap.appendChild(del); wrap.appendChild(div);
+            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
+        });
+        document.getElementById('activeCountLabel').innerText = `Aktív tételek (${activeCount})`;
+    }
+
+    // Alapvető funkciók (AddItem, Modal, etc)
+    function updateStatus(id, status) { vibrate(40); listRef.child(id).update({status: status}); }
+    function openInfo(id) { currentItemId = id; vibrate(15); document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn'); if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; document.getElementById('editNoteInput').value = ""; } const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn'); if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; } openModal('infoModal'); }); }
+    function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; if(type==='photo') document.getElementById('editPhotoInput').click(); }
+    function saveInfo() { const noteValue = document.getElementById('editNoteInput').value; listRef.child(currentItemId).once('value', snap => { const it = snap.val(); const fNote = document.getElementById('noteEditSection').style.display === 'block' ? noteValue : (it.note || ""); const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || ""); listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; document.getElementById('editNoteInput').value = ""; vibrate(30); openInfo(currentItemId); }); }); }
+    function deleteField(f) { if(confirm("Törlöd?")) { vibrate(50); let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => { if(f==='note') document.getElementById('editNoteInput').value = ""; openInfo(currentItemId); }); } }
+    function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(i.files[0]); } }
+    function addItem() { const v = document.getElementById('manualInput').value.trim(); if(v) { vibrate(50); listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); closeModal('inputModal'); } }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; }
+    function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
+    function clearAllItems() { if(confirm("Mindent törölsz a teljes listáról?")) { vibrate(100); listRef.remove(); } }
     new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, onStart: () => { vibrate(40); isSorting = true; }, onEnd: () => { isSorting = false; document.querySelectorAll('.item').forEach(el => { el.style.transform = 'translateX(0)'; }); document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index })); } });
 </script>
 </body>
