@@ -30,10 +30,12 @@
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
         
-        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 0 10px 10px 0; z-index: 1; }
+        /* JAVÍTVA: A törlés gomb mostantól 2px-re van a szélétől, hogy ne lógjon ki a kanyarban */
+        .delete-btn-bg { position: absolute; right: 2px; top: 2px; bottom: 2px; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 8px; z-index: 1; }
 
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s; border: 1px solid transparent; touch-action: pan-y; width: 100%; }
-        .drag-handle { color: #555; font-size: 22px; padding-right: 5px; cursor: grab; flex-shrink: 0; }
+        /* JAVÍTVA: A padding 10px-ről 8px-re csökkent (20%-os zsugorítás) */
+        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s; border: 1px solid transparent; touch-action: pan-y; width: 100%; }
+        .drag-handle { color: #555; font-size: 20px; padding-right: 5px; cursor: grab; flex-shrink: 0; }
         
         .sortable-ghost { opacity: 0.4; }
         .sortable-chosen .item { transform: translateX(0) !important; }
@@ -41,7 +43,8 @@
         .status-done { background: var(--success) !important; color: white !important; }
         .status-x { background: var(--danger) !important; color: white !important; }
         
-        .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; }
+        /* JAVÍTVA: A gombok mérete is kisebb lett a sorral arányosan */
+        .btn-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 14px; }
         .has-data { border-color: #ffffff !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
@@ -65,7 +68,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v0.5.6</div>
+        <div class="version-label">v0.5.7</div>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
     
@@ -133,13 +136,11 @@
             <div id="noteEditSection" style="display:none;">
                 <textarea id="editNoteInput" placeholder="Írd ide a megjegyzést..." rows="4" style="background:#111; color:#fff; border:1px solid var(--primary);"></textarea>
             </div>
-            
             <div id="photoEditSection" style="display:none;">
                 <input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')">
                 <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
                 <p style="font-size:12px; color:#aaa; text-align:center;">Válassz új fotót a feltöltéshez</p>
             </div>
-            
             <button class="action-btn" onclick="saveInfo()">MENTÉS</button>
         </div>
 
@@ -189,11 +190,9 @@
         listRef.child(id).once('value', snap => {
             const it = snap.val();
             document.getElementById('infoTitle').innerText = it.text;
-            
             const nDisp = document.getElementById('noteDisplay'), nAct = document.getElementById('noteActions'), nBtn = document.getElementById('addNoteBtn');
             if(it.note && it.note.trim()) { nDisp.innerText = it.note; nDisp.style.display = 'block'; nAct.style.display = 'flex'; nBtn.style.display = 'none'; }
             else { nDisp.style.display = 'none'; nAct.style.display = 'none'; nBtn.style.display = 'block'; }
-            
             const pImg = document.getElementById('infoPhotoImg'), pAct = document.getElementById('photoActions'), pBtn = document.getElementById('addPhotoBtn');
             if(it.photo) { pImg.src = it.photo; pImg.style.display = 'block'; pAct.style.display = 'flex'; pBtn.style.display = 'none'; }
             else { pImg.style.display = 'none'; pAct.style.display = 'none'; pBtn.style.display = 'block'; }
@@ -206,40 +205,22 @@
         document.getElementById('editArea').style.display = 'block';
         document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none';
         document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none';
-        
         listRef.child(currentItemId).once('value', snap => {
             const it = snap.val();
-            if(type === 'note') {
-                const input = document.getElementById('editNoteInput');
-                input.value = it.note || "";
-                setTimeout(() => input.focus(), 100);
-            } else {
-                tempPhotoData = it.photo || "";
-                document.getElementById('editPhotoInput').click();
-            }
+            if(type === 'note') { const input = document.getElementById('editNoteInput'); input.value = it.note || ""; setTimeout(() => input.focus(), 100); }
+            else { tempPhotoData = it.photo || ""; document.getElementById('editPhotoInput').click(); }
         });
     }
 
-    function deleteField(field) {
-        if(confirm("Törlöd ezt az adatot?")) {
-            let update = {};
-            update[field] = "";
-            listRef.child(currentItemId).update(update).then(() => openInfo(currentItemId));
-        }
-    }
+    function deleteField(field) { if(confirm("Törlöd ezt az adatot?")) { let update = {}; update[field] = ""; listRef.child(currentItemId).update(update).then(() => openInfo(currentItemId)); } }
 
     function saveInfo() {
         const note = document.getElementById('editNoteInput').value.trim();
         listRef.child(currentItemId).once('value', snap => {
             const it = snap.val();
-            // Csak azt frissítjük, amit épp szerkesztettünk, a többit megtartjuk
             const finalNote = document.getElementById('noteEditSection').style.display === 'block' ? note : (it.note || "");
             const finalPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
-            
-            listRef.child(currentItemId).update({ note: finalNote, photo: finalPhoto }).then(() => {
-                tempPhotoData = "";
-                openInfo(currentItemId);
-            });
+            listRef.child(currentItemId).update({ note: finalNote, photo: finalPhoto }).then(() => { tempPhotoData = ""; openInfo(currentItemId); });
         });
     }
 
@@ -251,7 +232,7 @@
             const delBtn = document.createElement('div'); delBtn.className = 'delete-btn-bg'; delBtn.innerText = 'TÖRLÉS'; delBtn.onclick = () => { if(confirm("Törlöd?")) listRef.child(it.id).remove(); }; wrap.appendChild(delBtn);
             const div = document.createElement('div'); div.className = `item ${it.status === 'done' ? 'status-done' : (it.status === 'x' ? 'status-x' : '')}`;
             const hasExtra = (it.note && it.note.trim() !== "") || it.photo;
-            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
+            div.innerHTML = `${it.status === 'active' ? '<div class="drag-handle">≡</div>' : '<div style="width:5px"></div>'}<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px;">${it.text}</span><div style="display:flex; gap:5px;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status === 'active' ? `<button class="btn-sm" style="background:var(--success)" onclick="listRef.child('${it.id}').update({status:'done'})">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="listRef.child('${it.id}').update({status:'x'})">✖</button>` : `<button class="btn-sm" onclick="listRef.child('${it.id}').update({status:'active'})">↩</button>`}</div>`;
             
             let sX = 0, cX = 0, isD = false;
             div.addEventListener('touchstart', e => { sX = e.touches[0].clientX; div.style.transition = 'none'; isD = false; }, {passive:true});
