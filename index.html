@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Pro v0.4.5</title>
+    <title>Lista Pro v0.4.7</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,9 +16,7 @@
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; --yellow: #ffff00; }
         .light-mode { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #d66d6d; --grey: #e5e5ea; --border: #c7c7cc; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; 
-            user-select: none; -webkit-user-select: none; }
-        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s; }
         
         .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -27,7 +25,6 @@
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
         
-        /* Törlés gomb stílusa a háttérben */
         .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 0 10px 10px 0; z-index: 1; }
 
         .item { 
@@ -42,14 +39,11 @@
         .status-x { background: var(--danger) !important; color: white !important; }
         
         .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.1); color: white; border: 1px solid transparent; flex-shrink: 0; }
-        
-        /* Megjegyzés jelzése: piros kontúr */
         .has-data { border-color: var(--danger) !important; background: rgba(255,255,255,0.1) !important; color: white !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
         .sub-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-        /* Modals */
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 340px; border-radius: 20px; padding: 35px 20px 20px; position: relative; border: 1px solid var(--border); }
         .modal-content input, .modal-content textarea { user-select: text; -webkit-user-select: text; }
@@ -59,7 +53,6 @@
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; }
         
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
-        
         .mode-toggle { background: var(--grey); border: none; color: var(--text); width: 40px; height: 30px; border-radius: 15px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -67,7 +60,7 @@
 
 <div class="app-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-size:10px; color:#444;">v0.4.5</div>
+        <div style="font-size:10px; color:#444;">v0.4.7</div>
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
         <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
     </div>
@@ -112,8 +105,19 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">×</div>
         <h3 id="infoTitle" style="text-align:center; margin-top:0;"></h3>
-        <div id="infoNoteDisplay" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:10px; font-size:14px; text-align:center;"></div>
-        <img id="infoPhotoImg" class="img-preview-box" style="display:none; max-height:250px; cursor:pointer;" onclick="window.open(this.src)">
+        <div id="noteBox" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:10px; position:relative; min-height:50px; display:flex; align-items:center; justify-content:center;">
+            <div id="noteDisplay" style="font-size:14px; text-align:center; padding-right:50px;"></div>
+            <div id="noteActions" style="position:absolute; right:10px; display:flex; gap:8px;">
+                <button onclick="editNote()" style="background:none; border:none; font-size:16px;">✏️</button>
+                <button onclick="deleteNote()" style="background:none; border:none; font-size:16px;">🗑️</button>
+            </div>
+            <button id="addNoteBtn" onclick="editNote()" style="display:none; width:100%; background:none; border:none; color:var(--primary); font-size:14px; font-weight:bold;">+ Megjegyzés hozzáadása</button>
+        </div>
+        <div id="noteEditArea" style="display:none;">
+            <textarea id="noteTextarea" rows="3"></textarea>
+            <button class="action-btn" onclick="saveNote()">MENTÉS</button>
+        </div>
+        <img id="infoPhotoImg" class="img-preview-box" style="display:none; max-height:200px; cursor:pointer;" onclick="window.open(this.src)">
         <button class="action-btn" style="background:var(--grey); margin-top:10px;" onclick="closeModal('infoModal')">BEZÁRÁS</button>
     </div>
 </div>
@@ -127,7 +131,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const listRef = db.ref('shoppingList');
-    let tempPhotoData = "";
+    let currentItemId = null, tempPhotoData = "";
 
     function toggleMode() {
         document.body.classList.toggle('light-mode');
@@ -141,15 +145,25 @@
     new Sortable(document.getElementById('activeItems'), {
         handle: '.drag-handle',
         animation: 150,
-        onStart: function(evt) {
-            // Rendezéskor eltüntetjük a piros törlés hátteret az elem alól
-            evt.item.style.background = 'transparent';
-        },
-        onEnd: function() {
+        onStart: (evt) => { evt.item.style.background = 'transparent'; },
+        onEnd: () => {
             const items = document.querySelectorAll('#activeItems .item-wrapper');
             items.forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }));
         }
     });
+
+    // Hangfelismerés
+    const micBtn = document.getElementById('micBtn');
+    if ('webkitSpeechRecognition' in window) {
+        const rec = new webkitSpeechRecognition();
+        rec.lang = 'hu-HU';
+        rec.onresult = e => {
+            const text = e.results[0][0].transcript;
+            listRef.push({ text: text, status: 'active', order: Date.now() });
+        };
+        micBtn.onclick = () => { rec.start(); micBtn.style.opacity = 0.5; };
+        rec.onend = () => { micBtn.style.opacity = 1; };
+    }
 
     function previewPhoto(input) {
         if(input.files && input.files[0]) {
@@ -164,14 +178,40 @@
     }
 
     function openInfo(id) {
+        currentItemId = id;
         listRef.child(id).once('value', snap => {
             const it = snap.val();
             document.getElementById('infoTitle').innerText = it.text;
-            document.getElementById('infoNoteDisplay').innerText = it.note || "Nincs megjegyzés";
+            const noteDisp = document.getElementById('noteDisplay'), noteAct = document.getElementById('noteActions'), addBtn = document.getElementById('addNoteBtn');
+            document.getElementById('noteEditArea').style.display = 'none';
+            if(it.note) {
+                noteDisp.innerText = it.note; noteDisp.style.display = 'block'; noteAct.style.display = 'flex'; addBtn.style.display = 'none';
+            } else {
+                noteDisp.style.display = 'none'; noteAct.style.display = 'none'; addBtn.style.display = 'block';
+            }
             const img = document.getElementById('infoPhotoImg');
             if(it.photo) { img.src = it.photo; img.style.display = 'block'; } else { img.style.display = 'none'; }
             openModal('infoModal');
         });
+    }
+
+    function editNote() {
+        document.getElementById('noteDisplay').style.display = 'none';
+        document.getElementById('noteActions').style.display = 'none';
+        document.getElementById('addNoteBtn').style.display = 'none';
+        document.getElementById('noteEditArea').style.display = 'block';
+        document.getElementById('noteTextarea').value = document.getElementById('noteDisplay').innerText;
+    }
+
+    function deleteNote() {
+        if(confirm("Törlöd a megjegyzést?")) {
+            listRef.child(currentItemId).update({ note: "" }).then(() => openInfo(currentItemId));
+        }
+    }
+
+    function saveNote() {
+        const val = document.getElementById('noteTextarea').value.trim();
+        listRef.child(currentItemId).update({ note: val }).then(() => openInfo(currentItemId));
     }
 
     function render(items) {
@@ -183,7 +223,6 @@
             wrap.className = 'item-wrapper';
             wrap.setAttribute('data-id', it.id);
             
-            // Külön gomb a törléshez, ami csak elhúzás után látszik
             const delBtn = document.createElement('div');
             delBtn.className = 'delete-btn-bg';
             delBtn.innerText = 'TÖRLÉS';
@@ -206,16 +245,10 @@
                     }
                 </div>`;
 
-            let startX = 0;
-            let currentX = 0;
-            div.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-                div.style.transition = 'none';
-            }, {passive: true});
-
+            let startX = 0, currentX = 0;
+            div.addEventListener('touchstart', e => { startX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive: true});
             div.addEventListener('touchmove', e => {
                 let diff = startX - e.touches[0].clientX;
-                // Csak balra húzást engedünk, max 80px-ig (a gomb szélessége)
                 if (diff > 0) {
                     currentX = Math.min(diff, 85);
                     div.style.transform = `translateX(-${currentX}px)`;
@@ -227,11 +260,8 @@
 
             div.addEventListener('touchend', e => {
                 div.style.transition = 'transform 0.3s ease';
-                if (currentX > 50) {
-                    div.style.transform = `translateX(-80px)`; // Kint marad a gomb
-                } else {
-                    div.style.transform = `translateX(0)`; // Visszaugrik
-                }
+                if (currentX > 50) div.style.transform = `translateX(-80px)`;
+                else div.style.transform = `translateX(0)`;
             });
 
             wrap.appendChild(div);
