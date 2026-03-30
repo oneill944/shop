@@ -13,16 +13,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; }
-        .light-mode { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #d66d6d; --grey: #e5e5ea; --border: #c7c7cc; }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
         input, textarea { user-select: text !important; -webkit-user-select: text !important; }
 
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; transition: background 0.3s; }
-        .app-card { background: var(--card-bg); width: 100%; max-width: 420px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
-        .version-tag { position: absolute; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; opacity: 0.3; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        .app-card { background: var(--card-bg); width: 100%; max-width: 420px; border-radius: 20px; padding: 15px; align-self: flex-start; }
         
         .notif-toggle-btn { background: var(--item-bg); color: var(--text); border: 1px solid var(--border); padding: 7px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .notif-toggle-btn.active { background: var(--success); color: white; border-color: var(--success); }
@@ -33,45 +29,34 @@
         .item-wrapper { position: relative; border-radius: 12px; overflow: hidden; width: 100%; }
         .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 1; }
         
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 5; transition: transform 0.2s; border: 1.5px solid transparent; touch-action: pan-y; width: 100%; }
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s; border: 1.5px solid transparent; touch-action: pan-y; width: 100%; }
+        .item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; min-width: 0; }
         
-        /* FIX: Szigorú szöveglevágás minden listában */
-        .item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; min-width: 0; }
-        
-        .drag-handle { color: #555; font-size: 20px; cursor: grab; padding: 5px; flex-shrink: 0; }
-        .btn-group { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+        .btn-group { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
         .btn-sm { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; border: none; cursor: pointer; }
         .has-data { border: 1.5px solid var(--danger) !important; }
         
-        .status-done { border-color: var(--success) !important; background: rgba(50, 168, 82, 0.05) !important; }
-        .status-x { border-color: var(--danger) !important; background: rgba(235, 64, 52, 0.05) !important; }
+        .status-done { border-color: var(--success) !important; }
+        .status-x { border-color: var(--danger) !important; }
 
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
-        /* Alsó oszlopokban a gombok és szövegek méretezése */
         .bottom-grid .btn-sm { width: 30px; height: 30px; }
-        .bottom-grid .item span { font-size: 13px; }
 
         .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; border-radius: 24px; padding: 40px 20px 25px; position: relative; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
         .close-x { position: absolute; top: 12px; right: 20px; font-size: 30px; color: var(--danger); cursor: pointer; font-weight: bold; }
         
-        #infoTitle { text-align: center; margin: 0 0 20px 0; font-size: 18px; word-break: break-word; white-space: normal; line-height: 1.4; }
-        input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: #000; color: #fff; font-size: 16px; outline: none; }
-        .action-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
-        .info-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
+        .img-preview-box { width: 100%; border-radius: 12px; margin: 10px 0; border: 1px solid var(--border); max-height: 200px; object-fit: cover; }
+        .action-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body class="dark">
 
 <div class="app-card">
-    <div class="header-top">
-        <button onclick="document.body.classList.toggle('light-mode')" style="background:none; border:none; font-size:20px;">🌓</button>
-        <div class="version-tag">v0.9.3</div>
-        <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3;">🗑️</button>
-    </div>
-    
-    <div style="display:flex; justify-content:center; margin: 10px 0 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="font-size:10px; opacity:0.3;">v0.9.4</div>
         <button id="notifBtn" class="notif-toggle-btn" onclick="toggleNotifications()">Értesítések: KI</button>
+        <button onclick="clearAll()" style="background:none; border:none; font-size:16px; opacity:0.3;">🗑️</button>
     </div>
 
     <button onclick="openModal('inputModal')" style="width:100%; padding:16px; border-radius:14px; border:none; background:var(--grey); color:var(--text); font-weight:bold; margin-bottom:20px;">+ ÚJ TÉTEL</button>
@@ -80,26 +65,20 @@
     <div id="activeItems" class="list-container"></div>
     
     <div class="bottom-grid">
-        <div>
-            <div class="col-label">Megvan</div>
-            <div id="doneItems" class="list-container"></div>
-        </div>
-        <div>
-            <div class="col-label">Nincs</div>
-            <div id="missingItems" class="list-container"></div>
-        </div>
+        <div><div class="col-label">Megvan</div><div id="doneItems" class="list-container"></div></div>
+        <div><div class="col-label">Nincs</div><div id="missingItems" class="list-container"></div></div>
     </div>
 </div>
 
-<div id="inputModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('inputModal')">×</div><input type="text" id="manualInput" placeholder="Termék neve..."><textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea><button class="action-btn" onclick="addItem()">HOZZÁADÁS</button></div></div>
+<div id="inputModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('inputModal')">×</div><input type="text" id="manualInput" placeholder="Termék neve..."><textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer;">📷 Fotó feltöltése<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label><img id="newPhotoPreview" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="addItem()">HOZZÁADÁS</button></div></div>
 
-<div id="infoModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('infoModal')">×</div><h3 id="infoTitle"></h3><div id="viewArea"><div class="info-box"><div id="noteDisplay" style="margin-bottom:10px;"></div></div></div><button class="action-btn" onclick="closeModal('infoModal')">BEZÁRÁS</button></div></div>
+<div id="infoModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('infoModal')">×</div><h3 id="infoTitle" style="text-align:center;"></h3><div id="viewArea"><div id="noteBox" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; text-align:center;"></div><img id="infoPhotoImg" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="showEdit()">MÓDOSÍTÁS</button></div><div id="editArea" style="display:none;"><textarea id="editNoteInput" rows="3"></textarea><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:10px; margin-bottom:10px; cursor:pointer;">📷 Új fotó<input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"></label><img id="editPhotoPreview" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="saveEdit()">MENTÉS</button></div></div></div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(), listRef = db.ref('shoppingList');
-    let isInitialLoad = true, notificationsEnabled = localStorage.getItem('notifications') === 'true';
+    let isInitialLoad = true, notificationsEnabled = localStorage.getItem('notifications') === 'true', currentId = null, tempPhoto = "";
 
     function updateNotifUI() { const btn = document.getElementById('notifBtn'); btn.innerText = notificationsEnabled ? "Értesítések: BE" : "Értesítések: KI"; btn.classList.toggle('active', notificationsEnabled); }
     updateNotifUI();
@@ -112,30 +91,23 @@
 
     listRef.on('child_added', snap => {
         if (!isInitialLoad && notificationsEnabled && snap.val().status === 'active' && document.visibilityState !== 'visible') {
-            navigator.serviceWorker.ready.then(reg => {
-                reg.showNotification('Új tétel!', {
-                    body: snap.val().text,
-                    icon: 'IMG_4302.png',
-                    tag: 'notif-' + Math.random().toString(36).substr(2, 9),
-                    renotify: true
-                });
-            });
+            const n = new Notification("Új termék!", { body: snap.val().text, icon: 'IMG_4302.png', tag: 'item-' + Date.now(), renotify: true });
         }
     });
-    listRef.once('value', () => { setTimeout(() => isInitialLoad = false, 1200); });
+    listRef.once('value', () => { setTimeout(() => isInitialLoad = false, 1500); });
 
     function render(data) {
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         if(!data) return;
         Object.keys(data).map(k => ({id:k, ...data[k]})).sort((a,b) => a.order - b.order).forEach(it => {
-            const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
+            const wrap = document.createElement('div'); wrap.className = 'item-wrapper';
             const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => listRef.child(it.id).remove();
             const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':it.status==='x'?'status-x':''}`;
-            const hasExtra = (it.note && it.note.trim());
+            const hasExtra = (it.note && it.note.trim()) || it.photo;
 
             div.innerHTML = `
-                ${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}
+                ${it.status==='active'?'<div class="drag-handle" style="color:#555">≡</div>':'<div style="width:5px"></div>'}
                 <span>${it.text}</span>
                 <div class="btn-group">
                     <button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">i</button>
@@ -164,25 +136,40 @@
     }
 
     function addItem() {
-        const v = document.getElementById('manualInput').value.trim(), n = document.getElementById('manualNote').value.trim();
-        if(v) { listRef.push({ text: v, note: n, status: 'active', order: Date.now() }); closeModal('inputModal'); }
+        const v = document.getElementById('manualInput').value.trim();
+        if(v) { listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhoto, status: 'active', order: Date.now() }); closeModal('inputModal'); }
     }
 
+    function openInfo(id) {
+        currentId = id; document.getElementById('viewArea').style.display='block'; document.getElementById('editArea').style.display='none';
+        listRef.child(id).once('value', snap => {
+            const it = snap.val(); document.getElementById('infoTitle').innerText = it.text;
+            document.getElementById('noteBox').innerText = it.note || "Nincs megjegyzés.";
+            const img = document.getElementById('infoPhotoImg'); if(it.photo) { img.src = it.photo; img.style.display='block'; } else img.style.display='none';
+            openModal('infoModal');
+        });
+    }
+
+    function showEdit() {
+        document.getElementById('viewArea').style.display='none'; document.getElementById('editArea').style.display='block';
+        listRef.child(currentId).once('value', snap => {
+            document.getElementById('editNoteInput').value = snap.val().note || "";
+            tempPhoto = snap.val().photo || "";
+        });
+    }
+
+    function saveEdit() {
+        listRef.child(currentId).update({ note: document.getElementById('editNoteInput').value, photo: tempPhoto }).then(() => openInfo(currentId));
+    }
+
+    function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhoto = e.target.result; const p = document.getElementById(pId); p.src = tempPhoto; p.style.display = 'block'; }; r.readAsDataURL(i.files[0]); } }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; if(id==='inputModal') { tempPhoto=""; document.getElementById('newPhotoPreview').style.display='none'; } }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function clearAll() { if(confirm("Mindent törölsz?")) listRef.remove(); }
     listRef.on('value', snap => render(snap.val()));
     new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 150, onEnd: () => {
         document.querySelectorAll('#activeItems .item-wrapper').forEach((el, i) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + i }));
     }});
-
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function openInfo(id) {
-        listRef.child(id).once('value', snap => {
-            const it = snap.val(); document.getElementById('infoTitle').innerText = it.text;
-            document.getElementById('noteDisplay').innerText = it.note || "Nincs megjegyzés.";
-            openModal('infoModal');
-        });
-    }
-    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
 </body>
