@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.6.1</title>
+    <title>Bevásárló lista v1.6.2</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -30,36 +30,21 @@
         
         .title-section { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 15px; }
         
-        .list-selector-btn { 
-            position: absolute; 
-            right: 0; 
-            top: 50%; 
-            transform: translateY(-50%); 
-            background: var(--grey); 
-            color: var(--text); 
-            border: none; 
-            border-radius: 8px; 
-            padding: 6px 12px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
+        .list-selector-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: var(--grey); color: var(--text); border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 10; }
 
         .notif-status-bar { text-align: center; }
-        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 8px 20px; border-radius: 20px; transition: background-color 0.3s, transform 0.1s; text-transform: uppercase; min-width: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .notif-toggle-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 8px 20px; border-radius: 20px; transition: 0.3s; text-transform: uppercase; min-width: 160px; }
         .notif-on { background-color: var(--success) !important; }
         .notif-off { background-color: var(--danger) !important; }
 
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         
-        /* JAVÍTOTT WRAPPER */
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; margin: 2px 0; }
-        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 10px; z-index: 1; pointer-events: auto; }
+        /* FIX: A TÖRLÉS GOMB ELREJTÉSE A LEKEREKÍTÉSNÉL */
+        .item-wrapper { position: relative; border-radius: 12px; overflow: hidden; background: transparent; width: 100%; isolation: isolate; }
+        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 1; }
         
-        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; width: 100%; transform: translateX(0); }
+        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; width: 100%; }
         
         .drag-handle { color: #555; font-size: 18px; padding-right: 2px; cursor: grab; flex-shrink: 0; }
         .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; min-width: 0; }
@@ -77,6 +62,21 @@
         .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 20px; padding: 15px; position: relative; border: 1px solid var(--border); display: flex; flex-direction: column; margin-top: 20px; }
         .close-x { position: absolute; top: 3px; right: 13px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
+        /* FIX: MODAL CÍM HOSSZÚ SZÖVEG KEZELÉSE */
+        #infoTitle { 
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            margin: 25px 0 12px;
+            padding: 0 10px;
+            font-size: 16px;
+            line-height: 1.3;
+            max-height: 2.6em;
+        }
+
         textarea, input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 14px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         
@@ -92,7 +92,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.6.1</div>
+        <div class="version-label">v1.6.2</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -155,10 +155,10 @@
 <div id="infoModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('infoModal')">×</div>
-        <h3 id="infoTitle" style="text-align:center; margin:25px 0 12px; font-size:16px;"></h3>
+        <h3 id="infoTitle"></h3>
         <div id="viewArea">
             <div id="noteBox" class="info-box">
-                <div id="noteDisplay" style="font-size:13px; text-align:center; margin-bottom:10px; color:#ccc;"></div>
+                <div id="noteDisplay" style="font-size:13px; text-align:center; margin-bottom:10px; color:#ccc; word-wrap: break-word;"></div>
                 <div class="info-actions" id="noteActions" style="display:flex; justify-content:center; gap:20px;">
                     <button onclick="showEdit('note')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('note')" style="background:none; border:none; font-size:18px;">🗑️</button>
@@ -214,30 +214,16 @@
 
     function generateNewCode() {
         const newCode = (Math.floor(1000 + Math.random() * 9000)).toString();
-        if(confirm("Új szobát generálsz (" + newCode + ")?")) {
-            vibrate(50);
-            updateRoom(newCode);
-        }
+        if(confirm("Új szobát generálsz (" + newCode + ")?")) { vibrate(50); updateRoom(newCode); }
     }
 
     function joinByCode() {
         const input = document.getElementById('joinCodeInput').value;
-        if(input.length === 4) {
-            vibrate(50);
-            updateRoom(input);
-            document.getElementById('joinCodeInput').value = "";
-            closeModal('listModal');
-        } else {
-            alert("A kódnak 4 jegyűnek kell lennie!");
-        }
+        if(input.length === 4) { vibrate(50); updateRoom(input); document.getElementById('joinCodeInput').value = ""; closeModal('listModal'); } 
+        else { alert("A kódnak 4 jegyűnek kell lennie!"); }
     }
 
-    function updateRoom(code) {
-        currentListId = code;
-        localStorage.setItem('currentListId', code);
-        initList();
-        closeModal('listModal');
-    }
+    function updateRoom(code) { currentListId = code; localStorage.setItem('currentListId', code); initList(); closeModal('listModal'); }
 
     function render(items) {
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
@@ -252,25 +238,9 @@
             div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
             
             let sX = 0, cX = 0;
-            div.addEventListener('touchstart', e => { 
-                if(isSorting) return; // Ha rendezünk, ne lehessen elhúzni
-                sX = e.touches[0].clientX; 
-                div.style.transition = 'none'; 
-            }, {passive:true});
-            
-            div.addEventListener('touchmove', e => { 
-                if(isSorting) return; 
-                let diff = sX - e.touches[0].clientX; 
-                cX = Math.max(0, Math.min(diff, 85)); // 0 alá nem megy, így jobbra nem húzható
-                div.style.transform = `translateX(-${cX}px)`; 
-            }, {passive:true});
-            
-            div.addEventListener('touchend', () => { 
-                if(isSorting) return; 
-                div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; 
-                if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } 
-                else { div.style.transform = 'translateX(0)'; cX = 0; } 
-            });
+            div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
+            div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(0, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
+            div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; cX = 0; } });
             
             wrap.appendChild(del); wrap.appendChild(div);
             document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
@@ -328,28 +298,32 @@
     function closeModal(id) { 
         document.getElementById(id).style.display = 'none'; 
         tempPhotoData = ""; 
-        if(id==='inputModal'){ 
-            document.getElementById('newPhotoPreview').style.display='none'; 
-            document.getElementById('manualInput').value=''; 
-            document.getElementById('manualNote').value=''; 
-        }
-        if(id==='infoModal'){
-            document.getElementById('editNoteInput').value = "";
-            document.getElementById('editPhotoPreview').style.display = 'none';
-        }
+        if(id==='inputModal'){ document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; }
+        if(id==='infoModal'){ document.getElementById('editNoteInput').value = ""; document.getElementById('editPhotoPreview').style.display = 'none'; }
     }
     function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
-    function clearAllItems() { if(confirm("Biztosan törlöd az összes tételt ebből a szobából ("+currentListId+")?")) { vibrate(100); listRef.remove(); } }
+    function clearAllItems() { if(confirm("Összes törlése a szobából?")) { vibrate(100); listRef.remove(); } }
     function toggleNotifications() { vibrate(20); if (!notificationsEnabled) { Notification.requestPermission().then(p => { if (p === "granted") { notificationsEnabled = true; localStorage.setItem('notifEnabled', 'true'); updateNotifBtnUI(); } }); } else { notificationsEnabled = false; localStorage.setItem('notifEnabled', 'false'); updateNotifBtnUI(); } }
     function updateNotifBtnUI() { const btn = document.getElementById('notifBtn'); if(notificationsEnabled) { btn.innerText = "Értesítések: BE"; btn.classList.add('notif-on'); btn.classList.remove('notif-off'); } else { btn.innerText = "Értesítések: KI"; btn.classList.add('notif-off'); btn.classList.remove('notif-on'); } }
     
     function sendBugReport() { 
         const msg = document.getElementById('bugText').value.trim(); 
         if(!msg) { alert("Kérlek írj leírást!"); return; }
+        const mode = document.body.classList.contains('light-mode') ? "Világos" : "Sötét";
         fetch(DISCORD_WEBHOOK_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Szoba", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.6.1", inline: true}], description: msg }] }) 
+            body: JSON.stringify({ embeds: [{ 
+                title: "✉️ Új visszajelzés", 
+                color: 11042707, 
+                fields: [
+                    {name: "Szoba", value: "#"+currentListId, inline: true}, 
+                    {name: "Verzió", value: "v1.6.2", inline: true},
+                    {name: "Mód", value: mode, inline: true},
+                    {name: "Idő", value: new Date().toLocaleString('hu-HU'), inline: false}
+                ], 
+                description: "**Üzenet:**\n" + msg 
+            }] }) 
         }).then(() => { alert("Elküldve!"); closeModal('bugModal'); document.getElementById('bugText').value = ""; }); 
     }
 
@@ -357,15 +331,9 @@
     initList();
     
     new Sortable(document.getElementById('activeItems'), { 
-        handle: '.drag-handle', 
-        animation: 200, 
+        handle: '.drag-handle', animation: 200, 
         onStart: () => { vibrate(40); isSorting = true; }, 
-        onEnd: () => { 
-            isSorting = false; 
-            document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => {
-                listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index });
-            }); 
-        } 
+        onEnd: () => { isSorting = false; document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => { listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }); }); } 
     });
 </script>
 </body>
