@@ -1,20 +1,14 @@
-// sw.js - Service Worker az iOS értesítésekhez
-self.addEventListener('install', (event) => {
-    self.skipWaiting();
+const CACHE_NAME = 'shop-list-v1';
+const ASSETS = [
+  '/',
+  'index.html',
+  'IMG_4302.png'
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(clients.claim());
-});
-
-// Ez figyeli az értesítéseket
-self.addEventListener('push', function(event) {
-    const data = event.data ? event.data.json() : { title: 'Bevásárló lista', body: 'Új tétel érkezett!' };
-    event.waitUntil(
-        self.registration.showNotification(data.title, {
-            body: data.body,
-            icon: 'IMG_4302.png',
-            badge: 'IMG_4302.png'
-        })
-    );
+self.addEventListener('fetch', (e) => {
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
