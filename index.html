@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.5.1</title>
+    <title>Bevásárló lista v1.5.2</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -90,7 +90,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.5.1</div>
+        <div class="version-label">v1.5.2</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -167,7 +167,7 @@
             </div>
         </div>
         <div id="editArea" style="display:none;">
-            <label style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">Írd be a megjegyzést:</label>
+            <label id="editInstLabel" style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">Írd be a megjegyzést:</label>
             <div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" rows="4" placeholder="Pl: 1.5%-os legyen..."></textarea></div>
             <div id="photoEditSection" style="display:none;">
                 <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px; font-weight:bold;">📷 ÚJ FOTÓ KIVÁLASZTÁSA<input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"></label>
@@ -265,7 +265,14 @@
         }); 
     }
 
-    function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; }
+    function showEdit(type) { 
+        vibrate(15); 
+        document.getElementById('viewArea').style.display = 'none'; 
+        document.getElementById('editArea').style.display = 'block'; 
+        document.getElementById('editInstLabel').style.display = type === 'note' ? 'block' : 'none';
+        document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; 
+        document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; 
+    }
     
     function saveInfo() { 
         const noteValue = document.getElementById('editNoteInput').value; 
@@ -273,7 +280,13 @@
             const it = snap.val();
             const fNote = document.getElementById('noteEditSection').style.display === 'block' ? noteValue : (it.note || "");
             const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || "");
-            listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; vibrate(30); openInfo(currentItemId); }); 
+            listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { 
+                tempPhotoData = ""; 
+                document.getElementById('editNoteInput').value = ""; 
+                document.getElementById('editPhotoPreview').style.display = 'none';
+                vibrate(30); 
+                openInfo(currentItemId); 
+            }); 
         }); 
     }
 
@@ -282,7 +295,19 @@
     function updateStatus(id, status) { vibrate(40); listRef.child(id).update({status: status}); }
     function addItem() { const v = document.getElementById('manualInput').value.trim(); if(v) { vibrate(50); listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); closeModal('inputModal'); } }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; if(id==='inputModal'){ document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; } }
+    function closeModal(id) { 
+        document.getElementById(id).style.display = 'none'; 
+        tempPhotoData = ""; 
+        if(id==='inputModal'){ 
+            document.getElementById('newPhotoPreview').style.display='none'; 
+            document.getElementById('manualInput').value=''; 
+            document.getElementById('manualNote').value=''; 
+        }
+        if(id==='infoModal'){
+            document.getElementById('editNoteInput').value = "";
+            document.getElementById('editPhotoPreview').style.display = 'none';
+        }
+    }
     function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
     function clearAllItems() { if(confirm("Biztosan törlöd az összes tételt ebből a listából (#"+currentListId+")?")) { vibrate(100); listRef.remove(); } }
     function toggleNotifications() { vibrate(20); if (!notificationsEnabled) { Notification.requestPermission().then(p => { if (p === "granted") { notificationsEnabled = true; localStorage.setItem('notifEnabled', 'true'); updateNotifBtnUI(); } }); } else { notificationsEnabled = false; localStorage.setItem('notifEnabled', 'false'); updateNotifBtnUI(); } }
@@ -294,7 +319,7 @@
         fetch(DISCORD_WEBHOOK_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Lista", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.5.1", inline: true}], description: msg }] }) 
+            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Lista", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.5.2", inline: true}], description: msg }] }) 
         }).then(() => { alert("Elküldve!"); closeModal('bugModal'); document.getElementById('bugText').value = ""; }); 
     }
 
