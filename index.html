@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.6.0</title>
+    <title>Bevásárló lista v1.6.1</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -55,9 +55,12 @@
         .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
         .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
         
-        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; }
-        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 10px; z-index: 1; }
-        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; width: 100%; }
+        /* JAVÍTOTT WRAPPER */
+        .item-wrapper { position: relative; border-radius: 10px; overflow: hidden; background: transparent; width: 100%; margin: 2px 0; }
+        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border-radius: 10px; z-index: 1; pointer-events: auto; }
+        
+        .item { background: var(--item-bg); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; width: 100%; transform: translateX(0); }
+        
         .drag-handle { color: #555; font-size: 18px; padding-right: 2px; cursor: grab; flex-shrink: 0; }
         .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; min-width: 0; }
         
@@ -80,7 +83,6 @@
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 8px 0; border: 1px solid var(--border); }
         .info-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* Új Kódos felület stílusa */
         .code-display-area { text-align: center; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px dashed var(--border); }
         .big-code { font-size: 32px; font-weight: 900; letter-spacing: 5px; color: var(--primary); margin: 10px 0; }
     </style>
@@ -90,7 +92,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.6.0</div>
+        <div class="version-label">v1.6.1</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -120,12 +122,10 @@
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('listModal')">×</div>
         <h3 style="text-align:center; margin-top:10px;">Csatlakozás</h3>
-        
         <div class="code-display-area">
             <div style="font-size: 11px; color: #aaa;">AKTUÁLIS KÓDOD</div>
             <div id="myCurrentCode" class="big-code">0000</div>
         </div>
-
         <input type="number" id="joinCodeInput" placeholder="Írd be a 4 jegyű kódot..." pattern="\d*" maxlength="4" style="text-align:center; font-size: 20px; letter-spacing: 3px;">
         <button class="action-btn" onclick="joinByCode()" style="background:var(--success)">CSATLAKOZÁS</button>
         <button class="action-btn" onclick="generateNewCode()" style="background:var(--grey); font-size: 12px; padding: 10px;">ÚJ KÓD GENERÁLÁSA</button>
@@ -191,7 +191,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Kód alapú inicializálás
     let currentListId = localStorage.getItem('currentListId') || (Math.floor(1000 + Math.random() * 9000)).toString();
     localStorage.setItem('currentListId', currentListId);
     
@@ -206,16 +205,9 @@
         document.getElementById('myCurrentCode').innerText = currentListId;
         listRef.off();
         listRef = db.ref('shoppingLists/' + currentListId);
-        
-        // Csak a kiválasztott szobához jön adat és frissítés
         listRef.on('value', snap => { 
             const d = snap.val(); 
             const items = d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : [];
-            
-            // Értesítés kezelés (ha változik az items hossza és nem mi adtuk hozzá épp)
-            if(notificationsEnabled && d && !isSorting) {
-                // Itt lehetne finomítani, de alapvetően a szoba alapú listRef.on garantálja az izolációt
-            }
             render(items); 
         });
     }
@@ -260,9 +252,25 @@
             div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
             
             let sX = 0, cX = 0;
-            div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
-            div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(-10, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
-            div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; } });
+            div.addEventListener('touchstart', e => { 
+                if(isSorting) return; // Ha rendezünk, ne lehessen elhúzni
+                sX = e.touches[0].clientX; 
+                div.style.transition = 'none'; 
+            }, {passive:true});
+            
+            div.addEventListener('touchmove', e => { 
+                if(isSorting) return; 
+                let diff = sX - e.touches[0].clientX; 
+                cX = Math.max(0, Math.min(diff, 85)); // 0 alá nem megy, így jobbra nem húzható
+                div.style.transform = `translateX(-${cX}px)`; 
+            }, {passive:true});
+            
+            div.addEventListener('touchend', () => { 
+                if(isSorting) return; 
+                div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; 
+                if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } 
+                else { div.style.transform = 'translateX(0)'; cX = 0; } 
+            });
             
             wrap.appendChild(del); wrap.appendChild(div);
             document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
@@ -277,15 +285,12 @@
         listRef.child(id).once('value', snap => { 
             const it = snap.val(); 
             document.getElementById('infoTitle').innerText = it.text; 
-            
             const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn');
             if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } 
             else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; document.getElementById('editNoteInput').value = ""; }
-            
             const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn');
             if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } 
             else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; }
-            
             openModal('infoModal'); 
         }); 
     }
@@ -335,24 +340,7 @@
     }
     function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
     function clearAllItems() { if(confirm("Biztosan törlöd az összes tételt ebből a szobából ("+currentListId+")?")) { vibrate(100); listRef.remove(); } }
-    
-    function toggleNotifications() { 
-        vibrate(20); 
-        if (!notificationsEnabled) { 
-            Notification.requestPermission().then(p => { 
-                if (p === "granted") { 
-                    notificationsEnabled = true; 
-                    localStorage.setItem('notifEnabled', 'true'); 
-                    updateNotifBtnUI(); 
-                } 
-            }); 
-        } else { 
-            notificationsEnabled = false; 
-            localStorage.setItem('notifEnabled', 'false'); 
-            updateNotifBtnUI(); 
-        } 
-    }
-
+    function toggleNotifications() { vibrate(20); if (!notificationsEnabled) { Notification.requestPermission().then(p => { if (p === "granted") { notificationsEnabled = true; localStorage.setItem('notifEnabled', 'true'); updateNotifBtnUI(); } }); } else { notificationsEnabled = false; localStorage.setItem('notifEnabled', 'false'); updateNotifBtnUI(); } }
     function updateNotifBtnUI() { const btn = document.getElementById('notifBtn'); if(notificationsEnabled) { btn.innerText = "Értesítések: BE"; btn.classList.add('notif-on'); btn.classList.remove('notif-off'); } else { btn.innerText = "Értesítések: KI"; btn.classList.add('notif-off'); btn.classList.remove('notif-on'); } }
     
     function sendBugReport() { 
@@ -361,14 +349,24 @@
         fetch(DISCORD_WEBHOOK_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Szoba", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.6.0", inline: true}], description: msg }] }) 
+            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Szoba", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.6.1", inline: true}], description: msg }] }) 
         }).then(() => { alert("Elküldve!"); closeModal('bugModal'); document.getElementById('bugText').value = ""; }); 
     }
 
     updateNotifBtnUI();
     initList();
     
-    new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, onStart: () => { vibrate(40); isSorting = true; }, onEnd: () => { isSorting = false; document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index })); } });
+    new Sortable(document.getElementById('activeItems'), { 
+        handle: '.drag-handle', 
+        animation: 200, 
+        onStart: () => { vibrate(40); isSorting = true; }, 
+        onEnd: () => { 
+            isSorting = false; 
+            document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => {
+                listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index });
+            }); 
+        } 
+    });
 </script>
 </body>
 </html>
