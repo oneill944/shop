@@ -3,228 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.7.0</title>
+    <title>Bevásárló lista v2.0 - Bring Style</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#a87ff3">
-    
-    <link rel="apple-touch-icon" href="IMG_4302.png">
-    <link rel="icon" type="image/png" href="IMG_4302.png">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
     <style>
-        :root { --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; }
-        .light-mode { --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; --primary: #5856d6; --success: #34c759; --danger: #d66d6d; --grey: #e5e5ea; --border: #c7c7cc; }
+        :root { 
+            --bg: #f4f7f6; --card-bg: #ffffff; --text: #2d3436; 
+            --primary: #55efc4; --primary-dark: #00b894;
+            --accent: #a87ff3; --danger: #ff7675; --grey: #dfe6e9; --border: #b2bec3;
+        }
+        .dark { 
+            --bg: #1e272e; --card-bg: #2f3640; --text: #f5f6fa; 
+            --primary: #00d2d3; --grey: #353b48; --border: #718093;
+        }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: background 0.3s; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; user-select: none; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; }
         
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .app-container { max-width: 500px; margin: 0 auto; }
         
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
-        .mode-toggle { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; padding: 5px; }
-        .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); top: -5px; }
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .room-chip { background: var(--primary); color: white; padding: 6px 15px; border-radius: 20px; font-weight: 800; font-size: 12px; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .title-section { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 15px; }
-        .room-selector-btn { border: none; color: white; font-size: 11px; font-weight: bold; cursor: pointer; padding: 8px 20px; border-radius: 20px; background-color: var(--grey); transition: 0.3s; text-transform: uppercase; min-width: 160px; }
-        .user-count-label { font-size: 10px; color: #888; font-weight: bold; margin-top: 2px; }
+        /* Bring! Style Grid */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-bottom: 30px; }
+        
+        .tile { 
+            background: var(--card-bg); border-radius: 18px; padding: 15px 10px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.1s, box-shadow 0.1s; border: 2px solid transparent;
+        }
+        .tile:active { transform: scale(0.95); }
+        .tile-icon { font-size: 32px; margin-bottom: 8px; }
+        .tile-text { font-size: 13px; font-weight: 600; word-break: break-word; line-height: 1.2; }
+        
+        /* Mini indicators on tiles */
+        .tile-badge { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
+        .has-info .tile-badge { display: block; }
 
-        .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 10px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
-        .list-container { display: flex; flex-direction: column; gap: 8px; min-height: 20px; width: 100%; }
-        
-        .item-wrapper { position: relative; border-radius: 12px; overflow: hidden; background: transparent; width: 100%; isolation: isolate; }
-        .delete-btn-bg { position: absolute; right: 1px; top: 1px; bottom: 1px; width: 78px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 1; border-radius: 0 11px 11px 0; }
-        
-        .item { background: var(--item-bg); padding: 10px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px; position: relative; z-index: 5; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1.5px solid transparent; width: 100%; }
-        .drag-handle { color: #555; font-size: 18px; padding-right: 2px; cursor: grab; flex-shrink: 0; }
-        .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; min-width: 0; }
-        
-        .status-done { background: linear-gradient(rgba(50, 168, 82, 0.1), rgba(50, 168, 82, 0.1)), var(--card-bg) !important; border-color: var(--success) !important; }
-        .status-x { background: linear-gradient(rgba(235, 64, 52, 0.1), rgba(235, 64, 52, 0.1)), var(--card-bg) !important; border-color: var(--danger) !important; }
-        
-        .btn-sm { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.08); color: white; border: 1px solid transparent; flex-shrink: 0; font-size: 12px; }
-        .has-data { border-color: var(--danger) !important; background: rgba(235, 64, 52, 0.1); }
+        /* Action Buttons on Tile */
+        .tile-actions { position: absolute; inset: 0; background: rgba(255,255,255,0.9); border-radius: 18px; display: flex; justify-content: space-around; align-items: center; opacity: 0; transition: 0.2s; pointer-events: none; }
+        .tile.open-menu .tile-actions { opacity: 1; pointer-events: auto; }
+        .action-circle { width: 35px; height: 35px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
-        .sub-col { display: flex; flex-direction: column; width: 100%; overflow: hidden; }
+        /* Bottom Sections (Done/Missing) */
+        .status-section { background: var(--card-bg); border-radius: 20px; padding: 15px; margin-top: 15px; }
+        .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px; font-weight: bold; }
+        .mini-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mini-tag { background: var(--grey); padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
-        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: flex-start; padding: 40px 20px 20px; backdrop-filter: blur(5px); overflow-y: auto; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 20px; padding: 15px; position: relative; border: 1px solid var(--border); display: flex; flex-direction: column; margin-top: 20px; }
-        .close-x { position: absolute; top: 3px; right: 13px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
-        
-        textarea, input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 14px; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        
-        .bug-label { font-size: 10px; color: #aaa; margin-left: 5px; margin-bottom: 5px; text-transform: uppercase; display: block; }
-        .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 8px 0; border: 1px solid var(--border); }
-        .info-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        /* Plus Button */
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; }
+
+        /* Modals */
+        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 30px; padding: 25px; position: relative; }
+        input, textarea { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; border: 2px solid var(--grey); background: var(--bg); color: var(--text); font-size: 16px; outline: none; }
+        .primary-btn { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--primary-dark); color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
-<body class="dark">
+<body class="light">
 
-<div class="app-card">
-    <div class="header-top">
-        <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.7.0</div>
-        <div style="display:flex; gap:12px; align-items: center;">
-            <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
-            <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
+<div class="app-container">
+    <div class="header">
+        <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
+        <div style="display: flex; gap: 15px;">
+            <button onclick="toggleMode()" style="background:none; border:none; font-size:20px;">🌓</button>
+            <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px;">🗑️</button>
         </div>
     </div>
-    
-    <div class="title-section">
-        <h2 style="text-align:center; font-size:18px; margin:0; letter-spacing:1px; font-weight:900;">BEVÁSÁRLÓ LISTA</h2>
-        <button id="roomBtn" class="room-selector-btn" onclick="openModal('listModal')">Szoba: ----</button>
-        <div id="userCount" class="user-count-label">Jelenleg -- fő tartózkodik a szobában</div>
+
+    <div id="userCount" style="font-size:11px; text-align:center; margin-bottom:20px; opacity:0.6;">...</div>
+
+    <div class="grid-container" id="activeGrid">
+        </div>
+
+    <div class="status-section">
+        <div class="section-title">Pipálva ✓</div>
+        <div class="mini-list" id="doneList"></div>
     </div>
 
-    <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px; font-size:14px;">HOZZÁADÁS</button>
-
-    <div class="col-label" id="activeCountLabel">Aktív tételek (0)</div>
-    <div id="activeItems" class="list-container"></div>
-
-    <div class="bottom-grid">
-        <div class="sub-col"><div class="col-label">Megvan</div><div id="doneItems" class="list-container"></div></div>
-        <div class="sub-col"><div class="col-label">Nincs</div><div id="missingItems" class="list-container"></div></div>
+    <div class="status-section">
+        <div class="section-title">Hiányzik ✖</div>
+        <div class="mini-list" id="missingList"></div>
     </div>
 </div>
 
-<div id="bugModal" class="custom-modal">
+<button class="fab" onclick="openModal('inputModal')">+</button>
+
+<div id="inputModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('bugModal')">×</div>
-        <h3 style="text-align:center; margin-top:10px; margin-bottom:15px;">Visszajelzés ✉️</h3>
-        <label class="bug-label">💡 Név (Opcionális)</label>
-        <input type="text" id="bugName" placeholder="Hogy szólíthatunk?">
-        <label class="bug-label">💡 Email (Opcionális)</label>
-        <input type="text" id="bugEmail" placeholder="visszajelzes@pelda.hu">
-        <label class="bug-label">💡 Discord név (Opcionális)</label>
-        <input type="text" id="bugDiscord" placeholder="felhasznalo">
-        <label class="bug-label">💡 Javaslat / Hiba (Kötelező)</label>
-        <textarea id="bugText" placeholder="Írd le mi történt vagy mit szeretnél..." rows="3"></textarea>
-        <label style="display:block; text-align:center; padding:10px; background:var(--grey); border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 12px; font-weight:bold;">📷 KÉP CSATOLÁSA (Opcionális)<input type="file" id="bugPhotoFile" accept="image/*" style="display:none" onchange="previewBugPhoto(this)"></label>
-        <img id="bugPhotoPreview" style="width:100%; max-height:100px; object-fit:contain; display:none; margin-bottom:10px; border-radius:8px;">
-        <button class="action-btn" id="sendBugBtn" onclick="sendBugReport()">KÜLDÉS</button>
+        <h3 style="margin-top:0">Új tétel</h3>
+        <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör...">
+        <textarea id="manualNote" placeholder="Megjegyzés (opcionális)" rows="2"></textarea>
+        <button class="primary-btn" onclick="addItem()">Hozzáadás a listához</button>
+        <button onclick="closeModal('inputModal')" style="width:100%; background:none; border:none; margin-top:15px; color:#888;">Mégse</button>
     </div>
 </div>
 
-<div id="infoModal" class="custom-modal">
+<div id="listModal" class="custom-modal">
     <div class="modal-content">
-        <div class="close-x" onclick="closeModal('infoModal')">×</div>
-        <h3 id="infoTitle" style="text-align:center; word-break:break-all; margin: 25px 0 15px;"></h3>
-        <div id="viewArea">
-            <div class="info-box"><div id="noteDisplay" style="font-size:13px; text-align:center; margin-bottom:10px; color:#ccc; word-wrap: break-word; overflow-wrap: anywhere;"></div><div class="info-actions" id="noteActions" style="display:flex; justify-content:center; gap:20px;"><button onclick="showEdit('note')" style="background:none; border:none; font-size:18px;">✏️</button><button onclick="deleteField('note')" style="background:none; border:none; font-size:18px;">🗑️</button></div><button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Megjegyzés</button></div>
-            <div class="info-box" style="text-align:center;"><img id="infoPhotoImg" class="img-preview-box" style="cursor:pointer;" onclick="window.open(this.src)"><div class="info-actions" id="photoActions" style="display:flex; justify-content:center; gap:20px;"><button onclick="showEdit('photo')" style="background:none; border:none; font-size:18px;">✏️</button><button onclick="deleteField('photo')" style="background:none; border:none; font-size:18px;">🗑️</button></div><button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Fotó</button></div>
-        </div>
-        <div id="editArea" style="display:none;">
-            <label id="editInstLabel" style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">Írd be a megjegyzést:</label>
-            <div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" rows="4" placeholder="Pl: 1.5%-os legyen..."></textarea></div>
-            <div id="photoEditSection" style="display:none;"><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px; font-weight:bold;">📷 ÚJ FOTÓ KIVÁLASZTÁSA<input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"></label><img id="editPhotoPreview" class="img-preview-box" style="display:none;"></div>
-            <button class="action-btn" onclick="saveInfo()" style="background:var(--primary)">MENTÉS</button>
-        </div>
+        <h3>Szobaváltás</h3>
+        <input type="number" id="joinCodeInput" placeholder="4 jegyű kód">
+        <button class="primary-btn" onclick="joinByCode()">Csatlakozás</button>
+        <button onclick="closeModal('listModal')" style="width:100%; background:none; border:none; margin-top:15px; color:#888;">Bezárás</button>
     </div>
 </div>
-
-<div id="listModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('listModal')">×</div><h3 style="text-align:center;">Csatlakozás</h3><div style="text-align:center; margin:15px 0; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px;"><div style="font-size:11px; color:#aaa;">AKTUÁLIS SZOBÁD</div><div id="myCurrentCode" style="font-size:32px; font-weight:900; letter-spacing:5px; color:var(--primary);">0000</div></div><input type="number" id="joinCodeInput" placeholder="Kód..." style="text-align:center; font-size:20px;"><button class="action-btn" onclick="joinByCode()" style="background:var(--success)">CSATLAKOZÁS</button><button class="action-btn" onclick="generateNewCode()" style="background:var(--grey); font-size:12px;">ÚJ KÓD</button></div></div>
-<div id="inputModal" class="custom-modal"><div class="modal-content"><div class="close-x" onclick="closeModal('inputModal')">×</div><input type="text" id="manualInput" placeholder="Termék neve..." style="margin-top:20px;"><textarea id="manualNote" placeholder="Megjegyzés..."></textarea><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color:white; font-size:13px;">📷 FOTÓ<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label><img id="newPhotoPreview" class="img-preview-box" style="display:none;"><button class="action-btn" onclick="addItem()">HOZZÁADÁS</button></div></div>
 
 <script>
+    // Firebase Config - Marad a tiéd
     const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let currentListId = localStorage.getItem('currentListId') || (Math.floor(1000 + Math.random() * 9000)).toString();
-    localStorage.setItem('currentListId', currentListId);
+    let currentListId = localStorage.getItem('currentListId') || "2316";
     let listRef = db.ref('shoppingLists/' + currentListId);
-    let presenceRef = db.ref('presence/' + currentListId);
-    let myPresenceRef = null;
 
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1097304257084018688/9uXJHFAgg4U19P4QOxuNIFzatGbfGjJmQntZqTp6qf9F4nlC_U7rlffLowivrcNu6_rM";
-    let currentItemId = null, tempPhotoData = "", isSorting = false;
+    // Bring! stílusú ikon választó
+    function getEmoji(text) {
+        const t = text.toLowerCase();
+        if(t.includes("tej")) return "🥛";
+        if(t.includes("kenyér") || t.includes("kifli") || t.includes("pék")) return "🍞";
+        if(t.includes("hús") || t.includes("csirke") || t.includes("felvágott")) return "🥩";
+        if(t.includes("sör") || t.includes("bor") || t.includes("alkohol")) return "🍻";
+        if(t.includes("víz") || t.includes("üdítő") || t.includes("cola")) return "🥤";
+        if(t.includes("zöldség") || t.includes("paradicsom") || t.includes("paprika")) return "🥦";
+        if(t.includes("gyümölcs") || t.includes("alma") || t.includes("banán")) return "🍎";
+        if(t.includes("sajt") || t.includes("vaj") || t.includes("joghurt")) return "🧀";
+        if(t.includes("édesség") || t.includes("csoki") || t.includes("chips")) return "🍫";
+        if(t.includes("wc") || t.includes("papír") || t.includes("tisztító")) return "🧻";
+        if(t.includes("tojás")) return "🥚";
+        if(t.includes("kávé")) return "☕";
+        return "📦";
+    }
 
-    function vibrate(ms = 30) { if (navigator.vibrate) navigator.vibrate(ms); }
-
-    function initList() {
-        document.getElementById('roomBtn').innerText = "Szoba: " + currentListId;
-        document.getElementById('myCurrentCode').innerText = currentListId;
-        if(myPresenceRef) myPresenceRef.remove();
-        presenceRef.off();
-        presenceRef = db.ref('presence/' + currentListId);
-        myPresenceRef = presenceRef.push();
-        myPresenceRef.set(true);
-        myPresenceRef.onDisconnect().remove();
-        presenceRef.on('value', snap => {
-            const count = snap.numChildren();
-            document.getElementById('userCount').innerText = `Jelenleg ${count} fő tartózkodik a szobában`;
-        });
-        listRef.off(); 
+    function init() {
+        document.getElementById('roomNum').innerText = currentListId;
         listRef = db.ref('shoppingLists/' + currentListId);
-        listRef.on('value', snap => { const d = snap.val(); const items = d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : []; render(items); });
+        
+        listRef.on('value', snap => {
+            const data = snap.val();
+            const items = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
+            render(items);
+        });
+
+        // Jelenlét
+        const pRef = db.ref('presence/' + currentListId);
+        const myP = pRef.push(true);
+        myP.onDisconnect().remove();
+        pRef.on('value', s => {
+            document.getElementById('userCount').innerText = `${s.numChildren()} ember szerkeszti épp`;
+        });
     }
 
     function render(items) {
-        const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
-        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
-        let activeCount = 0;
+        const grid = document.getElementById('activeGrid');
+        const doneList = document.getElementById('doneList');
+        const missingList = document.getElementById('missingList');
+        
+        grid.innerHTML = ''; doneList.innerHTML = ''; missingList.innerHTML = '';
+
         items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
-            if(it.status === 'active') activeCount++;
-            const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
-            const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
-            const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
-            const hasExtra = (it.note && it.note.trim()) || it.photo;
-            div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
-            
-            let sX = 0, cX = 0;
-            div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
-            div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(0, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
-            div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; cX = 0; } });
-            
-            wrap.appendChild(del); wrap.appendChild(div);
-            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
+            if(it.status === 'active') {
+                const tile = document.createElement('div');
+                tile.className = `tile ${it.note || it.photo ? 'has-info' : ''}`;
+                tile.innerHTML = `
+                    <div class="tile-badge"></div>
+                    <div class="tile-icon">${getEmoji(it.text)}</div>
+                    <div class="tile-text">${it.text}</div>
+                    <div class="tile-actions">
+                        <button class="action-circle" style="background:var(--primary-dark)" onclick="updateStatus('${it.id}', 'done')">✓</button>
+                        <button class="action-circle" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>
+                        <button class="action-circle" style="background:var(--grey)" onclick="listRef.child('${it.id}').remove()">🗑️</button>
+                    </div>
+                `;
+                // Kattintásra megnyílik a menü (mint a Bring-ben a hosszú nyomás vagy koppintás)
+                tile.onclick = (e) => {
+                    if(e.target.tagName !== 'BUTTON') {
+                        tile.classList.toggle('open-menu');
+                        setTimeout(() => tile.classList.remove('open-menu'), 4000);
+                    }
+                };
+                grid.appendChild(tile);
+            } else {
+                const tag = document.createElement('div');
+                tag.className = 'mini-tag';
+                tag.innerHTML = `<span>${getEmoji(it.text)}</span> ${it.text} <span onclick="updateStatus('${it.id}', 'active')" style="cursor:pointer; opacity:0.5">↺</span>`;
+                if(it.status === 'done') doneList.appendChild(tag);
+                else missingList.appendChild(tag);
+            }
         });
-        document.getElementById('activeCountLabel').innerText = `Aktív tételek (${activeCount})`;
     }
 
-    // Modal kezelők, status frissítés, addItem, stb. változatlanok...
-    function openInfo(id) { currentItemId = id; vibrate(15); document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; listRef.child(id).once('value', snap => { const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn'); if(it.note){ nD.innerText = it.note; nD.style.display='block'; nA.style.display='flex'; nB.style.display='none'; document.getElementById('editNoteInput').value = it.note; } else { nD.style.display='none'; nA.style.display='none'; nB.style.display='block'; document.getElementById('editNoteInput').value = ""; } const pI = document.getElementById('infoPhotoImg'), pA = document.getElementById('photoActions'), pB = document.getElementById('addPhotoBtn'); if(it.photo){ pI.src = it.photo; pI.style.display='block'; pA.style.display='flex'; pB.style.display='none'; } else { pI.style.display='none'; pA.style.display='none'; pB.style.display='block'; } openModal('infoModal'); }); }
-    function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('editInstLabel').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; }
-    function saveInfo() { const noteValue = document.getElementById('editNoteInput').value; listRef.child(currentItemId).update({ note: noteValue, photo: tempPhotoData }).then(() => { tempPhotoData = ""; openInfo(currentItemId); }); }
-    function deleteField(f) { if(confirm("Törlöd?")) { let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => { openInfo(currentItemId); }); } }
-    function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(i.files[0]); } }
-    function updateStatus(id, status) { vibrate(40); listRef.child(id).update({status: status}); }
-    function addItem() { const v = document.getElementById('manualInput').value.trim(); if(v) { listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); closeModal('inputModal'); } }
+    function addItem() {
+        const val = document.getElementById('manualInput').value.trim();
+        if(val) {
+            listRef.push({
+                text: val,
+                note: document.getElementById('manualNote').value,
+                status: 'active',
+                order: Date.now()
+            });
+            document.getElementById('manualInput').value = '';
+            document.getElementById('manualNote').value = '';
+            closeModal('inputModal');
+        }
+    }
+
+    function updateStatus(id, s) { db.ref(`shoppingLists/${currentListId}/${id}`).update({status: s}); }
+    function toggleMode() { document.body.classList.toggle('dark'); }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; }
-    function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
-    function generateNewCode() { const newCode = (Math.floor(1000 + Math.random() * 9000)).toString(); updateRoom(newCode); }
-    function joinByCode() { const input = document.getElementById('joinCodeInput').value; if(input.length === 4) { updateRoom(input); closeModal('listModal'); } }
-    function updateRoom(code) { currentListId = code; localStorage.setItem('currentListId', code); initList(); }
-    function clearAllItems() { if(confirm("Mindent törölsz?")) { listRef.remove(); } }
-
-    function sendBugReport() {
-        const name = document.getElementById('bugName').value.trim() || "Névtelen";
-        const message = document.getElementById('bugText').value.trim();
-        if(!message) return;
-        const formData = new FormData();
-        const payload = { username: "Bevásárló lista", embeds: [{ title: "✉️ Új Visszajelzés", fields: [{ name: "Küldő", value: name }, { name: "Üzenet", value: message }] }] };
-        formData.append('payload_json', JSON.stringify(payload));
-        fetch(DISCORD_WEBHOOK_URL, { method: 'POST', body: formData }).then(() => closeModal('bugModal'));
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function joinByCode() {
+        const code = document.getElementById('joinCodeInput').value;
+        if(code.length === 4) {
+            currentListId = code;
+            localStorage.setItem('currentListId', code);
+            location.reload();
+        }
     }
+    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
 
-    initList();
-    new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, onEnd: () => { document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => { listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index }); }); } });
-
-    // PWA Service Worker Regisztráció
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW regisztrálva!')).catch(err => console.log('SW hiba!', err));
-      });
-    }
+    init();
 </script>
 </body>
 </html>
