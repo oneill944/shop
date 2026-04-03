@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.5.2</title>
+    <title>Bevásárló lista v1.6.0</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -74,15 +74,15 @@
         .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 20px; padding: 15px; position: relative; border: 1px solid var(--border); display: flex; flex-direction: column; margin-top: 20px; }
         .close-x { position: absolute; top: 3px; right: 13px; font-size: 28px; color: var(--danger); cursor: pointer; z-index: 2001; }
         
-        textarea, input[type="text"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 14px; }
+        textarea, input[type="text"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; outline: none; font-size: 14px; }
         .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         
         .img-preview-box { width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px; margin: 8px 0; border: 1px solid var(--border); }
         .info-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
-        .list-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
-        .list-num-btn { background: var(--grey); color: white; border: 2px solid transparent; padding: 15px 0; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .list-num-btn.active { border-color: var(--primary); background: rgba(168, 127, 243, 0.2); }
+        /* Új Kódos felület stílusa */
+        .code-display-area { text-align: center; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; border: 1px dashed var(--border); }
+        .big-code { font-size: 32px; font-weight: 900; letter-spacing: 5px; color: var(--primary); margin: 10px 0; }
     </style>
 </head>
 <body class="dark">
@@ -90,7 +90,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.5.2</div>
+        <div class="version-label">v1.6.0</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -102,7 +102,7 @@
         <div class="notif-status-bar">
             <button id="notifBtn" class="notif-toggle-btn notif-off" onclick="toggleNotifications()">Értesítések: KI</button>
         </div>
-        <button class="list-selector-btn" id="activeListDisplay" onclick="openModal('listModal')">#1</button>
+        <button class="list-selector-btn" id="activeListDisplay" onclick="openModal('listModal')">Kód: ----</button>
     </div>
 
     <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px; font-size:14px;">HOZZÁADÁS</button>
@@ -119,8 +119,16 @@
 <div id="listModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('listModal')">×</div>
-        <h3 style="text-align:center; margin-top:10px;">Válassz listát</h3>
-        <div class="list-grid" id="listGrid"></div>
+        <h3 style="text-align:center; margin-top:10px;">Csatlakozás</h3>
+        
+        <div class="code-display-area">
+            <div style="font-size: 11px; color: #aaa;">AKTUÁLIS KÓDOD</div>
+            <div id="myCurrentCode" class="big-code">0000</div>
+        </div>
+
+        <input type="number" id="joinCodeInput" placeholder="Írd be a 4 jegyű kódot..." pattern="\d*" maxlength="4" style="text-align:center; font-size: 20px; letter-spacing: 3px;">
+        <button class="action-btn" onclick="joinByCode()" style="background:var(--success)">CSATLAKOZÁS</button>
+        <button class="action-btn" onclick="generateNewCode()" style="background:var(--grey); font-size: 12px; padding: 10px;">ÚJ KÓD GENERÁLÁSA</button>
     </div>
 </div>
 
@@ -183,7 +191,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let currentListId = localStorage.getItem('currentListId') || "1";
+    // Kód alapú inicializálás
+    let currentListId = localStorage.getItem('currentListId') || (Math.floor(1000 + Math.random() * 9000)).toString();
+    localStorage.setItem('currentListId', currentListId);
+    
     let listRef = db.ref('shoppingLists/' + currentListId);
     const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1097304257084018688/9uXJHFAgg4U19P4QOxuNIFzatGbfGjJmQntZqTp6qf9F4nlC_U7rlffLowivrcNu6_rM";
     let currentItemId = null, tempPhotoData = "", isSorting = false, notificationsEnabled = localStorage.getItem('notifEnabled') === 'true';
@@ -191,42 +202,56 @@
     function vibrate(ms = 30) { if (navigator.vibrate) navigator.vibrate(ms); }
     
     function initList() {
-        document.getElementById('activeListDisplay').innerText = "#" + currentListId;
+        document.getElementById('activeListDisplay').innerText = "Kód: " + currentListId;
+        document.getElementById('myCurrentCode').innerText = currentListId;
         listRef.off();
         listRef = db.ref('shoppingLists/' + currentListId);
+        
+        // Csak a kiválasztott szobához jön adat és frissítés
         listRef.on('value', snap => { 
             const d = snap.val(); 
             const items = d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : [];
+            
+            // Értesítés kezelés (ha változik az items hossza és nem mi adtuk hozzá épp)
+            if(notificationsEnabled && d && !isSorting) {
+                // Itt lehetne finomítani, de alapvetően a szoba alapú listRef.on garantálja az izolációt
+            }
             render(items); 
         });
     }
 
-    function switchList(id) {
-        vibrate(40);
-        currentListId = id;
-        localStorage.setItem('currentListId', id);
-        initList();
-        closeModal('listModal');
-        createListGrid();
+    function generateNewCode() {
+        const newCode = (Math.floor(1000 + Math.random() * 9000)).toString();
+        if(confirm("Új szobát generálsz (" + newCode + ")?")) {
+            vibrate(50);
+            updateRoom(newCode);
+        }
     }
 
-    function createListGrid() {
-        const grid = document.getElementById('listGrid');
-        grid.innerHTML = '';
-        for(let i=1; i<=10; i++) {
-            const btn = document.createElement('button');
-            btn.className = `list-num-btn ${currentListId == i ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = () => switchList(i.toString());
-            grid.appendChild(btn);
+    function joinByCode() {
+        const input = document.getElementById('joinCodeInput').value;
+        if(input.length === 4) {
+            vibrate(50);
+            updateRoom(input);
+            document.getElementById('joinCodeInput').value = "";
+            closeModal('listModal');
+        } else {
+            alert("A kódnak 4 jegyűnek kell lennie!");
         }
+    }
+
+    function updateRoom(code) {
+        currentListId = code;
+        localStorage.setItem('currentListId', code);
+        initList();
+        closeModal('listModal');
     }
 
     function render(items) {
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         let activeCount = 0;
-        items.sort((a,b) => a.order - b.order).forEach(it => {
+        items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
             if(it.status === 'active') activeCount++;
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
             const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
@@ -309,8 +334,25 @@
         }
     }
     function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
-    function clearAllItems() { if(confirm("Biztosan törlöd az összes tételt ebből a listából (#"+currentListId+")?")) { vibrate(100); listRef.remove(); } }
-    function toggleNotifications() { vibrate(20); if (!notificationsEnabled) { Notification.requestPermission().then(p => { if (p === "granted") { notificationsEnabled = true; localStorage.setItem('notifEnabled', 'true'); updateNotifBtnUI(); } }); } else { notificationsEnabled = false; localStorage.setItem('notifEnabled', 'false'); updateNotifBtnUI(); } }
+    function clearAllItems() { if(confirm("Biztosan törlöd az összes tételt ebből a szobából ("+currentListId+")?")) { vibrate(100); listRef.remove(); } }
+    
+    function toggleNotifications() { 
+        vibrate(20); 
+        if (!notificationsEnabled) { 
+            Notification.requestPermission().then(p => { 
+                if (p === "granted") { 
+                    notificationsEnabled = true; 
+                    localStorage.setItem('notifEnabled', 'true'); 
+                    updateNotifBtnUI(); 
+                } 
+            }); 
+        } else { 
+            notificationsEnabled = false; 
+            localStorage.setItem('notifEnabled', 'false'); 
+            updateNotifBtnUI(); 
+        } 
+    }
+
     function updateNotifBtnUI() { const btn = document.getElementById('notifBtn'); if(notificationsEnabled) { btn.innerText = "Értesítések: BE"; btn.classList.add('notif-on'); btn.classList.remove('notif-off'); } else { btn.innerText = "Értesítések: KI"; btn.classList.add('notif-off'); btn.classList.remove('notif-on'); } }
     
     function sendBugReport() { 
@@ -319,13 +361,13 @@
         fetch(DISCORD_WEBHOOK_URL, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Lista", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.5.2", inline: true}], description: msg }] }) 
+            body: JSON.stringify({ embeds: [{ title: "✉️ Új üzenet", color: 11042707, fields: [{name: "Szoba", value: "#"+currentListId, inline: true}, {name: "Verzió", value: "v1.6.0", inline: true}], description: msg }] }) 
         }).then(() => { alert("Elküldve!"); closeModal('bugModal'); document.getElementById('bugText').value = ""; }); 
     }
 
     updateNotifBtnUI();
     initList();
-    createListGrid();
+    
     new Sortable(document.getElementById('activeItems'), { handle: '.drag-handle', animation: 200, onStart: () => { vibrate(40); isSorting = true; }, onEnd: () => { isSorting = false; document.querySelectorAll('#activeItems .item-wrapper').forEach((el, index) => listRef.child(el.getAttribute('data-id')).update({ order: Date.now() + index })); } });
 </script>
 </body>
