@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.6.6</title>
+    <title>Bevásárló lista v1.6.7</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -68,7 +68,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.6.6</div>
+        <div class="version-label">v1.6.7</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -78,7 +78,7 @@
     <div class="title-section">
         <h2 style="text-align:center; font-size:18px; margin:0; letter-spacing:1px; font-weight:900;">BEVÁSÁRLÓ LISTA</h2>
         <button id="roomBtn" class="room-selector-btn" onclick="openModal('listModal')">Szoba: ----</button>
-        <div id="userCount" class="user-count-label">Jelenleg -- fő tartózkodik a szobában/<>div>
+        <div id="userCount" class="user-count-label">Jelenleg -- fő tartózkodik a szobában</div>
     </div>
 
     <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; cursor:pointer; margin-bottom:20px; font-size:14px;">HOZZÁADÁS</button>
@@ -237,7 +237,7 @@
         const formData = new FormData();
         const payload = {
             username: "Bevásárló lista", // Bot neve az app címe
-            avatar_url: "https://github.com/oneill944/shop/blob/altv-athena-private/IMG_4302.png", // Itt az app ikonja (Ha elérhető linkről)
+            avatar_url: "https://raw.githubusercontent.com/oneill944/shop/altv-athena-private/IMG_4302.png", // Itt az app ikonja (Ha elérhető linkről)
             embeds: [{
                 title: "✉️ Új Visszajelzés", color: 15548997, 
                 fields: [
