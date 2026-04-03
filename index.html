@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.4.4</title>
+    <title>Bevásárló lista v1.4.5</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -68,7 +68,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.4.4</div>
+        <div class="version-label">v1.4.5</div>
         <div style="display:flex; gap:10px;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:18px; cursor:pointer;">🪲</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:18px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -99,7 +99,7 @@
         <div style="display:flex; gap:10px; margin-bottom:10px;">
             <div style="flex:1;">
                 <label style="font-size:10px; color:#aaa; margin-left:5px;">VERZIÓ</label>
-                <input type="text" id="bugVersion" value="v1.4.4" readonly style="background:#222; color:#777; cursor:not-allowed;">
+                <input type="text" id="bugVersion" value="v1.4.5" readonly style="background:#222; color:#777; cursor:not-allowed;">
             </div>
             <div style="flex:2;">
                 <label style="font-size:10px; color:#aaa; margin-left:5px;">NÉV (OPCIONÁLIS)</label>
@@ -114,7 +114,7 @@
             </div>
             <div style="flex:1;">
                 <label style="font-size:10px; color:#aaa; margin-left:5px;">DISCORD (OPC.)</label>
-                <input type="text" id="bugDiscord" placeholder="név#0000">
+                <input type="text" id="bugDiscord" placeholder="@felhasznalonev">
             </div>
         </div>
 
@@ -204,10 +204,16 @@
         const version = document.getElementById('bugVersion').value;
         const name = document.getElementById('bugName').value.trim() || "Névtelen";
         const email = document.getElementById('bugEmail').value.trim() || "Nincs megadva";
-        const discord = document.getElementById('bugDiscord').value.trim() || "Nincs megadva";
+        let discord = document.getElementById('bugDiscord').value.trim();
         const message = document.getElementById('bugText').value.trim();
 
         if(!message) { vibrate(100); alert("Kérlek, írj leírást!"); return; }
+
+        if (discord && !discord.startsWith('@')) {
+            discord = '@' + discord;
+        } else if (!discord) {
+            discord = "Nincs megadva";
+        }
 
         const btn = document.getElementById('sendBugBtn');
         btn.innerText = "KÜLDÉS..."; btn.disabled = true;
@@ -286,3 +292,4 @@
 </script>
 </body>
 </html>
+
