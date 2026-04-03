@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.6.6</title>
+    <title>Bevásárló lista v1.6.7</title>
     
     <link rel="apple-touch-icon" href="IMG_4302.png">
     <link rel="icon" type="image/png" href="IMG_4302.png">
@@ -72,7 +72,7 @@
 <div class="app-card">
     <div class="header-top">
         <button class="mode-toggle" onclick="toggleMode()">🌓</button>
-        <div class="version-label">v1.6.6</div>
+        <div class="version-label">v1.6.7</div>
         <div style="display:flex; gap:12px; align-items: center;">
             <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px; cursor:pointer;">✉️</button>
             <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px; opacity:0.3; cursor:pointer;">🗑️</button>
@@ -125,14 +125,14 @@
 <div id="listModal" class="custom-modal">
     <div class="modal-content">
         <div class="close-x" onclick="closeModal('listModal')">×</div>
-        <h3 style="text-align:center; margin-top:10px;">Csatlakozás</h3>
+        <h3 style="text-align:center; margin-top:10px;">Csatlakozás szobához</h3>
         <div style="text-align:center; margin:15px 0; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px; border:1px dashed var(--border);">
-            <div style="font-size: 11px; color: #aaa;">KÓDOD:</div>
+            <div style="font-size: 11px; color: #aaa;">AKTUÁLIS KÓDOD:</div>
             <div id="myCurrentCode" style="font-size:32px; font-weight:900; letter-spacing:5px; color:var(--primary);">0000</div>
         </div>
-        <input type="number" id="joinCodeInput" placeholder="4 jegyű kód...">
+        <input type="number" id="joinCodeInput" placeholder="Írd be a 4 jegyű kódot...">
         <button class="action-btn" onclick="joinByCode()" style="background:var(--success)">CSATLAKOZÁS</button>
-        <button class="action-btn" onclick="generateNewCode()" style="background:var(--grey); font-size: 12px;">ÚJ KÓD</button>
+        <button class="action-btn" onclick="generateNewCode()" style="background:var(--grey); font-size: 12px; padding: 10px;">ÚJ KÓD GENERÁLÁSA</button>
     </div>
 </div>
 
@@ -141,9 +141,9 @@
         <div class="close-x" onclick="closeModal('inputModal')">×</div>
         <input type="text" id="manualInput" placeholder="Termék neve..." style="margin-top:20px;">
         <textarea id="manualNote" placeholder="Megjegyzés..." rows="2"></textarea>
-        <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px; font-weight:bold;">📷 FOTÓ<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label>
+        <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px; font-weight:bold;">📷 FOTÓ HOZZÁADÁSA<input type="file" id="newPhotoFile" accept="image/*" style="display:none" onchange="previewPhoto(this, 'newPhotoPreview')"></label>
         <img id="newPhotoPreview" class="img-preview-box" style="display:none;">
-        <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
+        <button class="action-btn" onclick="addItem()" style="background:var(--primary)">HOZZÁADÁS</button>
     </div>
 </div>
 
@@ -158,7 +158,7 @@
                     <button onclick="showEdit('note')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('note')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:12px;">+ Megjegyzés</button>
+                <button id="addNoteBtn" onclick="showEdit('note')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Megjegyzés</button>
             </div>
             <div id="photoBox" class="info-box" style="text-align:center;">
                 <img id="infoPhotoImg" class="img-preview-box" style="cursor:pointer;" onclick="window.open(this.src)">
@@ -166,13 +166,16 @@
                     <button onclick="showEdit('photo')" style="background:none; border:none; font-size:18px;">✏️</button>
                     <button onclick="deleteField('photo')" style="background:none; border:none; font-size:18px;">🗑️</button>
                 </div>
-                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-size:12px;">+ Fotó</button>
+                <button id="addPhotoBtn" onclick="showEdit('photo')" style="width:100%; background:var(--grey); border:none; color:var(--text); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">+ Fotó</button>
             </div>
         </div>
         <div id="editArea" style="display:none;">
             <div id="noteEditSection" style="display:none;"><textarea id="editNoteInput" rows="4"></textarea></div>
-            <div id="photoEditSection" style="display:none;"><label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; color:white; font-size:13px;">📷 ÚJ FOTÓ<input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"></label><img id="editPhotoPreview" class="img-preview-box" style="display:none;"></div>
-            <button class="action-btn" onclick="saveInfo()">MENTÉS</button>
+            <div id="photoEditSection" style="display:none;">
+                <label style="display:block; text-align:center; padding:12px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 13px; font-weight:bold;">📷 ÚJ FOTÓ KIVÁLASZTÁSA<input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="previewPhoto(this, 'editPhotoPreview')"></label>
+                <img id="editPhotoPreview" class="img-preview-box" style="display:none;">
+            </div>
+            <button class="action-btn" onclick="saveInfo()" style="background:var(--primary)">MENTÉS</button>
         </div>
     </div>
 </div>
@@ -182,6 +185,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
+    // Szoba kezelés
     let currentListId = localStorage.getItem('currentListId') || (Math.floor(1000 + Math.random() * 9000)).toString();
     localStorage.setItem('currentListId', currentListId);
     let listRef = db.ref('shoppingLists/' + currentListId);
@@ -225,7 +229,7 @@
                 fields: [
                     { name: "Küldő", value: name, inline: true },
                     { name: "Szoba (Kód)", value: "#" + currentListId, inline: true },
-                    { name: "Verzió", value: "v1.6.6", inline: true },
+                    { name: "Verzió", value: "v1.6.7", inline: true },
                     { name: "Mód", value: mode, inline: true },
                     { name: "Email", value: email, inline: true },
                     { name: "Discord", value: discord, inline: true },
@@ -255,24 +259,31 @@
         const containers = { active: 'activeItems', done: 'doneItems', x: 'missingItems' };
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         let activeCount = 0;
+        
         items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
             if(it.status === 'active') activeCount++;
             const wrap = document.createElement('div'); wrap.className = 'item-wrapper'; wrap.setAttribute('data-id', it.id);
             const del = document.createElement('div'); del.className = 'delete-btn-bg'; del.innerText = 'TÖRLÉS'; del.onclick = () => { vibrate(60); listRef.child(it.id).remove(); };
+            
             const div = document.createElement('div'); div.className = `item ${it.status==='done'?'status-done':(it.status==='x'?'status-x':'')}`;
             const hasExtra = (it.note && it.note.trim()) || it.photo;
+            
             div.innerHTML = `${it.status==='active'?'<div class="drag-handle">≡</div>':'<div style="width:2px"></div>'}<span class="item-text">${it.text}</span><div style="display:flex; gap:4px; margin-left:auto;"><button class="btn-sm ${hasExtra?'has-data':''}" onclick="openInfo('${it.id}')">ℹ️</button>${it.status==='active'?`<button class="btn-sm" style="background:var(--success)" onclick="updateStatus('${it.id}', 'done')">✔</button><button class="btn-sm" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>`:`<button class="btn-sm" onclick="updateStatus('${it.id}', 'active')">↩</button>`}</div>`;
+
             let sX = 0, cX = 0;
             div.addEventListener('touchstart', e => { if(isSorting) return; sX = e.touches[0].clientX; div.style.transition = 'none'; }, {passive:true});
             div.addEventListener('touchmove', e => { if(isSorting) return; let diff = sX - e.touches[0].clientX; cX = Math.max(0, Math.min(diff, 85)); div.style.transform = `translateX(-${cX}px)`; }, {passive:true});
             div.addEventListener('touchend', () => { if(isSorting) return; div.style.transition = 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'; if (cX > 50) { vibrate(20); div.style.transform = 'translateX(-80px)'; } else { div.style.transform = 'translateX(0)'; cX = 0; } });
-            wrap.appendChild(del); wrap.appendChild(div); document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
+
+            wrap.appendChild(del); wrap.appendChild(div);
+            document.getElementById(containers[it.status] || 'activeItems').appendChild(wrap);
         });
         document.getElementById('activeCountLabel').innerText = `Aktív tételek (${activeCount})`;
     }
 
     function openInfo(id) { 
-        currentItemId = id; vibrate(15); document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; 
+        currentItemId = id; vibrate(15); 
+        document.getElementById('viewArea').style.display = 'block'; document.getElementById('editArea').style.display = 'none'; 
         listRef.child(id).once('value', snap => { 
             const it = snap.val(); document.getElementById('infoTitle').innerText = it.text; 
             const nD = document.getElementById('noteDisplay'), nA = document.getElementById('noteActions'), nB = document.getElementById('addNoteBtn');
@@ -287,17 +298,17 @@
 
     function showEdit(type) { vibrate(15); document.getElementById('viewArea').style.display = 'none'; document.getElementById('editArea').style.display = 'block'; document.getElementById('noteEditSection').style.display = type === 'note' ? 'block' : 'none'; document.getElementById('photoEditSection').style.display = type === 'photo' ? 'block' : 'none'; }
     function saveInfo() { listRef.child(currentItemId).once('value', snap => { const it = snap.val(); const fNote = document.getElementById('noteEditSection').style.display === 'block' ? document.getElementById('editNoteInput').value : (it.note || ""); const fPhoto = document.getElementById('photoEditSection').style.display === 'block' ? tempPhotoData : (it.photo || ""); listRef.child(currentItemId).update({ note: fNote, photo: fPhoto }).then(() => { tempPhotoData = ""; document.getElementById('editPhotoPreview').style.display = 'none'; vibrate(30); openInfo(currentItemId); }); }); }
-    function deleteField(f) { if(confirm("Törlöd?")) { vibrate(50); let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => { openInfo(currentItemId); }); } }
+    function deleteField(f) { if(confirm("Biztosan törlöd?")) { vibrate(50); let u = {}; u[f] = ""; listRef.child(currentItemId).update(u).then(() => { openInfo(currentItemId); }); } }
     function previewPhoto(i, pId) { if(i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { tempPhotoData = e.target.result; const p = document.getElementById(pId); p.src = tempPhotoData; p.style.display='block'; }; r.readAsDataURL(i.files[0]); } }
     function updateStatus(id, s) { vibrate(40); listRef.child(id).update({status: s}); }
     function addItem() { const v = document.getElementById('manualInput').value.trim(); if(v) { vibrate(50); listRef.push({ text: v, note: document.getElementById('manualNote').value, photo: tempPhotoData, status: 'active', order: Date.now() }); closeModal('inputModal'); } }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; tempPhotoData = ""; if(id==='inputModal'){ document.getElementById('newPhotoPreview').style.display='none'; document.getElementById('manualInput').value=''; document.getElementById('manualNote').value=''; } }
     function toggleMode() { vibrate(20); document.body.classList.toggle('light-mode'); }
-    function generateNewCode() { const c = (Math.floor(1000 + Math.random() * 9000)).toString(); if(confirm("Új szoba: " + c + "?")) { vibrate(50); updateRoom(c); } }
-    function joinByCode() { const i = document.getElementById('joinCodeInput').value; if(i.length === 4) { vibrate(50); updateRoom(i); closeModal('listModal'); } }
+    function generateNewCode() { const c = (Math.floor(1000 + Math.random() * 9000)).toString(); if(confirm("Új szobát generálsz (" + c + ")?")) { vibrate(50); updateRoom(c); } }
+    function joinByCode() { const i = document.getElementById('joinCodeInput').value; if(i.length === 4) { vibrate(50); updateRoom(i); closeModal('listModal'); } else alert("4 jegyű kód kell!"); }
     function updateRoom(c) { currentListId = c; localStorage.setItem('currentListId', c); initList(); }
-    function clearAllItems() { if(confirm("Mindent törölsz?")) { vibrate(100); listRef.remove(); } }
+    function clearAllItems() { if(confirm("Minden tétel törlése a szobából?")) { vibrate(100); listRef.remove(); } }
     function toggleNotifications() { vibrate(20); if (!notificationsEnabled) { Notification.requestPermission().then(p => { if (p === "granted") { notificationsEnabled = true; localStorage.setItem('notifEnabled', 'true'); updateNotifBtnUI(); } }); } else { notificationsEnabled = false; localStorage.setItem('notifEnabled', 'false'); updateNotifBtnUI(); } }
     function updateNotifBtnUI() { const b = document.getElementById('notifBtn'); b.innerText = notificationsEnabled ? "Értesítések: BE" : "Értesítések: KI"; b.className = `notif-toggle-btn ${notificationsEnabled?'notif-on':'notif-off'}`; }
 
