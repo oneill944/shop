@@ -3,209 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v1.7.6</title>
+    <title>Bevásárló lista v1.8.0</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#a87ff3">
-    <link rel="apple-touch-icon" href="IMG_4302.png">
-    <link rel="icon" type="image/png" href="IMG_4302.png">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
     <style>
         :root { 
-            --bg: #0b0b0b; --card-bg: #1a1a1a; --item-bg: #262626; --text: #f0f0f0; 
-            --primary: #a87ff3; --success: #32a852; --danger: #eb4034; --grey: #333; --border: #444; 
+            --bg: #121212; --card: #1e1e1e; --item: #2a2a2a; --text: #e0e0e0;
+            --accent: #bb86fc; --success: #03dac6; --danger: #cf6679;
         }
-        .light-mode { 
-            --bg: #d1d1d6; --card-bg: #f0f0f7; --item-bg: #ffffff; --text: #1c1c1e; 
-            --primary: #5856d6; --success: #34c759; --danger: #d66d6d; --grey: #e5e5ea; --border: #c7c7cc; 
-        }
+        * { box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; user-select: none; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
+        .container { width: 100%; max-width: 450px; background: var(--card); border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .app-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 15px; align-self: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        /* Header & Controls */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .room-tag { background: var(--accent); color: #000; padding: 5px 15px; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 14px; }
         
-        /* Fixált fejléc */
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
-        .version-label { font-size: 10px; color: #444; position: absolute; left: 50%; transform: translateX(-50%); top: -5px; }
-        
-        .title-section { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 15px; }
-        .room-badge { border: none; color: white; font-size: 11px; font-weight: bold; padding: 8px 20px; border-radius: 20px; background-color: var(--primary); transition: 0.3s; }
+        /* Input Area */
+        .add-btn { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #333; color: white; font-weight: bold; margin-bottom: 20px; cursor: pointer; border: 1px dashed #555; }
 
-        /* Lista elemek fixálása */
-        .item-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 8px; width: 100%; }
-        .item { 
-            background: var(--item-bg); padding: 12px; border-radius: 12px; 
-            display: flex; align-items: center; gap: 10px; position: relative; 
-            z-index: 5; border: 1.5px solid transparent; width: 100%;
+        /* Items List - Single Column for Active */
+        .item-card { 
+            background: var(--item); padding: 12px; border-radius: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--accent);
         }
-        .item-text { 
-            flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
-            font-size: 14px; min-width: 0; /* Ez akadályozza meg a kilógást */
-        }
-        
-        /* Ikonok és Gombok */
-        .emoji-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
-        .btn-sm { width: 30px; height: 30px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; flex-shrink: 0; }
-        
-        .status-done { opacity: 0.5; filter: grayscale(0.8); border-color: var(--success) !important; }
-        .status-done .item-text { text-decoration: line-through; }
+        .item-info { flex: 1; overflow: hidden; }
+        .item-name { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-note { font-size: 11px; color: #aaa; }
 
-        /* Szekciók */
-        .col-label { font-size: 10px; text-align: center; color: #aaa; margin: 15px auto 8px; text-transform: uppercase; letter-spacing: 1px; background: var(--grey); padding: 4px 12px; border-radius: 20px; display: table; }
+        /* Two Column Layout for Completed/Missing */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .grid-col h4 { text-align: center; font-size: 12px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+        
+        .mini-card { 
+            padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 13px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .bg-success { border: 1px solid var(--success); color: var(--success); }
+        .bg-danger { border: 1px solid var(--danger); color: var(--danger); }
 
         /* Modals */
-        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: flex-start; padding: 40px 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 20px; padding: 20px; border: 1px solid var(--border); }
-        
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; font-size: 14px; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal-inner { background: var(--card); width: 100%; border-radius: 20px; padding: 20px; border: 1px solid #444; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; }
+
+        .img-preview { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #444; }
     </style>
 </head>
-<body class="dark">
+<body>
 
-<div class="app-card">
-    <div class="header-top">
-        <button onclick="toggleMode()" style="background:none; border:none; font-size:20px;">🌓</button>
-        <div class="version-label">v1.7.6</div>
-        <button onclick="openModal('bugModal')" style="background:none; border:none; font-size:20px;">✉️</button>
-    </div>
-    
-    <div class="title-section">
-        <h2 style="margin:0; font-size:18px; letter-spacing:1px;">BEVÁSÁRLÓ LISTA</h2>
-        <button id="roomBtn" class="room-badge" onclick="openModal('listModal')">Szoba: ----</button>
-        <div id="userCount" style="font-size:10px; color:#888; font-weight:bold;">Jelenleg -- fő tartózkodik a szobában</div>
+<div class="container">
+    <div class="header">
+        <span class="room-tag" onclick="changeRoom()">SZOBA: <span id="roomNum">----</span></span>
+        <button onclick="clearAll()" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button>
     </div>
 
-    <button onclick="openModal('inputModal')" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--grey); color:var(--text); font-weight:bold; margin-bottom:20px;">+ HOZZÁADÁS</button>
+    <h2 style="text-align:center; letter-spacing:2px;">BEVÁSÁRLÓ LISTA</h2>
+    <div id="userStatus" style="text-align:center; font-size:11px; color:#888; margin-bottom:15px;">Betöltés...</div>
 
-    <div class="col-label">Aktív tételek</div>
-    <div id="activeItems"></div>
+    <button class="add-btn" onclick="showModal('addModal')"> + ÚJ TÉTEL / KÉP HOZZÁADÁSA</button>
 
-    <div class="col-label">Megvan</div>
-    <div id="doneItems"></div>
-</div>
+    <div id="activeList"></div>
 
-<div id="inputModal" class="custom-modal">
-    <div class="modal-content">
-        <input type="text" id="manualInput" placeholder="Termék neve...">
-        <textarea id="manualNote" placeholder="Megjegyzés..."></textarea>
-        <button class="action-btn" onclick="addItem()">HOZZÁADÁS</button>
-        <button onclick="closeModal('inputModal')" style="width:100%; background:none; border:none; color:#888; margin-top:10px;">Mégse</button>
+    <div class="bottom-grid">
+        <div class="grid-col">
+            <h4>Megvan</h4>
+            <div id="doneList"></div>
+        </div>
+        <div class="grid-col">
+            <h4>Nincs</h4>
+            <div id="missingList"></div>
+        </div>
     </div>
 </div>
 
-<div id="listModal" class="custom-modal">
-    <div class="modal-content">
-        <h3 style="text-align:center;">Szobaváltás</h3>
-        <input type="number" id="joinCodeInput" placeholder="4 jegyű kód...">
-        <button class="action-btn" onclick="joinByCode()">CSATLAKOZÁS</button>
+<div id="addModal" class="modal">
+    <div class="modal-inner">
+        <h3>Új tétel</h3>
+        <input type="text" id="itemName" placeholder="Termék neve (pl. Tej)">
+        <textarea id="itemNote" placeholder="Megjegyzés..."></textarea>
+        <input type="file" id="itemImg" accept="image/*" style="font-size:12px;">
+        <button onclick="saveItem()" style="width:100%; padding:15px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">MENTÉS</button>
+        <button onclick="hideModal('addModal')" style="width:100%; background:none; border:none; color:#888; margin-top:10px;">Mégse</button>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
+    const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", storageBucket: "kozoslista-e0717.appspot.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
-    let currentListId = localStorage.getItem('currentListId') || "2316";
-    let listRef = db.ref('shoppingLists/' + currentListId);
-    let presenceRef = db.ref('presence/' + currentListId);
+    const storage = firebase.storage();
 
-    function getEmoji(text) {
-        const t = text.toLowerCase();
-        if(t.includes("tej")) return "🥛";
-        if(t.includes("kenyér") || t.includes("kifli")) return "🍞";
-        if(t.includes("hús") || t.includes("csirke")) return "🍗";
-        if(t.includes("sör") || t.includes("bor")) return "🍻";
-        if(t.includes("sajt")) return "🧀";
-        if(t.includes("tojás")) return "🥚";
-        return "📦";
-    }
+    let roomId = localStorage.getItem('roomId') || "2316";
+    document.getElementById('roomNum').innerText = roomId;
 
-    function initList() {
-        document.getElementById('roomBtn').innerText = "Szoba: " + currentListId;
-        listRef.off();
-        listRef = db.ref('shoppingLists/' + currentListId);
-        listRef.on('value', snap => {
-            const d = snap.val();
-            const items = d ? Object.keys(d).map(k => ({id: k, ...d[k]})) : [];
-            render(items);
-        });
-        
-        // Jelenlét figyelés
-        const myPresence = db.ref('presence/' + currentListId).push(true);
-        myPresence.onDisconnect().remove();
-        db.ref('presence/' + currentListId).on('value', s => {
-            document.getElementById('userCount').innerText = `Jelenleg ${s.numChildren()} fő tartózkodik a szobában`;
-        });
-    }
-
-    function render(items) {
-        const activeBox = document.getElementById('activeItems');
-        const doneBox = document.getElementById('doneItems');
-        activeBox.innerHTML = ''; doneBox.innerHTML = '';
-
-        items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
-            const wrap = document.createElement('div');
-            wrap.className = 'item-wrapper';
-            const isDone = it.status === 'done';
+    function render() {
+        db.ref('shoppingLists/' + roomId).on('value', snap => {
+            const data = snap.val();
+            const activeDiv = document.getElementById('activeList');
+            const doneDiv = document.getElementById('doneList');
+            const missingDiv = document.getElementById('missingList');
             
-            wrap.innerHTML = `
-                <div class="item ${isDone ? 'status-done' : ''}">
-                    <div class="emoji-icon">${getEmoji(it.text)}</div>
-                    <div class="item-text">${it.text}</div>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-sm" style="background:#555" onclick="alert('${it.note || "Nincs megjegyzés"}')">i</button>
-                        <button class="btn-sm" style="background:${isDone ? '#555' : 'var(--success)'}" 
-                                onclick="updateStatus('${it.id}', '${isDone ? 'active' : 'done'}')">
-                                ${isDone ? '↺' : '✓'}
-                        </button>
+            activeDiv.innerHTML = ''; doneDiv.innerHTML = ''; missingDiv.innerHTML = '';
+
+            if(!data) return;
+
+            Object.keys(data).forEach(id => {
+                const it = data[id];
+                const html = `
+                    <div class="item-info">
+                        <div class="item-name">${it.text}</div>
+                        <div class="item-note">${it.note || ''}</div>
                     </div>
-                </div>
-            `;
-            if(isDone) doneBox.appendChild(wrap); else activeBox.appendChild(wrap);
+                    ${it.img ? `<img src="${it.img}" class="img-preview" onclick="window.open('${it.img}')">` : ''}
+                    <button onclick="setStatus('${id}', 'done')" style="background:var(--success); border:none; border-radius:8px; padding:8px;">✓</button>
+                    <button onclick="setStatus('${id}', 'missing')" style="background:var(--danger); border:none; border-radius:8px; padding:8px;">X</button>
+                `;
+
+                if(it.status === 'active') {
+                    const div = document.createElement('div'); div.className = 'item-card';
+                    div.innerHTML = html; activeDiv.appendChild(div);
+                } else {
+                    const mini = document.createElement('div');
+                    mini.className = `mini-card ${it.status === 'done' ? 'bg-success' : 'bg-danger'}`;
+                    mini.innerHTML = `<b>${it.text}</b><span onclick="setStatus('${id}', 'active')" style="cursor:pointer; font-size:10px;">↺ VISSZA</span>`;
+                    if(it.status === 'done') doneDiv.appendChild(mini); else missingDiv.appendChild(mini);
+                }
+            });
         });
     }
 
-    function addItem() {
-        const v = document.getElementById('manualInput').value.trim();
-        if(v) {
-            listRef.push({ text: v, note: document.getElementById('manualNote').value, status: 'active', order: Date.now() });
-            closeModal('inputModal');
-            document.getElementById('manualInput').value = '';
+    async function saveItem() {
+        const name = document.getElementById('itemName').value;
+        const note = document.getElementById('itemNote').value;
+        const file = document.getElementById('itemImg').files[0];
+        let imgUrl = "";
+
+        if(file) {
+            const ref = storage.ref(`images/${roomId}/${Date.now()}`);
+            await ref.put(file);
+            imgUrl = await ref.getDownloadURL();
+        }
+
+        if(name) {
+            db.ref('shoppingLists/' + roomId).push({ text: name, note: note, img: imgUrl, status: 'active' });
+            hideModal('addModal');
         }
     }
 
-    function updateStatus(id, s) { listRef.child(id).update({status: s}); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function toggleMode() { document.body.classList.toggle('light-mode'); }
-    function joinByCode() {
-        const c = document.getElementById('joinCodeInput').value;
-        if(c.length === 4) {
-            currentListId = c;
-            localStorage.setItem('currentListId', c);
-            initList();
-            closeModal('listModal');
-        }
-    }
+    function setStatus(id, s) { db.ref(`shoppingLists/${roomId}/${id}`).update({status: s}); }
+    function clearAll() { if(confirm("Törlöd az egész listát?")) db.ref('shoppingLists/' + roomId).remove(); }
+    function changeRoom() { const n = prompt("Szoba kódja:", roomId); if(n) { localStorage.setItem('roomId', n); location.reload(); } }
+    function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function hideModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    initList();
-
-    // PWA Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-    }
+    render();
 </script>
 </body>
 </html>
