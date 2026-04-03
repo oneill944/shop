@@ -118,7 +118,7 @@
         <label style="display:block; text-align:center; padding:10px; background:#333; border-radius:8px; margin-bottom:10px; cursor:pointer; color: white; font-size: 12px; font-weight:bold;">📷 KÉP CSATOLÁSA (Opcionális)<input type="file" id="bugPhotoFile" accept="image/*" style="display:none" onchange="previewBugPhoto(this)"></label>
         <img id="bugPhotoPreview" style="width:100%; max-height:120px; object-fit:contain; display:none; margin-bottom:10px; border-radius:8px; border:1px solid #444;">
 
-        <button class="action-btn" id="sendBugBtn" onclick="sendBugReport()">KÜLDÉS DISCORDRA</button>
+        <button class="action-btn" id="sendBugBtn" onclick="sendBugReport()">KÜLDÉS</button>
     </div>
 </div>
 
@@ -189,7 +189,7 @@
     function vibrate(ms = 30) { if (navigator.vibrate) navigator.vibrate(ms); }
     
     function initList() {
-        document.getElementById('activeListDisplay').innerText = currentListId;
+        document.getElementById('activeListDisplay').innerText = "Szoba: " + currentListId;
         document.getElementById('myCurrentCode').innerText = currentListId;
         listRef.off();
         listRef = db.ref('shoppingLists/' + currentListId);
@@ -200,6 +200,7 @@
         });
     }
 
+    // Bug kép előnézet segédfüggvény
     function previewBugPhoto(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -213,6 +214,7 @@
         }
     }
 
+    // Átírt Bug Report Küldés
     function sendBugReport() {
         const name = document.getElementById('bugName').value.trim() || "Névtelen";
         const email = document.getElementById('bugEmail').value.trim() || "Nincs megadva";
@@ -227,7 +229,7 @@
         const btn = document.getElementById('sendBugBtn');
         btn.innerText = "KÜLDÉS..."; btn.disabled = true;
 
-        const currentMode = document.body.classList.contains('light-mode') ? "Light Mode" : "Dark Mode";
+        const currentMode = document.body.classList.contains('light-mode') ? "Világos (Light)" : "Sötét (Dark)";
 
         fetch(DISCORD_WEBHOOK_URL, {
             method: 'POST',
@@ -242,17 +244,18 @@
                         { name: "Discord", value: discord, inline: true },
                         { name: "Szoba", value: currentListId, inline: true },
                         { name: "Mód", value: currentMode, inline: true },
-                        { name: "Leírás", value: message }
-                    ]
+                        { name: "Üzenet", value: message }
+                    ],
+                    footer: { text: "Bevásárló lista automatikus visszajelzés" }
                 }]
             })
         }).then(() => {
-            vibrate(100); alert("Visszajelzés elküldve!");
+            vibrate(100); alert("Elküldve!");
             document.getElementById('bugText').value = "";
             document.getElementById('bugPhotoPreview').style.display = 'none';
             bugPhotoData = "";
             closeModal('bugModal');
-        }).finally(() => { btn.innerText = "KÜLDÉS DISCORDRA"; btn.disabled = false; });
+        }).finally(() => { btn.innerText = "KÜLDÉS"; btn.disabled = false; });
     }
 
     function render(items) {
