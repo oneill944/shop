@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v2.2.0</title>
+    <title>Bevásárló lista v2.4.0</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -22,9 +22,9 @@
         body { background: var(--bg); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; padding-bottom: 100px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .room-btn { background: var(--grey); color: var(--text); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: none; font-size: 12px; }
+        .room-btn { background: var(--grey); color: var(--text); padding: 8px 16px; border-radius: 20px; font-weight: bold; border: none; font-size: 11px; cursor: pointer; }
 
-        /* KÉT OSZLOPOS GRID FENT */
+        /* FIX 2 OSZLOPOS GRID */
         .grid-container { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -34,57 +34,60 @@
 
         .tile { 
             background: var(--card); 
-            border-radius: 20px; 
-            aspect-ratio: 1.1 / 1;
+            border-radius: 22px; 
+            aspect-ratio: 1 / 1;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 15px; position: relative; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid transparent; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .tile-icon { font-size: 35px; margin-bottom: 8px; transition: 0.2s; }
-        .tile-text { font-size: 13px; font-weight: 800; text-align: center; line-height: 1.2; }
+        .tile-icon { font-size: 38px; margin-bottom: 8px; }
+        
+        .tile-text { 
+            font-size: 13px; font-weight: 800; text-align: center; line-height: 1.2;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
 
-        /* SZÍNEZŐDÉS KATTINTÁSRA (MINT A RÉGI) */
+        /* INTERAKTÍV SZÍNEZÉS */
         .tile.open { border-color: var(--primary); }
-        .tile.status-done { background: rgba(50, 168, 82, 0.2); border-color: var(--success); }
-        .tile.status-x { background: rgba(235, 64, 52, 0.2); border-color: var(--danger); }
-
         .overlay { 
-            position: absolute; inset: 0; background: rgba(0,0,0,0.7); 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8); 
             display: flex; justify-content: center; align-items: center; gap: 10px;
             opacity: 0; pointer-events: none; transition: 0.2s;
         }
         .tile.open .overlay { opacity: 1; pointer-events: auto; }
         
-        .btn-round { width: 38px; height: 38px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+        .btn-round { width: 42px; height: 42px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
 
-        /* LENTI LISTA - EGYSZERŰSÍTVE */
-        .label { font-size: 10px; text-transform: uppercase; color: #888; margin: 25px 0 10px; text-align: center; letter-spacing: 1px; }
+        /* LENTI EGYSZERŰ LISTA */
+        .label { font-size: 10px; text-transform: uppercase; color: #888; margin: 25px 0 10px; text-align: center; letter-spacing: 1px; font-weight: 900; }
         .mini-list { display: flex; flex-direction: column; gap: 8px; }
         .mini-item { 
-            background: var(--card); padding: 12px 18px; border-radius: 15px; 
+            background: var(--card); padding: 14px 20px; border-radius: 18px; 
             display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .mini-text { font-size: 14px; font-weight: 600; flex: 1; margin-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mini-text { font-size: 14px; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--primary); color: white; border-radius: 50%; border: none; font-size: 35px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); z-index: 100; }
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 65px; height: 65px; background: var(--primary); color: white; border-radius: 50%; border: none; font-size: 35px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); z-index: 100; font-weight: bold; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-box { background: var(--card); width: 100%; max-width: 350px; border-radius: 25px; padding: 25px; }
-        input, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #444; background: #000; color: white; font-size: 16px; }
+        input, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #333; background: #000; color: white; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <button class="room-btn" onclick="changeRoom()">Helyszín: <span id="rNum">----</span></button>
-    <div style="display:flex; gap:20px;">
-        <button onclick="toggleMode()" style="background:none; border:none; font-size:22px;">🌓</button>
-        <button onclick="clearAll()" style="background:none; border:none; font-size:22px; opacity:0.3;">🗑️</button>
+    <button class="room-btn" onclick="changeRoom()">🏠 <span id="rNum">----</span></button>
+    <div style="display:flex; gap:20px; align-items: center;">
+        <button onclick="toggleMode()" style="background:none; border:none; font-size:22px; cursor:pointer;">🌓</button>
+        <button onclick="clearAll()" style="background:none; border:none; font-size:22px; opacity:0.3; cursor:pointer;">🗑️</button>
     </div>
 </div>
 
-<div id="uCount" style="font-size:10px; text-align:center; color:#666; margin-bottom:20px;">...</div>
+<div id="uCount" style="font-size:10px; text-align:center; color:#666; margin-bottom:20px; font-weight: bold;">...</div>
 
 <div class="grid-container" id="activeGrid"></div>
 
@@ -100,7 +103,7 @@
     <h3 style="margin-top:0">Új tétel</h3>
     <input type="text" id="iName" placeholder="Termék neve...">
     <textarea id="iNote" placeholder="Megjegyzés..." rows="2"></textarea>
-    <button onclick="save()" style="width:100%; padding:16px; border-radius:15px; background:var(--primary); border:none; color:white; font-weight:bold; font-size:16px;">MENTÉS</button>
+    <button onclick="save()" style="width:100%; padding:16px; border-radius:15px; background:var(--primary); border:none; color:white; font-weight:bold; font-size:16px;">HOZZÁADÁS</button>
     <button onclick="closeM('inputM')" style="width:100%; background:none; border:none; color:#888; margin-top:15px;">Mégse</button>
 </div></div>
 
@@ -110,23 +113,21 @@
     const db = firebase.database();
     
     let roomId = localStorage.getItem('room') || "2316";
-    
-    // MÓD MEMÓRIA BETÖLTÉSE
     if(localStorage.getItem('mode') === 'light') document.body.classList.add('light-mode');
 
     function getIcon(t) {
         t = t.toLowerCase();
-        if(t.includes("tej")) return "🥛"; if(t.includes("kenyér")) return "🍞";
-        if(t.includes("sör")) return "🍺"; if(t.includes("hús")) return "🥩";
-        if(t.includes("sajt")) return "🧀"; if(t.includes("víz")) return "💧";
+        if(t.includes("tej")) return "🥛"; if(t.includes("kenyér") || t.includes("kifli")) return "🍞";
+        if(t.includes("sör") || t.includes("alkohol")) return "🍺"; if(t.includes("hús") || t.includes("sonka")) return "🥩";
+        if(t.includes("sajt")) return "🧀"; if(t.includes("víz") || t.includes("üdítő")) return "💧";
         if(t.includes("gyüm")) return "🍎"; if(t.includes("zöld")) return "🥦";
+        if(t.includes("wc") || t.includes("papír")) return "🧻"; if(t.includes("tojás")) return "🥚";
         return "📦";
     }
 
     function sync() {
         document.getElementById('rNum').innerText = roomId;
-        const ref = db.ref('shoppingLists/' + roomId);
-        ref.on('value', snap => {
+        db.ref('shoppingLists/' + roomId).on('value', snap => {
             const data = snap.val() ? Object.keys(snap.val()).map(k => ({id: k, ...snap.val()[k]})) : [];
             const grid = document.getElementById('activeGrid');
             const doneL = document.getElementById('doneList');
@@ -135,7 +136,8 @@
             grid.innerHTML = ''; doneL.innerHTML = ''; missL.innerHTML = '';
 
             data.forEach(it => {
-                if(it.status === 'active' || !it.status) {
+                const status = it.status || 'active';
+                if(status === 'active') {
                     const tile = document.createElement('div');
                     tile.className = 'tile';
                     tile.innerHTML = `
@@ -144,13 +146,13 @@
                         <div class="overlay">
                             <button class="btn-round" style="background:var(--success)" onclick="upd('${it.id}','done')">✓</button>
                             <button class="btn-round" style="background:var(--danger)" onclick="upd('${it.id}','x')">✖</button>
-                            <button class="btn-round" style="background:#555" onclick="alert('${it.note||'Nincs megjegyzés'}')">i</button>
+                            <button class="btn-round" style="background:#444" onclick="alert('${it.note||'Nincs megjegyzés'}')">i</button>
                         </div>`;
                     tile.onclick = (e) => {
                         if(e.target.tagName !== 'BUTTON') {
                             document.querySelectorAll('.tile').forEach(el => el.classList.remove('open'));
                             tile.classList.add('open');
-                            setTimeout(() => tile.classList.remove('open'), 3500);
+                            setTimeout(() => tile.classList.remove('open'), 4000);
                         }
                     };
                     grid.appendChild(tile);
@@ -159,11 +161,11 @@
                     row.className = 'mini-item';
                     row.innerHTML = `
                         <div class="mini-text">${it.text}</div>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="upd('${it.id}','active')" style="background:none; border:none; font-size:18px;">↺</button>
-                            <button onclick="del('${it.id}')" style="background:none; border:none; font-size:18px;">🗑️</button>
+                        <div style="display:flex; gap:12px;">
+                            <button onclick="upd('${it.id}','active')" style="background:none; border:none; font-size:20px; cursor:pointer;">↺</button>
+                            <button onclick="del('${it.id}')" style="background:none; border:none; font-size:20px; cursor:pointer;">🗑️</button>
                         </div>`;
-                    if(it.status === 'done') doneL.appendChild(row); else missL.appendChild(row);
+                    if(status === 'done') doneL.appendChild(row); else missL.appendChild(row);
                 }
             });
         });
@@ -177,23 +179,22 @@
         const text = document.getElementById('iName').value;
         if(text) {
             db.ref('shoppingLists/' + roomId).push({ text, note: document.getElementById('iNote').value, status: 'active', order: Date.now() });
-            closeM('inputM'); document.getElementById('iName').value = '';
+            closeM('inputM'); document.getElementById('iName').value = ''; document.getElementById('iNote').value = '';
         }
     }
 
     function upd(id, s) { db.ref(`shoppingLists/${roomId}/${id}`).update({status: s}); }
-    function del(id) { if(confirm("Törlöd a tételt?")) db.ref(`shoppingLists/${roomId}/${id}`).remove(); }
+    function del(id) { if(confirm("Véglegesen törlöd?")) db.ref(`shoppingLists/${roomId}/${id}`).remove(); }
     function openM(id) { document.getElementById(id).style.display = 'flex'; }
     function closeM(id) { document.getElementById(id).style.display = 'none'; }
     
     function toggleMode() { 
         document.body.classList.toggle('light-mode');
-        const isLight = document.body.classList.contains('light-mode');
-        localStorage.setItem('mode', isLight ? 'light' : 'dark');
+        localStorage.setItem('mode', document.body.classList.contains('light-mode') ? 'light' : 'dark');
     }
 
     function changeRoom() { const n = prompt("Szoba kódja:", roomId); if(n) { localStorage.setItem('room', n); location.reload(); } }
-    function clearAll() { if(confirm("Mindent törölsz a listából?")) db.ref('shoppingLists/' + roomId).remove(); }
+    function clearAll() { if(confirm("Mindent törölsz a szobából?")) db.ref('shoppingLists/' + roomId).remove(); }
 
     sync();
 </script>
