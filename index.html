@@ -1,235 +1,232 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bevásárló lista v2.0 - Bring Style</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    
-    <style>
-        :root { 
-            --bg: #f4f7f6; --card-bg: #ffffff; --text: #2d3436; 
-            --primary: #55efc4; --primary-dark: #00b894;
-            --accent: #a87ff3; --danger: #ff7675; --grey: #dfe6e9; --border: #b2bec3;
-        }
-        .dark { 
-            --bg: #1e272e; --card-bg: #2f3640; --text: #f5f6fa; 
-            --primary: #00d2d3; --grey: #353b48; --border: #718093;
-        }
-        
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; user-select: none; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 15px; transition: 0.3s; }
-        
-        .app-container { max-width: 500px; margin: 0 auto; }
-        
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .room-chip { background: var(--primary); color: white; padding: 6px 15px; border-radius: 20px; font-weight: 800; font-size: 12px; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* Bring! Style Grid */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-bottom: 30px; }
-        
-        .tile { 
-            background: var(--card-bg); border-radius: 18px; padding: 15px 10px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: transform 0.1s, box-shadow 0.1s; border: 2px solid transparent;
-        }
-        .tile:active { transform: scale(0.95); }
-        .tile-icon { font-size: 32px; margin-bottom: 8px; }
-        .tile-text { font-size: 13px; font-weight: 600; word-break: break-word; line-height: 1.2; }
-        
-        /* Mini indicators on tiles */
-        .tile-badge { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
-        .has-info .tile-badge { display: block; }
-
-        /* Action Buttons on Tile */
-        .tile-actions { position: absolute; inset: 0; background: rgba(255,255,255,0.9); border-radius: 18px; display: flex; justify-content: space-around; align-items: center; opacity: 0; transition: 0.2s; pointer-events: none; }
-        .tile.open-menu .tile-actions { opacity: 1; pointer-events: auto; }
-        .action-circle { width: 35px; height: 35px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        /* Bottom Sections (Done/Missing) */
-        .status-section { background: var(--card-bg); border-radius: 20px; padding: 15px; margin-top: 15px; }
-        .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px; font-weight: bold; }
-        .mini-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .mini-tag { background: var(--grey); padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-
-        /* Plus Button */
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2); cursor: pointer; z-index: 100; }
-
-        /* Modals */
-        .custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 30px; padding: 25px; position: relative; }
-        input, textarea { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; border: 2px solid var(--grey); background: var(--bg); color: var(--text); font-size: 16px; outline: none; }
-        .primary-btn { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--primary-dark); color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bevásárló lista</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#a87ff3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lista">
+<link rel="apple-touch-icon" href="IMG_4302.png">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#f4f7f6;--card-bg:#fff;--text:#2d3436;--primary:#55efc4;--primary-dark:#00b894;--accent:#a87ff3;--danger:#ff7675;--grey:#dfe6e9}
+.dark{--bg:#1e272e;--card-bg:#2f3640;--text:#f5f6fa;--primary:#00d2d3;--grey:#353b48}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;user-select:none;-webkit-user-select:none}
+input,textarea{user-select:text;-webkit-user-select:text}
+body{background:var(--bg);color:var(--text);margin:0;padding:15px;padding-top:max(15px,env(safe-area-inset-top));transition:.3s}
+.app-container{max-width:500px;margin:0 auto;padding-bottom:90px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.room-chip{background:var(--primary-dark);color:#fff;padding:6px 15px;border-radius:20px;font-weight:800;font-size:12px;border:none;cursor:pointer}
+.ibtn{background:none;border:none;font-size:20px;cursor:pointer}
+.grid-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-bottom:20px}
+.tile{background:var(--card-bg);border-radius:18px;padding:15px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:110px;cursor:pointer}
+.tile:active{transform:scale(.96)}
+.tile-icon{font-size:34px;margin-bottom:6px}
+.tile-text{font-size:13px;font-weight:600;word-break:break-word;line-height:1.2}
+.tile-note{font-size:10px;opacity:.6;margin-top:4px;word-break:break-word}
+.tile-actions{position:absolute;inset:0;background:var(--card-bg);border-radius:18px;display:none;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;padding:6px}
+.tile.open-menu .tile-actions{display:flex}
+.action-circle{width:36px;height:36px;border-radius:50%;border:none;color:#fff;font-size:15px;cursor:pointer}
+.empty{grid-column:1/-1;text-align:center;opacity:.5;padding:30px 0;font-size:14px}
+.status-section{background:var(--card-bg);border-radius:20px;padding:15px;margin-top:15px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:10px;font-weight:bold;display:flex;justify-content:space-between}
+.section-title button{background:none;border:none;color:var(--danger);font-size:11px;font-weight:bold;cursor:pointer;text-transform:uppercase}
+.mini-list{display:flex;flex-wrap:wrap;gap:8px}
+.mini-tag{background:var(--grey);padding:5px 12px;border-radius:15px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+.mini-tag .undo{cursor:pointer;opacity:.6}
+.fab{position:fixed;bottom:max(25px,env(safe-area-inset-bottom));right:25px;width:60px;height:60px;background:var(--primary-dark);color:#fff;border-radius:50%;font-size:30px;border:none;box-shadow:0 10px 25px rgba(0,0,0,.2);cursor:pointer;z-index:100}
+.custom-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:1000;justify-content:center;align-items:center;padding:20px}
+.modal-content{background:var(--card-bg);width:100%;max-width:380px;border-radius:30px;padding:25px;max-height:90vh;overflow:auto}
+input,textarea{width:100%;padding:15px;margin-bottom:12px;border-radius:15px;border:2px solid var(--grey);background:var(--bg);color:var(--text);font-size:16px;outline:none}
+.primary-btn{width:100%;padding:15px;border-radius:15px;border:none;background:var(--primary-dark);color:#fff;font-weight:bold;font-size:16px;cursor:pointer}
+.cancel{width:100%;background:none;border:none;margin-top:12px;color:#888;cursor:pointer}
+.add-row{display:flex;gap:10px;align-items:flex-start}
+.preview{width:56px;height:56px;flex:none;border-radius:15px;background:var(--bg);border:2px solid var(--grey);font-size:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.picker button{font-size:26px;background:var(--bg);border:none;border-radius:10px;padding:6px;cursor:pointer}
+</style>
 </head>
-<body class="light">
-
+<body>
 <div class="app-container">
-    <div class="header">
-        <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
-        <div style="display: flex; gap: 15px;">
-            <button onclick="toggleMode()" style="background:none; border:none; font-size:20px;">🌓</button>
-            <button onclick="clearAllItems()" style="background:none; border:none; font-size:20px;">🗑️</button>
-        </div>
-    </div>
-
-    <div id="userCount" style="font-size:11px; text-align:center; margin-bottom:20px; opacity:0.6;">...</div>
-
-    <div class="grid-container" id="activeGrid">
-        </div>
-
-    <div class="status-section">
-        <div class="section-title">Pipálva ✓</div>
-        <div class="mini-list" id="doneList"></div>
-    </div>
-
-    <div class="status-section">
-        <div class="section-title">Hiányzik ✖</div>
-        <div class="mini-list" id="missingList"></div>
-    </div>
+  <div class="header">
+    <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
+    <div><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
+  </div>
+  <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:18px;opacity:.6">...</div>
+  <div class="grid-container" id="activeGrid"></div>
+  <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><button onclick="clearStatus('done')">Törlés</button></div><div class="mini-list" id="doneList"></div></div>
+  <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><button onclick="clearStatus('x')">Törlés</button></div><div class="mini-list" id="missingList"></div></div>
 </div>
+<button class="fab" onclick="openAdd()">+</button>
 
-<button class="fab" onclick="openModal('inputModal')">+</button>
+<div id="inputModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin-top:0">Új tétel</h3>
+  <div class="add-row">
+    <div class="preview" id="preview" onclick="openPicker('new')">🛒</div>
+    <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör..." autocomplete="off">
+  </div>
+  <textarea id="manualNote" placeholder="Megjegyzés (opcionális)" rows="2"></textarea>
+  <button class="primary-btn" onclick="addItem()">Hozzáadás a listához</button>
+  <button class="cancel" onclick="closeModal('inputModal')">Mégse</button>
+</div></div>
 
-<div id="inputModal" class="custom-modal">
-    <div class="modal-content">
-        <h3 style="margin-top:0">Új tétel</h3>
-        <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör...">
-        <textarea id="manualNote" placeholder="Megjegyzés (opcionális)" rows="2"></textarea>
-        <button class="primary-btn" onclick="addItem()">Hozzáadás a listához</button>
-        <button onclick="closeModal('inputModal')" style="width:100%; background:none; border:none; margin-top:15px; color:#888;">Mégse</button>
-    </div>
-</div>
+<div id="listModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin-top:0">Szobaváltás</h3>
+  <input type="text" id="joinCodeInput" inputmode="numeric" maxlength="4" placeholder="4 jegyű kód">
+  <button class="primary-btn" onclick="joinByCode()">Csatlakozás</button>
+  <button class="cancel" onclick="closeModal('listModal')">Bezárás</button>
+</div></div>
 
-<div id="listModal" class="custom-modal">
-    <div class="modal-content">
-        <h3>Szobaváltás</h3>
-        <input type="number" id="joinCodeInput" placeholder="4 jegyű kód">
-        <button class="primary-btn" onclick="joinByCode()">Csatlakozás</button>
-        <button onclick="closeModal('listModal')" style="width:100%; background:none; border:none; margin-top:15px; color:#888;">Bezárás</button>
-    </div>
-</div>
+<div id="pickerModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin-top:0">Válassz ikont</h3>
+  <div class="picker" id="pickerGrid"></div>
+  <button class="cancel" onclick="closeModal('pickerModal')">Mégse</button>
+</div></div>
 
 <script>
-    // Firebase Config - Marad a tiéd
-    const firebaseConfig = { apiKey: "AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE", databaseURL: "https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app", projectId: "kozoslista-e0717" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    let currentListId = localStorage.getItem('currentListId') || "2316";
-    let listRef = db.ref('shoppingLists/' + currentListId);
+const firebaseConfig={apiKey:"AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE",databaseURL:"https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app",projectId:"kozoslista-e0717"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+let currentListId=localStorage.getItem('currentListId')||"2316";
+let listRef=db.ref('shoppingLists/'+currentListId);
+let openId=null,pickTarget=null,chosenIcon=null,lastItems=[];
 
-    // Bring! stílusú ikon választó
-    function getEmoji(text) {
-        const t = text.toLowerCase();
-        if(t.includes("tej")) return "🥛";
-        if(t.includes("kenyér") || t.includes("kifli") || t.includes("pék")) return "🍞";
-        if(t.includes("hús") || t.includes("csirke") || t.includes("felvágott")) return "🥩";
-        if(t.includes("sör") || t.includes("bor") || t.includes("alkohol")) return "🍻";
-        if(t.includes("víz") || t.includes("üdítő") || t.includes("cola")) return "🥤";
-        if(t.includes("zöldség") || t.includes("paradicsom") || t.includes("paprika")) return "🥦";
-        if(t.includes("gyümölcs") || t.includes("alma") || t.includes("banán")) return "🍎";
-        if(t.includes("sajt") || t.includes("vaj") || t.includes("joghurt")) return "🧀";
-        if(t.includes("édesség") || t.includes("csoki") || t.includes("chips")) return "🍫";
-        if(t.includes("wc") || t.includes("papír") || t.includes("tisztító")) return "🧻";
-        if(t.includes("tojás")) return "🥚";
-        if(t.includes("kávé")) return "☕";
-        return "📦";
+if(localStorage.getItem('dark')==='1')document.body.classList.add('dark');
+
+/* ---------- Ikonok ---------- */
+const ICONS=`🥛:tej,tejfol,kefir,tejszin|🍞:kenyer,kifli,pek,zsemle,piritos,teknyo,bagett|🥐:croissant,vajas|🥩:hus,szalonna,virsli,kolbasz,felvagott,sonka,szalami,steak,darahus,daralt|🍗:csirke,pulyka,szarny|🐟:hal,tonhal,lazac,ponty,halrud|🥚:tojas|🧀:sajt,mozzarella,trappista,turo,vaj,margarin,parmezan|🍦:joghurt,fagylalt,puding|🍻:sor,sorok,keg|🍷:bor,pezsgo,palinka,whisky,vodka,likor,rum,gin|🥤:viz,uditő,udito,cola,fanta,szoda,limonade,asvanyviz,energiaital,tonik|🧃:gyumolcsle,narancsle,juice,szörp,szorp|☕:kave,kakao,tea,kapszula|🥦:zoldseg,brokkoli,karfiol,kaposzta,cukkini,padlizsan|🍅:paradicsom|🫑:paprika|🥕:sargarepa,repa,petrezselyem|🥔:burgonya,krumpli|🧅:hagyma|🧄:fokhagyma|🥒:uborka|🥬:salata,spenot,rukkola|🍄:gomba|🌽:kukorica|🍎:alma,gyumolcs|🍌:banan|🍊:narancs,mandarin|🍋:citrom,lime|🍇:szolo|🍓:eper,malna,szamoca,afonya|🍉:dinnye|🍐:korte|🍑:barack,szilva,seresznye,cseresznye,meggy|🥑:avokado|🍫:csoki,csokolade,nutella|🍪:keksz,piskota,suti|🍬:cukorka,gumicukor,edesseg|🍿:chips,popcorn,perec,mogyoro|🍰:torta,sutemeny,muffin|🍝:teszta,spagetti,tarhonya,makaroni,tészta|🍚:rizs|🌾:liszt,zab,muzli,pehely,gabona|🫒:olaj,olivaolaj,ecet|🧂:so,cukor,fuszer,bors,vegeta|🍯:mez,lekvar,dzsem|🥫:konzerv,kukoricakonzerv,babkonzerv,leves|🫘:bab,lencse,borso,csicseriborso|🥜:dio,mandula,magok|🧻:wc,papir,zsebkendo,torolkozo,konyhai|🧼:szappan,tisztit,mosogato,mosopor,oblito,hipo,hipó,fertotlenito|🧴:samp,tusfurdo,krem,fogkrem,deo,balzsam,naptej|🪥:fogkefe,fogselyem|🪒:borotva|🧽:szivacs,fureszt|🗑️:szemetes,zsak|🍕:pizza|🍔:hamburger,hotdog,buci|🌮:taco,tortilla,wrap|🍜:tesztaleves,instant,tészta|🐶:kutya,kutyatap|🐱:macska,alom,macskatap|🍼:baba,pelenka,tapszer,popsi|💊:gyogyszer,vitamin,tabletta,fajdalomcsillapito,tapasz|🔋:elem,akku|💡:izzo,lampa|🕯️:gyertya|🌸:virag,virag|🎂:szuletesnap,tortagyertya|🎁:ajandek|🥶:fagyasztott,jeg|🧊:jeg,jegkocka|📝:fuzet,toll,ceruza,jegyzet|🧦:zokni,ruha,polo,nadrag|🚗:benzin,autó,auto,mosoauto`;
+const DICT=ICONS.split('|').map(r=>{const[e,k]=r.split(':');return[e,k.split(',').map(norm)]});
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ő/g,'o').replace(/ű/g,'u').trim()}
+function getMem(){try{return JSON.parse(localStorage.getItem('iconMem')||'{}')}catch(e){return{}}}
+function iconFor(text){
+  const n=norm(text),mem=getMem();
+  if(mem[n])return mem[n];
+  const words=n.split(/[^a-z0-9]+/).filter(Boolean);
+  let best=null,bl=0;
+  for(const[e,kws]of DICT)for(const k of kws){
+    if(!k)continue;
+    const hit=k.length<4?words.includes(k):n.includes(k);
+    if(hit&&k.length>bl){best=e;bl=k.length}
+  }
+  return best||'🛒';
+}
+const PICK=Array.from('🛒🥛🍞🥩🍗🐟🥚🧀🍦🍻🍷🥤☕🥦🍅🥕🥔🧅🍎🍌🍊🍇🍓🍉🍫🍪🍬🍿🍰🍝🍚🌾🫒🧂🍯🥫🧻🧼🧴🪥🧽🍕🍔🐶🐱🍼💊🔋💡🕯️🌸🎁📝🧦🥑🥬🍄🌽🧊🍋');
+
+/* ---------- Init ---------- */
+function init(){
+  document.getElementById('roomNum').textContent=currentListId;
+  listRef.on('value',snap=>{
+    const d=snap.val();
+    lastItems=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+    render();
+  });
+  const pRef=db.ref('presence/'+currentListId);
+  const myP=pRef.push(true);
+  myP.onDisconnect().remove();
+  pRef.on('value',s=>{document.getElementById('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
+}
+
+function btn(label,bg,fn){
+  const b=document.createElement('button');
+  b.className='action-circle';b.style.background=bg;b.textContent=label;
+  b.onclick=e=>{e.stopPropagation();fn()};return b;
+}
+
+function render(){
+  const grid=document.getElementById('activeGrid'),done=document.getElementById('doneList'),miss=document.getElementById('missingList');
+  grid.textContent='';done.textContent='';miss.textContent='';
+  const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
+  let active=0;
+  items.forEach(it=>{
+    const icon=it.icon||iconFor(it.text||'');
+    if(it.status==='active'){
+      active++;
+      const t=document.createElement('div');
+      t.className='tile'+(it.note?' has-info':'')+(openId===it.id?' open-menu':'');
+      const i=document.createElement('div');i.className='tile-icon';i.textContent=icon;
+      const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;
+      t.append(i,x);
+      if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
+      const a=document.createElement('div');a.className='tile-actions';
+      a.append(
+        btn('✓','var(--primary-dark)',()=>setStatus(it.id,'done')),
+        btn('✖','var(--danger)',()=>setStatus(it.id,'x')),
+        btn('😀','var(--accent)',()=>openPicker(it.id)),
+        btn('🗑️','#b2bec3',()=>listRef.child(it.id).remove())
+      );
+      t.append(a);
+      t.onclick=()=>{
+        openId=openId===it.id?null:it.id;render();
+        if(openId){const id=openId;setTimeout(()=>{if(openId===id){openId=null;render()}},4000)}
+      };
+      grid.append(t);
+    }else{
+      const g=document.createElement('div');g.className='mini-tag';
+      const s=document.createElement('span');s.textContent=icon+' '+it.text;
+      const u=document.createElement('span');u.className='undo';u.textContent='↺';u.onclick=()=>setStatus(it.id,'active');
+      g.append(s,u);
+      (it.status==='done'?done:miss).append(g);
     }
+  });
+  if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
+}
 
-    function init() {
-        document.getElementById('roomNum').innerText = currentListId;
-        listRef = db.ref('shoppingLists/' + currentListId);
-        
-        listRef.on('value', snap => {
-            const data = snap.val();
-            const items = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
-            render(items);
-        });
+/* ---------- Műveletek ---------- */
+function openAdd(){
+  chosenIcon=null;
+  document.getElementById('manualInput').value='';document.getElementById('manualNote').value='';
+  document.getElementById('preview').textContent='🛒';
+  openModal('inputModal');
+  setTimeout(()=>document.getElementById('manualInput').focus(),50);
+}
+function addItem(){
+  const val=document.getElementById('manualInput').value.trim();
+  if(!val)return;
+  listRef.push({text:val,note:document.getElementById('manualNote').value.trim(),icon:chosenIcon||iconFor(val),status:'active',order:Date.now()});
+  closeModal('inputModal');
+}
+function setStatus(id,s){listRef.child(id).update({status:s})}
+function clearStatus(s){
+  const ids=lastItems.filter(i=>i.status===s).map(i=>i.id);
+  if(ids.length&&confirm('Törlöd ezeket ('+ids.length+')?'))ids.forEach(id=>listRef.child(id).remove());
+}
+function clearAllItems(){if(confirm('Mindent törölsz?'))listRef.remove()}
+function toggleMode(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0')}
+function openModal(id){document.getElementById(id).style.display='flex'}
+function closeModal(id){document.getElementById(id).style.display='none'}
+function joinByCode(){
+  const c=document.getElementById('joinCodeInput').value.trim();
+  if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}
+}
 
-        // Jelenlét
-        const pRef = db.ref('presence/' + currentListId);
-        const myP = pRef.push(true);
-        myP.onDisconnect().remove();
-        pRef.on('value', s => {
-            document.getElementById('userCount').innerText = `${s.numChildren()} ember szerkeszti épp`;
-        });
-    }
+/* ---------- Ikonválasztó ---------- */
+function openPicker(target){
+  pickTarget=target;
+  const g=document.getElementById('pickerGrid');g.textContent='';
+  PICK.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>pickIcon(e);g.append(b)});
+  openModal('pickerModal');
+}
+function pickIcon(e){
+  if(pickTarget==='new'){
+    chosenIcon=e;document.getElementById('preview').textContent=e;
+  }else{
+    const it=lastItems.find(i=>i.id===pickTarget);
+    if(it){listRef.child(it.id).update({icon:e});const m=getMem();m[norm(it.text)]=e;localStorage.setItem('iconMem',JSON.stringify(m))}
+  }
+  closeModal('pickerModal');
+}
 
-    function render(items) {
-        const grid = document.getElementById('activeGrid');
-        const doneList = document.getElementById('doneList');
-        const missingList = document.getElementById('missingList');
-        
-        grid.innerHTML = ''; doneList.innerHTML = ''; missingList.innerHTML = '';
+/* ---------- Események ---------- */
+document.getElementById('manualInput').addEventListener('input',e=>{
+  if(!chosenIcon)document.getElementById('preview').textContent=e.target.value.trim()?iconFor(e.target.value):'🛒';
+});
+document.getElementById('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
 
-        items.sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(it => {
-            if(it.status === 'active') {
-                const tile = document.createElement('div');
-                tile.className = `tile ${it.note || it.photo ? 'has-info' : ''}`;
-                tile.innerHTML = `
-                    <div class="tile-badge"></div>
-                    <div class="tile-icon">${getEmoji(it.text)}</div>
-                    <div class="tile-text">${it.text}</div>
-                    <div class="tile-actions">
-                        <button class="action-circle" style="background:var(--primary-dark)" onclick="updateStatus('${it.id}', 'done')">✓</button>
-                        <button class="action-circle" style="background:var(--danger)" onclick="updateStatus('${it.id}', 'x')">✖</button>
-                        <button class="action-circle" style="background:var(--grey)" onclick="listRef.child('${it.id}').remove()">🗑️</button>
-                    </div>
-                `;
-                // Kattintásra megnyílik a menü (mint a Bring-ben a hosszú nyomás vagy koppintás)
-                tile.onclick = (e) => {
-                    if(e.target.tagName !== 'BUTTON') {
-                        tile.classList.toggle('open-menu');
-                        setTimeout(() => tile.classList.remove('open-menu'), 4000);
-                    }
-                };
-                grid.appendChild(tile);
-            } else {
-                const tag = document.createElement('div');
-                tag.className = 'mini-tag';
-                tag.innerHTML = `<span>${getEmoji(it.text)}</span> ${it.text} <span onclick="updateStatus('${it.id}', 'active')" style="cursor:pointer; opacity:0.5">↺</span>`;
-                if(it.status === 'done') doneList.appendChild(tag);
-                else missingList.appendChild(tag);
-            }
-        });
-    }
-
-    function addItem() {
-        const val = document.getElementById('manualInput').value.trim();
-        if(val) {
-            listRef.push({
-                text: val,
-                note: document.getElementById('manualNote').value,
-                status: 'active',
-                order: Date.now()
-            });
-            document.getElementById('manualInput').value = '';
-            document.getElementById('manualNote').value = '';
-            closeModal('inputModal');
-        }
-    }
-
-    function updateStatus(id, s) { db.ref(`shoppingLists/${currentListId}/${id}`).update({status: s}); }
-    function toggleMode() { document.body.classList.toggle('dark'); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function joinByCode() {
-        const code = document.getElementById('joinCodeInput').value;
-        if(code.length === 4) {
-            currentListId = code;
-            localStorage.setItem('currentListId', code);
-            location.reload();
-        }
-    }
-    function clearAllItems() { if(confirm("Mindent törölsz?")) listRef.remove(); }
-
-    init();
+init();
 </script>
 </body>
 </html>
