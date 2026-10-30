@@ -3,7 +3,9 @@
   "short_name": "Lista",
   "description": "Közös, okos bevásárlólista családoknak.",
   "start_url": "index.html",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0b0b0b",
   "theme_color": "#a87ff3",
   "icons": [
@@ -11,12 +13,19 @@
       "src": "IMG_4302.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "IMG_4302.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "IMG_4302.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
