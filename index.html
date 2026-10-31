@@ -108,6 +108,14 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .cat-row img.ico{filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
 .cat-row .thumb{width:42px;height:42px}
 .cat-row .thumb{object-fit:contain}
+.prog{display:none;align-items:center;gap:10px;margin-bottom:12px}
+.pbar{flex:1;height:10px;border-radius:6px;background:var(--grey);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#12b886,#8b5cf6);transition:width .5s}
+#ptxt{font-size:12px;font-weight:800;opacity:.8;white-space:nowrap}
+.cat-title{cursor:pointer}
+.cat-row.collapsed{display:none}
+.tile.pop{animation:pop .33s ease-in forwards}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(.6);opacity:0}}
 </style>
 </head>
 <body>
@@ -117,6 +125,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
     <div><button class="ibtn" onclick="openOrder()">↕️</button><button class="ibtn" onclick="enableNotif()">🔔</button><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
   </div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6">...</div>
+  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><button onclick="clearStatus('done')">Törlés</button></div><div class="mini-list" id="doneList"></div></div>
@@ -129,7 +138,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
   <div id="quick" class="quick"></div>
   <div class="add-row">
     <div class="preview" id="preview" onclick="openPicker('new')"></div>
-    <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör..." autocomplete="off">
+    <input type="text" id="manualInput" placeholder="Pl: tej, kenyér, sajt (vesszővel több is)" autocomplete="off">
   </div>
   <textarea id="manualNote" placeholder="Megjegyzés (opcionális)" rows="2"></textarea>
   <select id="newCat"></select>
@@ -266,7 +275,7 @@ function render(){
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
   orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(label+' ('+arr.length+')'));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode((COL.has(cid)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className='cat-row'+(COL.has(cid)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
@@ -274,7 +283,7 @@ function render(){
       const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
       const a=document.createElement('div');a.className='tile-actions';
-      a.append(btn('✓','var(--primary-dark)',()=>setStatus(it.id,'done')),btn('✖','var(--danger)',()=>setStatus(it.id,'x')),
+      a.append(btn('✓','var(--primary-dark)',()=>pop(t,()=>setStatus(it.id,'done'))),btn('✖','var(--danger)',()=>pop(t,()=>setStatus(it.id,'x'))),
         btn(it.thumb?'🖼️':'ℹ️','var(--accent)',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
       t.append(a);
       t.onclick=()=>{const was=t.classList.contains('open-menu');document.querySelectorAll('.tile.open-menu').forEach(x=>x.classList.remove('open-menu'));openId=null;if(!was){t.classList.add('open-menu');openId=it.id;const id=it.id;setTimeout(()=>{if(openId===id){t.classList.remove('open-menu');openId=null}},4000)}};
@@ -282,7 +291,7 @@ function render(){
     });
     row.scrollLeft=sl[cid]||0;
   });
-  window.scrollTo(0,y);renderQuick();
+  renderProg();window.scrollTo(0,y);renderQuick();
 }
 
 /* ---------- Képek ---------- */
@@ -327,6 +336,11 @@ function openAdd(){
 }
 function addItem(){
   const val=$('manualInput').value.trim();if(!val)return;
+  const parts=val.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
+  if(parts.length>1){
+    parts.forEach((t,i)=>{t=t[0].toUpperCase()+t.slice(1);const g=guess(t),it={text:t,note:'',icon:g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()+i,by:DEV};listRef.push().set(it);bumpFreq(it)});
+    toast('✓ '+parts.length+' tétel hozzáadva');closeModal('inputModal');return;
+  }
   const g=guess(val),ref=listRef.push();
   const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
   if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull);savePM(val,pendingThumb)}
@@ -370,7 +384,7 @@ function pickIcon(e){
   }
   closeModal('pickerModal');
 }
-$('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),e.target.value.trim()?guess(e.target.value).icon:'🛒')});
+$('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),/[,;]/.test(e.target.value)?'📝':e.target.value.trim()?guess(e.target.value).icon:'🛒')});
 $('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
 const EN={tej:'Milk',tejfol:'Sour Cream',vaj:'Butter',sajt:'Cheddar Cheese',mozzarella:'Mozzarella',parmezan:'Parmesan',joghurt:'Yogurt',tojas:'Eggs',csirke:'Chicken',marha:'Beef',sertes:'Pork',szalonna:'Bacon',kolbasz:'Sausages',lazac:'Salmon',tonhal:'Tuna',rizs:'Rice',liszt:'Flour',cukor:'Sugar',so:'Salt',bors:'Black Pepper',olivaolaj:'Olive Oil',mez:'Honey',paradicsom:'Tomatoes',hagyma:'Onions',fokhagyma:'Garlic',burgonya:'Potatoes',krumpli:'Potatoes',sargarepa:'Carrots',uborka:'Cucumber',gomba:'Mushrooms',alma:'Apples',banan:'Bananas',citrom:'Lemon',narancs:'Orange',eper:'Strawberries',avokado:'Avocado',brokkoli:'Broccoli',karfiol:'Cauliflower',spenot:'Spinach',kaposzta:'Cabbage',cukkini:'Courgettes',kukorica:'Sweetcorn',bab:'Kidney Beans',csokolade:'Dark Chocolate',kave:'Coffee'};
 const EK=Object.keys(EN).map(k=>[norm(k),EN[k]]).sort((a,b)=>b[0].length-a[0].length);
@@ -409,6 +423,14 @@ let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}cat
 const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
 function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
 db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
+let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
+function pop(t,fn){if(navigator.vibrate)navigator.vibrate(30);t.classList.add('pop');setTimeout(fn,330)}
+function renderProg(){
+  const tot=lastItems.length,dn=lastItems.filter(i=>i.status==='done').length;
+  $('prog').style.display=tot?'flex':'none';
+  $('pfill').style.width=(tot?Math.round(dn/tot*100):0)+'%';
+  $('ptxt').textContent=dn+'/'+tot+' megvan';
+}
 const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
 let ready=false,toastT=null;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
