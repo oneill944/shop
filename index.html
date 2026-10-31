@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Bevásárló lista</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#a87ff3">
+<meta name="theme-color" content="#8b5cf6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lista">
@@ -73,6 +73,27 @@ input,textarea,select{width:100%;padding:14px;margin-bottom:12px;border-radius:1
 .cat-row .tile-text{font-size:10.5px}
 .cat-row .tile-note{font-size:8.5px}
 .cat-row .action-circle{width:26px;height:26px;font-size:11px}
+
+/* ===== Friss & játékos dizájn ===== */
+*{font-family:ui-rounded,'SF Pro Rounded','Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+:root{--bg:#fff7ee;--card-bg:#ffffff;--text:#3a2e2a;--grey:#f1e6da;--primary-dark:#12b886;--accent:#8b5cf6}
+.dark{--bg:#17141f;--card-bg:#262133;--text:#f6f1ff;--grey:#352e47;--primary-dark:#20c997}
+body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 45%),radial-gradient(circle at 100% 0,color-mix(in srgb,#ff9f43 18%,transparent),transparent 40%),var(--bg);background-attachment:fixed}
+.room-chip{background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 16px rgba(139,92,246,.35);padding:8px 16px}
+.fab{background:linear-gradient(135deg,#12b886,#8b5cf6);box-shadow:0 12px 28px rgba(139,92,246,.45);transition:transform .15s}
+.fab:active{transform:scale(.9) rotate(90deg)}
+.status-section{border-radius:24px;box-shadow:0 6px 20px rgba(80,50,20,.06)}
+.mini-tag{background:var(--grey);border-radius:16px}
+.modal-content{border-radius:32px}
+.primary-btn{background:linear-gradient(135deg,#12b886,#8b5cf6);box-shadow:0 8px 18px rgba(139,92,246,.3)}
+.cat-title,.cat-row{--c:#8a94a6}
+[data-k=zold]{--c:#2fb86b}[data-k=pek]{--c:#f0a04b}[data-k=hus]{--c:#e8575a}[data-k=tej]{--c:#4aa8ff}[data-k=szaraz]{--c:#b98a5a}[data-k=edes]{--c:#ff6fa8}[data-k=ital]{--c:#1fb5c9}[data-k=fagy]{--c:#7f8cff}[data-k=haz]{--c:#9b6bff}
+.cat-title{font-size:13px;opacity:1;color:var(--c);font-weight:800;border-left:5px solid var(--c);padding-left:8px;margin:14px 0 2px;border-radius:3px}
+.cat-row .tile{background:var(--card-bg);background:color-mix(in srgb,var(--c) 13%,var(--card-bg));border:2px solid color-mix(in srgb,var(--c) 28%,transparent);border-radius:22px;box-shadow:0 5px 14px color-mix(in srgb,var(--c) 22%,transparent);transition:transform .15s}
+.cat-row .tile:active{transform:scale(.93)}
+.cat-row .ico{background:color-mix(in srgb,var(--c) 20%,#fff);border-radius:50%;padding:4px;width:36px;height:36px;line-height:28px;text-align:center}
+.cat-row .tile-text{font-weight:700;color:var(--text)}
+.cat-row .tile-actions{background:color-mix(in srgb,var(--c) 18%,var(--card-bg));border-radius:20px}
 </style>
 </head>
 <body>
@@ -215,7 +236,7 @@ function render(){
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
   CATS.forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label+' ('+arr.length+')'));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(label+' ('+arr.length+')'));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
