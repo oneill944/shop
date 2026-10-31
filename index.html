@@ -57,6 +57,16 @@ input,textarea,select{width:100%;padding:14px;margin-bottom:12px;border-radius:1
 .big-photo{width:100%;border-radius:18px;margin-bottom:12px;display:none}
 .dhead{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:18px;font-weight:700}
 .dhead .ico{margin:0}
+.grid-container{display:block}
+.cat-row{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding:6px 2px 10px;margin:0 -2px;scrollbar-width:none}
+.cat-row::-webkit-scrollbar{display:none}
+.cat-row .tile{flex:0 0 calc((100% - 16px)/3);min-height:92px;padding:8px 4px;border-radius:14px;scroll-snap-align:start}
+.cat-row .ico{width:36px;height:36px;font-size:28px;line-height:36px;margin-bottom:4px}
+.cat-row .thumb{width:44px;height:44px;border-radius:10px;margin-bottom:4px}
+.cat-row .tile-text{font-size:11.5px}
+.cat-row .tile-note{font-size:9px}
+.cat-row .tile-actions{gap:4px;padding:4px;border-radius:14px}
+.cat-row .action-circle{width:30px;height:30px;font-size:13px}
 </style>
 </head>
 <body>
@@ -182,7 +192,7 @@ function btn(label,bg,fn){
 }
 function render(){
   const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
-  grid.textContent='';done.textContent='';miss.textContent='';
+  const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
   const groups={};let active=0;
   items.forEach(it=>{
@@ -198,7 +208,7 @@ function render(){
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
   CATS.forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label));grid.append(h);
+    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;grid.append(row);
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
@@ -210,8 +220,9 @@ function render(){
         btn(it.thumb?'🖼️':'ℹ️','var(--accent)',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
       t.append(a);
       t.onclick=()=>{openId=openId===it.id?null:it.id;render();if(openId){const id=openId;setTimeout(()=>{if(openId===id){openId=null;render()}},4000)}};
-      grid.append(t);
+      row.append(t);
     });
+    row.scrollLeft=sl[cid]||0;
   });
 }
 
