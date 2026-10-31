@@ -215,7 +215,7 @@ function render(){
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
   CATS.forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label+' ('+arr.length+')'));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;grid.append(row);
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
