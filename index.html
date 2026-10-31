@@ -94,6 +94,8 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .cat-row .ico{background:color-mix(in srgb,var(--c) 20%,#fff);border-radius:50%;padding:4px;width:36px;height:36px;line-height:28px;text-align:center}
 .cat-row .tile-text{font-weight:700;color:var(--text)}
 .cat-row .tile-actions{background:color-mix(in srgb,var(--c) 18%,var(--card-bg));border-radius:20px}
+.cat-row .ico{background:none;border-radius:0;padding:0;width:36px;height:36px;line-height:36px}
+.big-photo{height:190px;object-fit:contain;background:var(--grey)}
 </style>
 </head>
 <body>
@@ -220,7 +222,7 @@ function btn(label,bg,fn){
 }
 function render(){
   const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
-  const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
+  const y=window.scrollY;const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
   const groups={};let active=0;
   items.forEach(it=>{
@@ -247,11 +249,12 @@ function render(){
       a.append(btn('✓','var(--primary-dark)',()=>setStatus(it.id,'done')),btn('✖','var(--danger)',()=>setStatus(it.id,'x')),
         btn(it.thumb?'🖼️':'ℹ️','var(--accent)',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
       t.append(a);
-      t.onclick=()=>{openId=openId===it.id?null:it.id;render();if(openId){const id=openId;setTimeout(()=>{if(openId===id){openId=null;render()}},4000)}};
+      t.onclick=()=>{const was=t.classList.contains('open-menu');document.querySelectorAll('.tile.open-menu').forEach(x=>x.classList.remove('open-menu'));openId=null;if(!was){t.classList.add('open-menu');openId=it.id;const id=it.id;setTimeout(()=>{if(openId===id){t.classList.remove('open-menu');openId=null}},4000)}};
       row.append(t);
     });
     row.scrollLeft=sl[cid]||0;
   });
+  window.scrollTo(0,y);
 }
 
 /* ---------- Képek ---------- */
