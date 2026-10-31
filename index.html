@@ -135,8 +135,8 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
   <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
-  <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><button onclick="clearStatus('done')">Törlés</button></div><div class="mini-list" id="doneList"></div></div>
-  <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><button onclick="clearStatus('x')">Törlés</button></div><div class="mini-list" id="missingList"></div></div>
+  <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
+  <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('x')">↺ Mind vissza</button><button onclick="clearStatus('x')">Törlés</button></span></div><div class="mini-list" id="missingList"></div></div>
 </div>
 <button class="fab" onclick="openAdd()">+</button>
 
@@ -156,7 +156,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 </div></div>
 
 <div id="detailModal" class="custom-modal"><div class="modal-content">
-  <div class="dhead"><span id="dIcon"></span><span id="dName"></span></div>
+  <div class="dhead"><span id="dIcon"></span><input type="text" id="dName" autocomplete="off" style="margin:0;font-size:18px;font-weight:700;padding:10px 12px"></div>
   <img id="dPhoto" class="big-photo" alt="">
   <textarea id="dNote" placeholder="Megjegyzés" rows="2"></textarea>
   <select id="dCat"></select>
@@ -300,7 +300,7 @@ function render(){
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
       const a=document.createElement('div');a.className='tile-actions';
       a.append(btn('✓','var(--primary-dark)',()=>pop(t,()=>setStatus(it.id,'done'))),btn('✖','var(--danger)',()=>pop(t,()=>setStatus(it.id,'x'))),
-        btn(it.thumb?'🖼️':'ℹ️','var(--accent)',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
+        btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
       t.append(a);
       t.onclick=()=>{const was=t.classList.contains('open-menu');document.querySelectorAll('.tile.open-menu').forEach(x=>x.classList.remove('open-menu'));openId=null;if(!was){t.classList.add('open-menu');openId=it.id;const id=it.id;setTimeout(()=>{if(openId===id){t.classList.remove('open-menu');openId=null}},4000)}};
       row.append(t);
@@ -364,14 +364,14 @@ function addItem(){
 }
 function openDetail(id){
   const it=lastItems.find(i=>i.id===id);if(!it)return;
-  detailId=id;setIcon($('dIcon'),it._icon);$('dName').textContent=it.text;
+  detailId=id;setIcon($('dIcon'),it._icon);$('dName').value=it.text;
   $('dNote').value=it.note||'';$('dCat').value=it._cat;
   showPhoto(it.thumb||null);
   if(it.thumb)photoRef(id).once('value').then(s=>{if(detailId===id&&s.val())showPhoto(s.val())});
   openModal('detailModal');
 }
 function saveDetail(){
-  if(detailId)listRef.child(detailId).update({note:$('dNote').value.trim(),cat:$('dCat').value});
+  if(detailId)listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value});
   closeModal('detailModal');detailId=null;
 }
 function setStatus(id,s){listRef.child(id).update({status:s})}
@@ -439,6 +439,11 @@ let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}cat
 const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
 function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
 db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
+function restoreAll(st){
+  const u={};lastItems.filter(i=>i.status===st).forEach(i=>{u[i.id+'/status']='active'});
+  const n=Object.keys(u).length;if(!n)return;
+  listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
+}
 let hadActive=false;
 function confetti(){
   if(navigator.vibrate)navigator.vibrate([40,40,40]);
