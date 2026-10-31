@@ -374,10 +374,10 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');cle
 function notify(i){
   toast('➕ '+i.text+' felkerült a listára');
   if(navigator.vibrate)navigator.vibrate(120);
-  if(document.hidden&&'Notification' in window&&Notification.permission==='granted')try{new Notification('Bevásárló lista',{body:i.text+' felkerült a listára',icon:'IMG_4302.png'})}catch(e){}
+  if(document.hidden&&'Notification' in window&&'serviceWorker' in navigator&&Notification.permission==='granted')try{navigator.serviceWorker.ready.then(r=>r.showNotification('Bevásárló lista',{body:i.text+' felkerült a listára',icon:'IMG_4302.png'}))}catch(e){}
 }
 function enableNotif(){
-  if(!('Notification' in window))return toast('Ez a böngésző nem támogatja az értesítést');
+  if(!('Notification' in window)){toastT=null;toast('iPhone-on csak a főképernyőre tett appban működik: Megosztás ⬆️ → Főképernyőhöz adás, majd onnan nyisd meg.');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('show'),7000);return}
   Notification.requestPermission().then(p=>toast(p==='granted'?'🔔 Értesítések bekapcsolva':'Az értesítés le van tiltva'));
 }
 const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
