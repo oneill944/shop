@@ -107,6 +107,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 #toast.show{transform:translate(-50%,0)}
 .cat-row img.ico{filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
 .cat-row .thumb{width:42px;height:42px}
+.cat-row .thumb{object-fit:contain}
 </style>
 </head>
 <body>
@@ -269,7 +270,7 @@ function render(){
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
-      if(it.thumb){const im=document.createElement('img');im.className='thumb';im.src=it.thumb;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
+      const th=it.thumb||(PM[pmKey(it.text)]||{}).t;if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
       const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
       const a=document.createElement('div');a.className='tile-actions';
@@ -301,7 +302,7 @@ $('fileDetail').onchange=async e=>{
   const f=e.target.files[0];if(!f||!detailId)return;
   try{
     const full=await shrink(f,900,.7),th=await shrink(f,160,.6);
-    await photoRef(detailId).set(full);await listRef.child(detailId).update({thumb:th});
+    await photoRef(detailId).set(full);await listRef.child(detailId).update({thumb:th});savePM((lastItems.find(i=>i.id===detailId)||{}).text,th);
     showPhoto(full);
   }catch(x){alert('A kép mentése nem sikerült.')}
   e.target.value='';
@@ -314,7 +315,7 @@ function showPhoto(src){
 }
 function removePhoto(){
   if(!detailId)return;
-  photoRef(detailId).remove();listRef.child(detailId).update({thumb:null});showPhoto(null);
+  photoRef(detailId).remove();listRef.child(detailId).update({thumb:null});savePM((lastItems.find(i=>i.id===detailId)||{}).text,null);showPhoto(null);
 }
 
 /* ---------- Tételek ---------- */
@@ -328,7 +329,7 @@ function addItem(){
   const val=$('manualInput').value.trim();if(!val)return;
   const g=guess(val),ref=listRef.push();
   const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
-  if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull)}
+  if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull);savePM(val,pendingThumb)}
   item.by=DEV;ref.set(item);bumpFreq(item);closeModal('inputModal');
 }
 function openDetail(id){
@@ -404,6 +405,10 @@ function realPic(it){
   return im;
 }
 function setReal(v){localStorage.setItem('realPics',v?'1':'0');render()}
+let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}catch(e){}
+const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
+function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
+db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
 const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
 let ready=false,toastT=null;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
