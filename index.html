@@ -13,41 +13,50 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
-:root{--bg:#f4f7f6;--card-bg:#fff;--text:#2d3436;--primary:#55efc4;--primary-dark:#00b894;--accent:#a87ff3;--danger:#ff7675;--grey:#dfe6e9}
-.dark{--bg:#1e272e;--card-bg:#2f3640;--text:#f5f6fa;--primary:#00d2d3;--grey:#353b48}
+:root{--bg:#f4f7f6;--card-bg:#fff;--text:#2d3436;--primary-dark:#00b894;--accent:#a87ff3;--danger:#ff7675;--grey:#dfe6e9}
+.dark{--bg:#1e272e;--card-bg:#2f3640;--text:#f5f6fa;--grey:#353b48}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;user-select:none;-webkit-user-select:none}
-input,textarea{user-select:text;-webkit-user-select:text}
+input,textarea,select{user-select:text;-webkit-user-select:text}
 body{background:var(--bg);color:var(--text);margin:0;padding:15px;padding-top:max(15px,env(safe-area-inset-top));transition:.3s}
 .app-container{max-width:500px;margin:0 auto;padding-bottom:90px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .room-chip{background:var(--primary-dark);color:#fff;padding:6px 15px;border-radius:20px;font-weight:800;font-size:12px;border:none;cursor:pointer}
 .ibtn{background:none;border:none;font-size:20px;cursor:pointer}
 .grid-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-bottom:20px}
-.tile{background:var(--card-bg);border-radius:18px;padding:15px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:110px;cursor:pointer}
+.cat-title{grid-column:1/-1;font-size:12px;font-weight:800;letter-spacing:.5px;opacity:.7;margin-top:8px;display:flex;align-items:center;gap:6px}
+.tile{background:var(--card-bg);border-radius:18px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:112px;cursor:pointer}
 .tile:active{transform:scale(.96)}
-.tile-icon{font-size:34px;margin-bottom:6px}
+.ico{width:46px;height:46px;object-fit:contain;font-size:36px;line-height:46px;display:block;margin-bottom:6px}
+.mini .ico,.ico.s{width:22px;height:22px;font-size:17px;line-height:22px;margin:0}
+.thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;margin-bottom:5px}
 .tile-text{font-size:13px;font-weight:600;word-break:break-word;line-height:1.2}
-.tile-note{font-size:10px;opacity:.6;margin-top:4px;word-break:break-word}
-.tile-actions{position:absolute;inset:0;background:var(--card-bg);border-radius:18px;display:none;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;padding:6px}
+.tile-note{font-size:10px;opacity:.6;margin-top:3px;word-break:break-word}
+.tile-actions{position:absolute;inset:0;background:var(--card-bg);border-radius:18px;display:none;flex-wrap:wrap;gap:8px;justify-content:center;align-content:center;padding:6px}
 .tile.open-menu .tile-actions{display:flex}
-.action-circle{width:36px;height:36px;border-radius:50%;border:none;color:#fff;font-size:15px;cursor:pointer}
+.action-circle{width:38px;height:38px;border-radius:50%;border:none;color:#fff;font-size:16px;cursor:pointer}
 .empty{grid-column:1/-1;text-align:center;opacity:.5;padding:30px 0;font-size:14px}
 .status-section{background:var(--card-bg);border-radius:20px;padding:15px;margin-top:15px}
-.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:10px;font-weight:bold;display:flex;justify-content:space-between}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:10px;font-weight:bold;display:flex;justify-content:space-between}
 .section-title button{background:none;border:none;color:var(--danger);font-size:11px;font-weight:bold;cursor:pointer;text-transform:uppercase}
 .mini-list{display:flex;flex-wrap:wrap;gap:8px}
 .mini-tag{background:var(--grey);padding:5px 12px;border-radius:15px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
 .mini-tag .undo{cursor:pointer;opacity:.6}
 .fab{position:fixed;bottom:max(25px,env(safe-area-inset-bottom));right:25px;width:60px;height:60px;background:var(--primary-dark);color:#fff;border-radius:50%;font-size:30px;border:none;box-shadow:0 10px 25px rgba(0,0,0,.2);cursor:pointer;z-index:100}
 .custom-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:1000;justify-content:center;align-items:center;padding:20px}
-.modal-content{background:var(--card-bg);width:100%;max-width:380px;border-radius:30px;padding:25px;max-height:90vh;overflow:auto}
-input,textarea{width:100%;padding:15px;margin-bottom:12px;border-radius:15px;border:2px solid var(--grey);background:var(--bg);color:var(--text);font-size:16px;outline:none}
-.primary-btn{width:100%;padding:15px;border-radius:15px;border:none;background:var(--primary-dark);color:#fff;font-weight:bold;font-size:16px;cursor:pointer}
-.cancel{width:100%;background:none;border:none;margin-top:12px;color:#888;cursor:pointer}
+.modal-content{background:var(--card-bg);width:100%;max-width:380px;border-radius:30px;padding:25px;max-height:92vh;overflow:auto}
+input,textarea,select{width:100%;padding:14px;margin-bottom:12px;border-radius:15px;border:2px solid var(--grey);background:var(--bg);color:var(--text);font-size:16px;outline:none}
+.primary-btn,.sec-btn{width:100%;padding:14px;border-radius:15px;border:none;background:var(--primary-dark);color:#fff;font-weight:bold;font-size:15px;cursor:pointer;margin-bottom:8px}
+.sec-btn{background:var(--grey);color:var(--text)}
+.cancel{width:100%;background:none;border:none;margin-top:6px;color:#888;cursor:pointer;padding:8px}
 .add-row{display:flex;gap:10px;align-items:flex-start}
-.preview{width:56px;height:56px;flex:none;border-radius:15px;background:var(--bg);border:2px solid var(--grey);font-size:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.picker button{font-size:26px;background:var(--bg);border:none;border-radius:10px;padding:6px;cursor:pointer}
+.preview{width:56px;height:56px;flex:none;border-radius:15px;background:var(--bg);border:2px solid var(--grey);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.preview .ico{width:38px;height:38px;line-height:38px;font-size:28px;margin:0}
+.picker{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.picker button{background:var(--bg);border:none;border-radius:12px;padding:6px;cursor:pointer;display:flex;justify-content:center}
+.picker .ico{margin:0;width:34px;height:34px;line-height:34px;font-size:26px}
+.big-photo{width:100%;border-radius:18px;margin-bottom:12px;display:none}
+.dhead{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:18px;font-weight:700}
+.dhead .ico{margin:0}
 </style>
 </head>
 <body>
@@ -56,7 +65,7 @@ input,textarea{width:100%;padding:15px;margin-bottom:12px;border-radius:15px;bor
     <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
     <div><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
   </div>
-  <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:18px;opacity:.6">...</div>
+  <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6">...</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><button onclick="clearStatus('done')">Törlés</button></div><div class="mini-list" id="doneList"></div></div>
   <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><button onclick="clearStatus('x')">Törlés</button></div><div class="mini-list" id="missingList"></div></div>
@@ -66,12 +75,28 @@ input,textarea{width:100%;padding:15px;margin-bottom:12px;border-radius:15px;bor
 <div id="inputModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Új tétel</h3>
   <div class="add-row">
-    <div class="preview" id="preview" onclick="openPicker('new')">🛒</div>
+    <div class="preview" id="preview" onclick="openPicker('new')"></div>
     <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör..." autocomplete="off">
   </div>
   <textarea id="manualNote" placeholder="Megjegyzés (opcionális)" rows="2"></textarea>
+  <select id="newCat"></select>
+  <input type="file" id="fileNew" accept="image/*" hidden>
+  <button class="sec-btn" id="newPhotoBtn" onclick="document.getElementById('fileNew').click()">📷 Kép hozzáadása</button>
   <button class="primary-btn" onclick="addItem()">Hozzáadás a listához</button>
   <button class="cancel" onclick="closeModal('inputModal')">Mégse</button>
+</div></div>
+
+<div id="detailModal" class="custom-modal"><div class="modal-content">
+  <div class="dhead"><span id="dIcon"></span><span id="dName"></span></div>
+  <img id="dPhoto" class="big-photo" alt="">
+  <textarea id="dNote" placeholder="Megjegyzés" rows="2"></textarea>
+  <select id="dCat"></select>
+  <input type="file" id="fileDetail" accept="image/*" hidden>
+  <button class="sec-btn" id="dPhotoBtn" onclick="document.getElementById('fileDetail').click()">📷 Kép hozzáadása</button>
+  <button class="sec-btn" id="dPhotoDel" onclick="removePhoto()" style="display:none">Kép törlése</button>
+  <button class="sec-btn" onclick="openPicker(detailId)">😀 Ikon módosítása</button>
+  <button class="primary-btn" onclick="saveDetail()">Mentés</button>
+  <button class="cancel" onclick="closeModal('detailModal')">Bezárás</button>
 </div></div>
 
 <div id="listModal" class="custom-modal"><div class="modal-content">
@@ -81,7 +106,7 @@ input,textarea{width:100%;padding:15px;margin-bottom:12px;border-radius:15px;bor
   <button class="cancel" onclick="closeModal('listModal')">Bezárás</button>
 </div></div>
 
-<div id="pickerModal" class="custom-modal"><div class="modal-content">
+<div id="pickerModal" class="custom-modal" style="z-index:1100"><div class="modal-content">
   <h3 style="margin-top:0">Válassz ikont</h3>
   <div class="picker" id="pickerGrid"></div>
   <button class="cancel" onclick="closeModal('pickerModal')">Mégse</button>
@@ -93,139 +118,190 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 let currentListId=localStorage.getItem('currentListId')||"2316";
 let listRef=db.ref('shoppingLists/'+currentListId);
-let openId=null,pickTarget=null,chosenIcon=null,lastItems=[];
-
+const photoRef=id=>db.ref('photos/'+currentListId+'/'+id);
+let openId=null,pickTarget=null,chosenIcon=null,detailId=null,lastItems=[],pendingFull=null,pendingThumb=null;
+const $=id=>document.getElementById(id);
 if(localStorage.getItem('dark')==='1')document.body.classList.add('dark');
 
-/* ---------- Ikonok ---------- */
-const ICONS=`🥛:tej,tejfol,kefir,tejszin|🍞:kenyer,kifli,pek,zsemle,piritos,teknyo,bagett|🥐:croissant,vajas|🥩:hus,szalonna,virsli,kolbasz,felvagott,sonka,szalami,steak,darahus,daralt|🍗:csirke,pulyka,szarny|🐟:hal,tonhal,lazac,ponty,halrud|🥚:tojas|🧀:sajt,mozzarella,trappista,turo,vaj,margarin,parmezan|🍦:joghurt,fagylalt,puding|🍻:sor,sorok,keg|🍷:bor,pezsgo,palinka,whisky,vodka,likor,rum,gin|🥤:viz,uditő,udito,cola,fanta,szoda,limonade,asvanyviz,energiaital,tonik|🧃:gyumolcsle,narancsle,juice,szörp,szorp|☕:kave,kakao,tea,kapszula|🥦:zoldseg,brokkoli,karfiol,kaposzta,cukkini,padlizsan|🍅:paradicsom|🫑:paprika|🥕:sargarepa,repa,petrezselyem|🥔:burgonya,krumpli|🧅:hagyma|🧄:fokhagyma|🥒:uborka|🥬:salata,spenot,rukkola|🍄:gomba|🌽:kukorica|🍎:alma,gyumolcs|🍌:banan|🍊:narancs,mandarin|🍋:citrom,lime|🍇:szolo|🍓:eper,malna,szamoca,afonya|🍉:dinnye|🍐:korte|🍑:barack,szilva,seresznye,cseresznye,meggy|🥑:avokado|🍫:csoki,csokolade,nutella|🍪:keksz,piskota,suti|🍬:cukorka,gumicukor,edesseg|🍿:chips,popcorn,perec,mogyoro|🍰:torta,sutemeny,muffin|🍝:teszta,spagetti,tarhonya,makaroni,tészta|🍚:rizs|🌾:liszt,zab,muzli,pehely,gabona|🫒:olaj,olivaolaj,ecet|🧂:so,cukor,fuszer,bors,vegeta|🍯:mez,lekvar,dzsem|🥫:konzerv,kukoricakonzerv,babkonzerv,leves|🫘:bab,lencse,borso,csicseriborso|🥜:dio,mandula,magok|🧻:wc,papir,zsebkendo,torolkozo,konyhai|🧼:szappan,tisztit,mosogato,mosopor,oblito,hipo,hipó,fertotlenito|🧴:samp,tusfurdo,krem,fogkrem,deo,balzsam,naptej|🪥:fogkefe,fogselyem|🪒:borotva|🧽:szivacs,fureszt|🗑️:szemetes,zsak|🍕:pizza|🍔:hamburger,hotdog,buci|🌮:taco,tortilla,wrap|🍜:tesztaleves,instant,tészta|🐶:kutya,kutyatap|🐱:macska,alom,macskatap|🍼:baba,pelenka,tapszer,popsi|💊:gyogyszer,vitamin,tabletta,fajdalomcsillapito,tapasz|🔋:elem,akku|💡:izzo,lampa|🕯️:gyertya|🌸:virag,virag|🎂:szuletesnap,tortagyertya|🎁:ajandek|🥶:fagyasztott,jeg|🧊:jeg,jegkocka|📝:fuzet,toll,ceruza,jegyzet|🧦:zokni,ruha,polo,nadrag|🚗:benzin,autó,auto,mosoauto`;
-const DICT=ICONS.split('|').map(r=>{const[e,k]=r.split(':');return[e,k.split(',').map(norm)]});
-function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ő/g,'o').replace(/ű/g,'u').trim()}
-function getMem(){try{return JSON.parse(localStorage.getItem('iconMem')||'{}')}catch(e){return{}}}
-function iconFor(text){
-  const n=norm(text),mem=getMem();
-  if(mem[n])return mem[n];
-  const words=n.split(/[^a-z0-9]+/).filter(Boolean);
-  let best=null,bl=0;
-  for(const[e,kws]of DICT)for(const k of kws){
-    if(!k)continue;
+/* ---------- Kategóriák (bolti sorrend) ---------- */
+const CATS=[['zold','Zöldség & gyümölcs','🥦'],['pek','Pékáru','🍞'],['hus','Húsok & felvágottak','🥩'],['tej','Tejtermék & tojás','🥛'],['szaraz','Száraz élelmiszer','🥫'],['ital','Italok','🥤'],['fagy','Fagyasztott','🧊'],['haz','Háztartás & drogéria','🧻'],['egyeb','Egyéb','📦']];
+const DATA=`zold|🥦:zoldseg,brokkoli,karfiol,kaposzta,cukkini,padlizsan;🍅:paradicsom;🫑:paprika;🥕:sargarepa,repa,petrezselyem;🥔:burgonya,krumpli;🧅:hagyma;🧄:fokhagyma;🥒:uborka;🥬:salata,spenot,rukkola;🍄:gomba;🌽:kukorica;🍎:alma,gyumolcs;🍌:banan;🍊:narancs,mandarin;🍋:citrom,lime;🍇:szolo;🍓:eper,malna,szamoca,afonya;🍉:dinnye;🍐:korte;🍑:barack,szilva,seresznye,cseresznye,meggy;🥑:avokado
+pek|🍞:kenyer,kifli,pek,zsemle,piritos,teknyo,bagett,buci;🥐:croissant,vajas
+hus|🥩:hus,szalonna,virsli,kolbasz,felvagott,sonka,szalami,steak,darahus,daralt;🍗:csirke,pulyka,szarny;🐟:hal,tonhal,lazac,ponty
+tej|🥛:tej,tejfol,kefir,tejszin;🥚:tojas;🧀:sajt,mozzarella,trappista,turo,vaj,margarin,parmezan;🍨:joghurt,puding
+szaraz|🍝:teszta,spagetti,tarhonya,makaroni;🍚:rizs;🌾:liszt,zab,muzli,pehely,gabona;🫒:olaj,olivaolaj,ecet;🧂:so,cukor,fuszer,bors,vegeta;🍯:mez,lekvar,dzsem;🥫:konzerv,leves;🫘:bab,lencse,borso,csicseriborso;🥜:dio,mandula,magok,mogyoro;🍫:csoki,csokolade,nutella;🍪:keksz,piskota,suti;🍬:cukorka,gumicukor,edesseg;🍿:chips,popcorn,perec;🍰:torta,sutemeny,muffin;☕:kave,kakao,tea,kapszula;🍜:instant
+ital|🍺:sor,keg;🍷:bor,pezsgo,palinka,whisky,vodka,likor,rum,gin;🥤:viz,udito,cola,fanta,szoda,limonade,asvanyviz,energiaital,tonik;🧃:gyumolcsle,narancsle,juice,szorp
+fagy|🥶:fagyasztott;🍕:pizza;🍦:fagylalt;🧊:jeg,jegkocka
+haz|🧻:wc,papir,zsebkendo,torolkozo,konyhai;🧼:szappan,tisztit,mosogato,mosopor,oblito,hipo,fertotlenito;🧴:samp,tusfurdo,krem,fogkrem,deo,balzsam,naptej;🪥:fogkefe,fogselyem;🪒:borotva;🧽:szivacs,fureszt;🗑️:szemetes,zsak;🔋:elem,akku;💡:izzo,lampa;🕯️:gyertya
+egyeb|🐶:kutya,kutyatap;🐱:macska,alom,macskatap;🍼:baba,pelenka,tapszer,popsi;💊:gyogyszer,vitamin,tabletta,tapasz;🌸:virag;🎁:ajandek;📝:fuzet,toll,ceruza;🧦:zokni,ruha,polo,nadrag;🍔:hamburger,hotdog;🌮:taco,tortilla,wrap`;
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
+const DICT=[];
+DATA.split('\n').forEach(line=>{const[c,rest]=line.split('|');rest.split(';').forEach(p=>{const[e,k]=p.split(':');DICT.push([e,k.split(',').map(norm),c])})});
+const getMem=()=>{try{return JSON.parse(localStorage.getItem('iconMem')||'{}')}catch(e){return{}}};
+function guess(text){
+  const n=norm(text),words=n.split(/[^a-z0-9]+/).filter(Boolean);
+  let best={icon:'🛒',cat:'egyeb'},bl=0;
+  for(const[e,kws,c]of DICT)for(const k of kws){
     const hit=k.length<4?words.includes(k):n.includes(k);
-    if(hit&&k.length>bl){best=e;bl=k.length}
+    if(hit&&k.length>bl){best={icon:e,cat:c};bl=k.length}
   }
-  return best||'🛒';
+  const m=getMem()[n];if(m)best.icon=m;
+  return best;
 }
-const PICK=Array.from('🛒🥛🍞🥩🍗🐟🥚🧀🍦🍻🍷🥤☕🥦🍅🥕🥔🧅🍎🍌🍊🍇🍓🍉🍫🍪🍬🍿🍰🍝🍚🌾🫒🧂🍯🥫🧻🧼🧴🪥🧽🍕🍔🐶🐱🍼💊🔋💡🕯️🌸🎁📝🧦🥑🥬🍄🌽🧊🍋');
+const PICK=Array.from('🛒🥛🍞🥩🍗🐟🥚🧀🍨🍺🍷🥤☕🥦🍅🥕🥔🧅🍎🍌🍊🍇🍓🍉🍫🍪🍬🍿🍰🍝🍚🌾🫒🧂🍯🥫🧻🧼🧴🪥🧽🍕🍔🐶🐱🍼💊🔋💡🌸🎁📝🧦🥑🥬🍄🌽🧊🍋');
+
+/* ---------- Realisztikus (3D) ikonok, tartalék: Noto, végül natív emoji ---------- */
+function iconEl(e,cls){
+  const code=Array.from(e).map(c=>c.codePointAt(0).toString(16)).filter(c=>c!=='fe0f').join('-');
+  const srcs=[`https://cdn.jsdelivr.net/npm/@lobehub/fluent-emoji-3d@1.1.0/assets/${code}.webp`,`https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u${code.replace(/-/g,'_')}.png`];
+  const img=new Image();img.className='ico '+(cls||'');img.alt=e;img.loading='lazy';let i=0;img.src=srcs[0];
+  img.onerror=()=>{i++;if(i<srcs.length)img.src=srcs[i];else{const s=document.createElement('span');s.className='ico '+(cls||'');s.textContent=e;img.replaceWith(s)}};
+  return img;
+}
+const setIcon=(el,e,cls)=>el.replaceChildren(iconEl(e,cls));
 
 /* ---------- Init ---------- */
+$('newCat').add(new Option('Kategória: automatikus',''));
+[$('newCat'),$('dCat')].forEach((s,k)=>CATS.forEach(([id,l,e])=>s.add(new Option(e+' '+l,id))));
+setIcon($('preview'),'🛒');
+
 function init(){
-  document.getElementById('roomNum').textContent=currentListId;
+  $('roomNum').textContent=currentListId;
   listRef.on('value',snap=>{
     const d=snap.val();
     lastItems=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
     render();
   });
   const pRef=db.ref('presence/'+currentListId);
-  const myP=pRef.push(true);
-  myP.onDisconnect().remove();
-  pRef.on('value',s=>{document.getElementById('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
+  const myP=pRef.push(true);myP.onDisconnect().remove();
+  pRef.on('value',s=>{$('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
 }
-
 function btn(label,bg,fn){
-  const b=document.createElement('button');
-  b.className='action-circle';b.style.background=bg;b.textContent=label;
+  const b=document.createElement('button');b.className='action-circle';b.style.background=bg;b.textContent=label;
   b.onclick=e=>{e.stopPropagation();fn()};return b;
 }
-
 function render(){
-  const grid=document.getElementById('activeGrid'),done=document.getElementById('doneList'),miss=document.getElementById('missingList');
+  const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
   grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
-  let active=0;
+  const groups={};let active=0;
   items.forEach(it=>{
-    const icon=it.icon||iconFor(it.text||'');
-    if(it.status==='active'){
-      active++;
-      const t=document.createElement('div');
-      t.className='tile'+(it.note?' has-info':'')+(openId===it.id?' open-menu':'');
-      const i=document.createElement('div');i.className='tile-icon';i.textContent=icon;
-      const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;
-      t.append(i,x);
-      if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
-      const a=document.createElement('div');a.className='tile-actions';
-      a.append(
-        btn('✓','var(--primary-dark)',()=>setStatus(it.id,'done')),
-        btn('✖','var(--danger)',()=>setStatus(it.id,'x')),
-        btn('😀','var(--accent)',()=>openPicker(it.id)),
-        btn('🗑️','#b2bec3',()=>listRef.child(it.id).remove())
-      );
-      t.append(a);
-      t.onclick=()=>{
-        openId=openId===it.id?null:it.id;render();
-        if(openId){const id=openId;setTimeout(()=>{if(openId===id){openId=null;render()}},4000)}
-      };
-      grid.append(t);
-    }else{
-      const g=document.createElement('div');g.className='mini-tag';
-      const s=document.createElement('span');s.textContent=icon+' '+it.text;
+    const g=guess(it.text||'');it._icon=it.icon||g.icon;it._cat=it.cat||g.cat;
+    if(it.status==='active'){active++;(groups[it._cat]=groups[it._cat]||[]).push(it)}
+    else{
+      const t=document.createElement('div');t.className='mini-tag mini';
+      const ic=iconEl(it._icon,'s');const s=document.createElement('span');s.textContent=it.text;
       const u=document.createElement('span');u.className='undo';u.textContent='↺';u.onclick=()=>setStatus(it.id,'active');
-      g.append(s,u);
-      (it.status==='done'?done:miss).append(g);
+      t.append(ic,s,u);(it.status==='done'?done:miss).append(t);
     }
   });
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
+  CATS.forEach(([cid,label,emo])=>{
+    const arr=groups[cid];if(!arr)return;
+    const h=document.createElement('div');h.className='cat-title';h.append(iconEl(emo,'s'),document.createTextNode(label));grid.append(h);
+    arr.forEach(it=>{
+      const t=document.createElement('div');
+      t.className='tile'+(openId===it.id?' open-menu':'');
+      if(it.thumb){const im=document.createElement('img');im.className='thumb';im.src=it.thumb;t.append(im)}else t.append(iconEl(it._icon));
+      const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
+      if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
+      const a=document.createElement('div');a.className='tile-actions';
+      a.append(btn('✓','var(--primary-dark)',()=>setStatus(it.id,'done')),btn('✖','var(--danger)',()=>setStatus(it.id,'x')),
+        btn(it.thumb?'🖼️':'ℹ️','var(--accent)',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
+      t.append(a);
+      t.onclick=()=>{openId=openId===it.id?null:it.id;render();if(openId){const id=openId;setTimeout(()=>{if(openId===id){openId=null;render()}},4000)}};
+      grid.append(t);
+    });
+  });
 }
 
-/* ---------- Műveletek ---------- */
+/* ---------- Képek ---------- */
+function shrink(file,max,q){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',q))};
+  im.onerror=rej;im.src=u;
+});}
+$('fileNew').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{pendingFull=await shrink(f,900,.7);pendingThumb=await shrink(f,160,.6);$('newPhotoBtn').textContent='✓ Kép hozzáadva (csere)'}catch(x){alert('A képet nem sikerült beolvasni.')}
+  e.target.value='';
+};
+$('fileDetail').onchange=async e=>{
+  const f=e.target.files[0];if(!f||!detailId)return;
+  try{
+    const full=await shrink(f,900,.7),th=await shrink(f,160,.6);
+    await photoRef(detailId).set(full);await listRef.child(detailId).update({thumb:th});
+    showPhoto(full);
+  }catch(x){alert('A kép mentése nem sikerült.')}
+  e.target.value='';
+};
+function showPhoto(src){
+  const p=$('dPhoto');
+  if(src){p.src=src;p.style.display='block'}else{p.style.display='none';p.removeAttribute('src')}
+  $('dPhotoDel').style.display=src?'block':'none';
+  $('dPhotoBtn').textContent=src?'📷 Kép cseréje':'📷 Kép hozzáadása';
+}
+function removePhoto(){
+  if(!detailId)return;
+  photoRef(detailId).remove();listRef.child(detailId).update({thumb:null});showPhoto(null);
+}
+
+/* ---------- Tételek ---------- */
 function openAdd(){
-  chosenIcon=null;
-  document.getElementById('manualInput').value='';document.getElementById('manualNote').value='';
-  document.getElementById('preview').textContent='🛒';
-  openModal('inputModal');
-  setTimeout(()=>document.getElementById('manualInput').focus(),50);
+  chosenIcon=null;pendingFull=pendingThumb=null;
+  $('manualInput').value='';$('manualNote').value='';$('newCat').value='';
+  $('newPhotoBtn').textContent='📷 Kép hozzáadása';setIcon($('preview'),'🛒');
+  openModal('inputModal');setTimeout(()=>$('manualInput').focus(),50);
 }
 function addItem(){
-  const val=document.getElementById('manualInput').value.trim();
-  if(!val)return;
-  listRef.push({text:val,note:document.getElementById('manualNote').value.trim(),icon:chosenIcon||iconFor(val),status:'active',order:Date.now()});
-  closeModal('inputModal');
+  const val=$('manualInput').value.trim();if(!val)return;
+  const g=guess(val),ref=listRef.push();
+  const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
+  if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull)}
+  ref.set(item);closeModal('inputModal');
+}
+function openDetail(id){
+  const it=lastItems.find(i=>i.id===id);if(!it)return;
+  detailId=id;setIcon($('dIcon'),it._icon);$('dName').textContent=it.text;
+  $('dNote').value=it.note||'';$('dCat').value=it._cat;
+  showPhoto(it.thumb||null);
+  if(it.thumb)photoRef(id).once('value').then(s=>{if(detailId===id&&s.val())showPhoto(s.val())});
+  openModal('detailModal');
+}
+function saveDetail(){
+  if(detailId)listRef.child(detailId).update({note:$('dNote').value.trim(),cat:$('dCat').value});
+  closeModal('detailModal');detailId=null;
 }
 function setStatus(id,s){listRef.child(id).update({status:s})}
+function delItem(id){listRef.child(id).remove();photoRef(id).remove()}
 function clearStatus(s){
   const ids=lastItems.filter(i=>i.status===s).map(i=>i.id);
-  if(ids.length&&confirm('Törlöd ezeket ('+ids.length+')?'))ids.forEach(id=>listRef.child(id).remove());
+  if(ids.length&&confirm('Törlöd ezeket ('+ids.length+')?'))ids.forEach(delItem);
 }
-function clearAllItems(){if(confirm('Mindent törölsz?'))listRef.remove()}
+function clearAllItems(){if(confirm('Mindent törölsz?')){listRef.remove();db.ref('photos/'+currentListId).remove()}}
 function toggleMode(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0')}
-function openModal(id){document.getElementById(id).style.display='flex'}
-function closeModal(id){document.getElementById(id).style.display='none'}
-function joinByCode(){
-  const c=document.getElementById('joinCodeInput').value.trim();
-  if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}
-}
+function openModal(id){$(id).style.display='flex'}
+function closeModal(id){$(id).style.display='none'}
+function joinByCode(){const c=$('joinCodeInput').value.trim();if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}}
 
 /* ---------- Ikonválasztó ---------- */
 function openPicker(target){
-  pickTarget=target;
-  const g=document.getElementById('pickerGrid');g.textContent='';
-  PICK.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>pickIcon(e);g.append(b)});
+  pickTarget=target;const g=$('pickerGrid');g.textContent='';
+  PICK.forEach(e=>{const b=document.createElement('button');b.append(iconEl(e));b.onclick=()=>pickIcon(e);g.append(b)});
   openModal('pickerModal');
 }
 function pickIcon(e){
-  if(pickTarget==='new'){
-    chosenIcon=e;document.getElementById('preview').textContent=e;
-  }else{
+  if(pickTarget==='new'){chosenIcon=e;setIcon($('preview'),e)}
+  else{
     const it=lastItems.find(i=>i.id===pickTarget);
-    if(it){listRef.child(it.id).update({icon:e});const m=getMem();m[norm(it.text)]=e;localStorage.setItem('iconMem',JSON.stringify(m))}
+    if(it){listRef.child(it.id).update({icon:e});const m=getMem();m[norm(it.text)]=e;localStorage.setItem('iconMem',JSON.stringify(m));if(detailId===it.id)setIcon($('dIcon'),e)}
   }
   closeModal('pickerModal');
 }
-
-/* ---------- Események ---------- */
-document.getElementById('manualInput').addEventListener('input',e=>{
-  if(!chosenIcon)document.getElementById('preview').textContent=e.target.value.trim()?iconFor(e.target.value):'🛒';
-});
-document.getElementById('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
-
+$('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),e.target.value.trim()?guess(e.target.value).icon:'🛒')});
+$('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
 init();
 </script>
 </body>
