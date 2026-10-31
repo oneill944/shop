@@ -116,6 +116,13 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .cat-row.collapsed{display:none}
 .tile.pop{animation:pop .33s ease-in forwards}
 @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(.6);opacity:0}}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1500}
+.confetti i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.win{opacity:1;padding:28px 10px}
+.win-emoji{font-size:56px}
+.win-t{font-size:20px;font-weight:800;margin-top:6px}
+.win-s{font-size:13px;opacity:.7;margin-top:4px}
 </style>
 </head>
 <body>
@@ -272,7 +279,16 @@ function render(){
       t.append(ic,s,u);(it.status==='done'?done:miss).append(t);
     }
   });
-  if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
+  if(!active){
+    const e=document.createElement('div');e.className='empty';
+    if(lastItems.length){
+      e.classList.add('win');
+      [['win-emoji','🎉'],['win-t','Kész a bevásárlás!'],['win-s','Minden tétel el van intézve.']].forEach(([c,t])=>{const d=document.createElement('div');d.className=c;d.textContent=t;e.append(d)});
+      if(hadActive)confetti();
+    }else e.textContent='Még nincs tétel – koppints a + gombra';
+    grid.append(e);
+  }
+  hadActive=!!active;
   orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
     const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode((COL.has(cid)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className='cat-row'+(COL.has(cid)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
@@ -423,6 +439,14 @@ let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}cat
 const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
 function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
 db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
+let hadActive=false;
+function confetti(){
+  if(navigator.vibrate)navigator.vibrate([40,40,40]);
+  const c=document.createElement('div');c.className='confetti';
+  const cols=['#12b886','#8b5cf6','#ec4899','#f0a04b','#4aa8ff','#ffd43b'];
+  for(let i=0;i<46;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=cols[i%cols.length];p.style.animationDuration=(2+Math.random()*2)+'s';p.style.animationDelay=(Math.random()*.6)+'s';c.append(p)}
+  document.body.append(c);setTimeout(()=>c.remove(),4800);
+}
 let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
 function pop(t,fn){if(navigator.vibrate)navigator.vibrate(30);t.classList.add('pop');setTimeout(fn,330)}
 function renderProg(){
