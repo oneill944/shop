@@ -67,6 +67,12 @@ input,textarea,select{width:100%;padding:14px;margin-bottom:12px;border-radius:1
 .cat-row .tile-note{font-size:9px}
 .cat-row .tile-actions{gap:4px;padding:4px;border-radius:14px}
 .cat-row .action-circle{width:30px;height:30px;font-size:13px}
+.cat-row .tile{flex:0 0 calc((100% - 16px)/3.5);min-height:78px;padding:6px 3px}
+.cat-row .ico{width:30px;height:30px;font-size:24px;line-height:30px;margin-bottom:3px}
+.cat-row .thumb{width:36px;height:36px;margin-bottom:3px}
+.cat-row .tile-text{font-size:10.5px}
+.cat-row .tile-note{font-size:8.5px}
+.cat-row .action-circle{width:26px;height:26px;font-size:11px}
 </style>
 </head>
 <body>
@@ -134,12 +140,13 @@ const $=id=>document.getElementById(id);
 if(localStorage.getItem('dark')==='1')document.body.classList.add('dark');
 
 /* ---------- Kategóriák (bolti sorrend) ---------- */
-const CATS=[['zold','Zöldség & gyümölcs','🥦'],['pek','Pékáru','🍞'],['hus','Húsok & felvágottak','🥩'],['tej','Tejtermék & tojás','🥛'],['szaraz','Száraz élelmiszer','🥫'],['ital','Italok','🥤'],['fagy','Fagyasztott','🧊'],['haz','Háztartás & drogéria','🧻'],['egyeb','Egyéb','📦']];
+const CATS=[['zold','Zöldség & gyümölcs','🥦'],['pek','Pékáru','🍞'],['hus','Húsok & felvágottak','🥩'],['tej','Tejtermék & tojás','🥛'],['szaraz','Száraz élelmiszer','🥫'],['edes','Édesség & snack','🍫'],['ital','Italok','🥤'],['fagy','Fagyasztott','🧊'],['haz','Háztartás & drogéria','🧻'],['egyeb','Egyéb','📦']];
 const DATA=`zold|🥦:zoldseg,brokkoli,karfiol,kaposzta,cukkini,padlizsan;🍅:paradicsom;🫑:paprika;🥕:sargarepa,repa,petrezselyem;🥔:burgonya,krumpli;🧅:hagyma;🧄:fokhagyma;🥒:uborka;🥬:salata,spenot,rukkola;🍄:gomba;🌽:kukorica;🍎:alma,gyumolcs;🍌:banan;🍊:narancs,mandarin;🍋:citrom,lime;🍇:szolo;🍓:eper,malna,szamoca,afonya;🍉:dinnye;🍐:korte;🍑:barack,szilva,seresznye,cseresznye,meggy;🥑:avokado
 pek|🍞:kenyer,kifli,pek,zsemle,piritos,teknyo,bagett,buci;🥐:croissant,vajas
 hus|🥩:hus,szalonna,virsli,kolbasz,felvagott,sonka,szalami,steak,darahus,daralt;🍗:csirke,pulyka,szarny;🐟:hal,tonhal,lazac,ponty
 tej|🥛:tej,tejfol,kefir,tejszin;🥚:tojas;🧀:sajt,mozzarella,trappista,turo,vaj,margarin,parmezan;🍨:joghurt,puding
-szaraz|🍝:teszta,spagetti,tarhonya,makaroni;🍚:rizs;🌾:liszt,zab,muzli,pehely,gabona;🫒:olaj,olivaolaj,ecet;🧂:so,cukor,fuszer,bors,vegeta;🍯:mez,lekvar,dzsem;🥫:konzerv,leves;🫘:bab,lencse,borso,csicseriborso;🥜:dio,mandula,magok,mogyoro;🍫:csoki,csokolade,nutella;🍪:keksz,piskota,suti;🍬:cukorka,gumicukor,edesseg;🍿:chips,popcorn,perec;🍰:torta,sutemeny,muffin;☕:kave,kakao,tea,kapszula;🍜:instant
+szaraz|🍝:teszta,spagetti,tarhonya,makaroni;🍚:rizs;🌾:liszt,zab,muzli,pehely,gabona;🫒:olaj,olivaolaj,ecet;🧂:so,cukor,fuszer,bors,vegeta;🍯:mez,lekvar,dzsem;🥫:konzerv,leves;🫘:bab,lencse,borso,csicseriborso;🥜:dio,mandula,magok;☕:kave,kakao,tea,kapszula;🍜:instant
+edes|🍫:csoki,csokolade,nutella,szelet;🍪:keksz,piskota,suti;🍬:cukorka,gumicukor,edesseg,nyaloka;🍿:chips,popcorn,snack,nachos,ragcsa,szalmaburgonya;🥨:perec,ropi;🥜:mogyoro,kesu,pisztacia;🍰:torta,sutemeny,muffin
 ital|🍺:sor,keg;🍷:bor,pezsgo,palinka,whisky,vodka,likor,rum,gin;🥤:viz,udito,cola,fanta,szoda,limonade,asvanyviz,energiaital,tonik;🧃:gyumolcsle,narancsle,juice,szorp
 fagy|🥶:fagyasztott;🍕:pizza;🍦:fagylalt;🧊:jeg,jegkocka
 haz|🧻:wc,papir,zsebkendo,torolkozo,konyhai;🧼:szappan,tisztit,mosogato,mosopor,oblito,hipo,fertotlenito;🧴:samp,tusfurdo,krem,fogkrem,deo,balzsam,naptej;🪥:fogkefe,fogselyem;🪒:borotva;🧽:szivacs,fureszt;🗑️:szemetes,zsak;🔋:elem,akku;💡:izzo,lampa;🕯️:gyertya
