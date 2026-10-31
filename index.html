@@ -105,6 +105,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .ordrow button{width:34px;height:34px;border-radius:50%;border:none;background:var(--grey);color:var(--text);font-size:16px;cursor:pointer}
 #toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top));transform:translate(-50%,-140px);background:#2d3436;color:#fff;padding:10px 16px;border-radius:16px;font-size:13px;font-weight:700;z-index:2000;transition:transform .3s;max-width:90%}
 #toast.show{transform:translate(-50%,0)}
+.cat-row img.ico{filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
 </style>
 </head>
 <body>
@@ -153,6 +154,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 <div id="orderModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Bolti sorrend</h3>
   <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div id="ordList"></div>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
 </div></div>
@@ -266,7 +268,7 @@ function render(){
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
-      if(it.thumb){const im=document.createElement('img');im.className='thumb';im.src=it.thumb;t.append(im)}else t.append(iconEl(it._icon));
+      if(it.thumb){const im=document.createElement('img');im.className='thumb';im.src=it.thumb;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
       const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
       const a=document.createElement('div');a.className='tile-actions';
@@ -368,6 +370,19 @@ function pickIcon(e){
 }
 $('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),e.target.value.trim()?guess(e.target.value).icon:'🛒')});
 $('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
+const EN={tej:'Milk',tejfol:'Sour Cream',vaj:'Butter',sajt:'Cheddar Cheese',mozzarella:'Mozzarella',parmezan:'Parmesan',joghurt:'Yogurt',tojas:'Eggs',csirke:'Chicken',marha:'Beef',sertes:'Pork',szalonna:'Bacon',kolbasz:'Sausages',lazac:'Salmon',tonhal:'Tuna',rizs:'Rice',liszt:'Flour',cukor:'Sugar',so:'Salt',bors:'Black Pepper',olivaolaj:'Olive Oil',mez:'Honey',paradicsom:'Tomatoes',hagyma:'Onions',fokhagyma:'Garlic',burgonya:'Potatoes',krumpli:'Potatoes',sargarepa:'Carrots',uborka:'Cucumber',gomba:'Mushrooms',alma:'Apples',banan:'Bananas',citrom:'Lemon',narancs:'Orange',eper:'Strawberries',avokado:'Avocado',brokkoli:'Broccoli',karfiol:'Cauliflower',spenot:'Spinach',kaposzta:'Cabbage',cukkini:'Courgettes',kukorica:'Sweetcorn',bab:'Kidney Beans',teszta:'Spaghetti',spagetti:'Spaghetti',csokolade:'Dark Chocolate',kave:'Coffee'};
+const EK=Object.keys(EN).map(k=>[norm(k),EN[k]]).sort((a,b)=>b[0].length-a[0].length);
+function realPic(it){
+  if(localStorage.getItem('realPics')==='0'||it.icon!==guess(it.text||'').icon)return null;
+  const n=norm(it.text||''),w=n.split(/[^a-z0-9]+/);
+  const hit=EK.find(([k])=>k.length<4?w.includes(k):n.includes(k));
+  if(!hit)return null;
+  const im=new Image(),base='https://www.themealdb.com/images/ingredients/'+encodeURIComponent(hit[1]);
+  let st=0;im.className='ico';im.alt=it.text;im.loading='lazy';im.src=base+'-Small.png';
+  im.onerror=()=>{if(st++===0)im.src=base+'.png';else im.replaceWith(iconEl(it._icon))};
+  return im;
+}
+function setReal(v){localStorage.setItem('realPics',v?'1':'0');render()}
 const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
 let ready=false,toastT=null;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
@@ -383,6 +398,7 @@ function enableNotif(){
 const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
+  $('realChk').checked=localStorage.getItem('realPics')!=='0';
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
     const r=document.createElement('div');r.className='ordrow';
