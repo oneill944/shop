@@ -106,6 +106,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 #toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top));transform:translate(-50%,-140px);background:#2d3436;color:#fff;padding:10px 16px;border-radius:16px;font-size:13px;font-weight:700;z-index:2000;transition:transform .3s;max-width:90%}
 #toast.show{transform:translate(-50%,0)}
 .cat-row img.ico{filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
+.cat-row .thumb{width:42px;height:42px}
 </style>
 </head>
 <body>
@@ -370,13 +371,33 @@ function pickIcon(e){
 }
 $('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),e.target.value.trim()?guess(e.target.value).icon:'🛒')});
 $('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
-const EN={tej:'Milk',tejfol:'Sour Cream',vaj:'Butter',sajt:'Cheddar Cheese',mozzarella:'Mozzarella',parmezan:'Parmesan',joghurt:'Yogurt',tojas:'Eggs',csirke:'Chicken',marha:'Beef',sertes:'Pork',szalonna:'Bacon',kolbasz:'Sausages',lazac:'Salmon',tonhal:'Tuna',rizs:'Rice',liszt:'Flour',cukor:'Sugar',so:'Salt',bors:'Black Pepper',olivaolaj:'Olive Oil',mez:'Honey',paradicsom:'Tomatoes',hagyma:'Onions',fokhagyma:'Garlic',burgonya:'Potatoes',krumpli:'Potatoes',sargarepa:'Carrots',uborka:'Cucumber',gomba:'Mushrooms',alma:'Apples',banan:'Bananas',citrom:'Lemon',narancs:'Orange',eper:'Strawberries',avokado:'Avocado',brokkoli:'Broccoli',karfiol:'Cauliflower',spenot:'Spinach',kaposzta:'Cabbage',cukkini:'Courgettes',kukorica:'Sweetcorn',bab:'Kidney Beans',teszta:'Spaghetti',spagetti:'Spaghetti',csokolade:'Dark Chocolate',kave:'Coffee'};
+const EN={tej:'Milk',tejfol:'Sour Cream',vaj:'Butter',sajt:'Cheddar Cheese',mozzarella:'Mozzarella',parmezan:'Parmesan',joghurt:'Yogurt',tojas:'Eggs',csirke:'Chicken',marha:'Beef',sertes:'Pork',szalonna:'Bacon',kolbasz:'Sausages',lazac:'Salmon',tonhal:'Tuna',rizs:'Rice',liszt:'Flour',cukor:'Sugar',so:'Salt',bors:'Black Pepper',olivaolaj:'Olive Oil',mez:'Honey',paradicsom:'Tomatoes',hagyma:'Onions',fokhagyma:'Garlic',burgonya:'Potatoes',krumpli:'Potatoes',sargarepa:'Carrots',uborka:'Cucumber',gomba:'Mushrooms',alma:'Apples',banan:'Bananas',citrom:'Lemon',narancs:'Orange',eper:'Strawberries',avokado:'Avocado',brokkoli:'Broccoli',karfiol:'Cauliflower',spenot:'Spinach',kaposzta:'Cabbage',cukkini:'Courgettes',kukorica:'Sweetcorn',bab:'Kidney Beans',csokolade:'Dark Chocolate',kave:'Coffee'};
 const EK=Object.keys(EN).map(k=>[norm(k),EN[k]]).sort((a,b)=>b[0].length-a[0].length);
+const WK={kenyer:'Kenyér',zsemle:'Zsemle',kifli:'Kifli',hus:'Hús',sonka:'Sonka',szalami:'Szalámi',virsli:'Virsli',kolbasz:'Kolbász',chips:'Burgonyachips',cola:'Kóla',viz:'Ásványvíz',asvanyviz:'Ásványvíz',sor:'Sör',bor:'Bor',pezsgo:'Pezsgő',palinka:'Pálinka',gumicukor:'Gumicukor',csoki:'Csokoládé',keksz:'Keksz',perec:'Perec',popcorn:'Pattogatott kukorica',pizza:'Pizza',hamburger:'Hamburger',torta:'Torta',fagylalt:'Fagylalt',narancsle:'Narancslé',gyumolcsle:'Gyümölcslé',kave:'Kávé',tea:'Tea',teszta:'Tészta',spagetti:'Spagetti',zsebkendo:'Papírzsebkendő',wc:'WC-papír',fogkrem:'Fogkrém',szappan:'Szappan',samp:'Sampon',tusfurdo:'Tusfürdő',mosopor:'Mosópor',pelenka:'Pelenka',elem:'Elem',gyertya:'Gyertya',kutyatap:'Kutyaeledel',macskatap:'Macskaeledel',ketchup:'Ketchup',majonez:'Majonéz',mustar:'Mustár',ecet:'Ecet',olaj:'Étolaj',margarin:'Margarin',leves:'Leves',konzerv:'Konzerv'};
+const WKK=Object.keys(WK).map(k=>[norm(k),WK[k]]).sort((a,b)=>b[0].length-a[0].length);
+const wc=(()=>{try{return JSON.parse(localStorage.getItem('wikiPic')||'{}')}catch(e){return{}}})();
+const wpend=new Set();let wT=null;
+function wikiPic(it,n,w){
+  const h=WKK.find(([k])=>k.length<4?w.includes(k):n.includes(k));
+  const title=h?h[1]:(it.text||'').trim().replace(/\s+/g,'_');
+  if(!title)return null;
+  const key=norm(title),v=wc[key];
+  if(v===0)return null;
+  if(v){const im=new Image();im.className='thumb';im.alt=it.text;im.loading='lazy';im.src=v;im.onerror=()=>im.replaceWith(iconEl(it._icon));return im}
+  if(!wpend.has(key)){
+    wpend.add(key);
+    fetch('https://hu.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title))
+      .then(r=>r.ok?r.json():{})
+      .then(j=>{wc[key]=(j.type!=='disambiguation'&&j.thumbnail&&j.thumbnail.source)||0;try{localStorage.setItem('wikiPic',JSON.stringify(wc))}catch(e){}clearTimeout(wT);wT=setTimeout(render,300)})
+      .catch(()=>wpend.delete(key));
+  }
+  return null;
+}
 function realPic(it){
   if(localStorage.getItem('realPics')==='0'||it.icon!==guess(it.text||'').icon)return null;
   const n=norm(it.text||''),w=n.split(/[^a-z0-9]+/);
   const hit=EK.find(([k])=>k.length<4?w.includes(k):n.includes(k));
-  if(!hit)return null;
+  if(!hit)return wikiPic(it,n,w);
   const im=new Image(),base='https://www.themealdb.com/images/ingredients/'+encodeURIComponent(hit[1]);
   let st=0;im.className='ico';im.alt=it.text;im.loading='lazy';im.src=base+'-Small.png';
   im.onerror=()=>{if(st++===0)im.src=base+'.png';else im.replaceWith(iconEl(it._icon))};
