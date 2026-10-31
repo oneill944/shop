@@ -96,15 +96,25 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .cat-row .tile-actions{background:color-mix(in srgb,var(--c) 18%,var(--card-bg));border-radius:20px}
 .cat-row .ico{background:none;border-radius:0;padding:0;width:36px;height:36px;line-height:36px}
 .big-photo{height:190px;object-fit:contain;background:var(--grey)}
+.offbar{display:none;text-align:center;font-size:12px;font-weight:700;background:#ffeaa7;color:#6b4e00;border-radius:12px;padding:6px;margin-bottom:10px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.quick:empty{display:none}
+.qchip{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:14px;border:none;background:var(--grey);color:var(--text);font-size:12px;font-weight:700;cursor:pointer}
+.ordrow{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--grey)}
+.ordrow .n{flex:1;font-weight:700;font-size:14px}
+.ordrow button{width:34px;height:34px;border-radius:50%;border:none;background:var(--grey);color:var(--text);font-size:16px;cursor:pointer}
+#toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top));transform:translate(-50%,-140px);background:#2d3436;color:#fff;padding:10px 16px;border-radius:16px;font-size:13px;font-weight:700;z-index:2000;transition:transform .3s;max-width:90%}
+#toast.show{transform:translate(-50%,0)}
 </style>
 </head>
 <body>
 <div class="app-container">
   <div class="header">
     <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
-    <div><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
+    <div><button class="ibtn" onclick="openOrder()">↕️</button><button class="ibtn" onclick="enableNotif()">🔔</button><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
   </div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6">...</div>
+  <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><button onclick="clearStatus('done')">Törlés</button></div><div class="mini-list" id="doneList"></div></div>
   <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><button onclick="clearStatus('x')">Törlés</button></div><div class="mini-list" id="missingList"></div></div>
@@ -113,6 +123,7 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 
 <div id="inputModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Új tétel</h3>
+  <div id="quick" class="quick"></div>
   <div class="add-row">
     <div class="preview" id="preview" onclick="openPicker('new')"></div>
     <input type="text" id="manualInput" placeholder="Pl: Tej, Kenyér, Sör..." autocomplete="off">
@@ -138,6 +149,13 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
   <button class="cancel" onclick="closeModal('detailModal')">Bezárás</button>
 </div></div>
 
+<div id="toast"></div>
+<div id="orderModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin-top:0">Bolti sorrend</h3>
+  <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
+  <div id="ordList"></div>
+  <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
+</div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
   <input type="text" id="joinCodeInput" inputmode="numeric" maxlength="4" placeholder="4 jegyű kód">
@@ -207,11 +225,17 @@ setIcon($('preview'),'🛒');
 
 function init(){
   $('roomNum').textContent=currentListId;
+  try{lastItems=JSON.parse(localStorage.getItem('cache_'+currentListId)||'[]')}catch(e){lastItems=[]}
+  render();
   listRef.on('value',snap=>{
-    const d=snap.val();
+    const d=snap.val(),prev=new Set(lastItems.map(i=>i.id));
     lastItems=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
-    render();
+    try{localStorage.setItem('cache_'+currentListId,JSON.stringify(lastItems))}catch(e){}
+    if(ready)lastItems.filter(i=>!prev.has(i.id)&&i.by&&i.by!==DEV&&i.status==='active').forEach(notify);
+    ready=true;render();
   });
+  let offT=null;
+  db.ref('.info/connected').on('value',s=>{clearTimeout(offT);if(s.val())$('offBanner').style.display='none';else offT=setTimeout(()=>{$('offBanner').style.display='block'},2500)});
   const pRef=db.ref('presence/'+currentListId);
   const myP=pRef.push(true);myP.onDisconnect().remove();
   pRef.on('value',s=>{$('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
@@ -236,7 +260,7 @@ function render(){
     }
   });
   if(!active){const e=document.createElement('div');e.className='empty';e.textContent='Még nincs tétel – koppints a + gombra';grid.append(e)}
-  CATS.forEach(([cid,label,emo])=>{
+  orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
     const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(label+' ('+arr.length+')'));grid.append(h);const row=document.createElement('div');row.className='cat-row';row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
     arr.forEach(it=>{
@@ -254,7 +278,7 @@ function render(){
     });
     row.scrollLeft=sl[cid]||0;
   });
-  window.scrollTo(0,y);
+  window.scrollTo(0,y);renderQuick();
 }
 
 /* ---------- Képek ---------- */
@@ -302,7 +326,7 @@ function addItem(){
   const g=guess(val),ref=listRef.push();
   const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
   if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull)}
-  ref.set(item);closeModal('inputModal');
+  item.by=DEV;ref.set(item);bumpFreq(item);closeModal('inputModal');
 }
 function openDetail(id){
   const it=lastItems.find(i=>i.id===id);if(!it)return;
@@ -344,6 +368,47 @@ function pickIcon(e){
 }
 $('manualInput').addEventListener('input',e=>{if(!chosenIcon)setIcon($('preview'),e.target.value.trim()?guess(e.target.value).icon:'🛒')});
 $('manualInput').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
+const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
+let ready=false,toastT=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
+function notify(i){
+  toast('➕ '+i.text+' felkerült a listára');
+  if(navigator.vibrate)navigator.vibrate(120);
+  if(document.hidden&&'Notification' in window&&Notification.permission==='granted')try{new Notification('Bevásárló lista',{body:i.text+' felkerült a listára',icon:'IMG_4302.png'})}catch(e){}
+}
+function enableNotif(){
+  if(!('Notification' in window))return toast('Ez a böngésző nem támogatja az értesítést');
+  Notification.requestPermission().then(p=>toast(p==='granted'?'🔔 Értesítések bekapcsolva':'Az értesítés le van tiltva'));
+}
+const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
+function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
+function openOrder(){
+  const l=$('ordList');l.textContent='';
+  orderedCats().forEach(([id,label,emo],i)=>{
+    const r=document.createElement('div');r.className='ordrow';
+    const n=document.createElement('span');n.className='n';n.textContent=label;
+    const up=document.createElement('button');up.textContent='↑';up.onclick=()=>moveCat(i,-1);
+    const dn=document.createElement('button');dn.textContent='↓';dn.onclick=()=>moveCat(i,1);
+    r.append(iconEl(emo,'s'),n,up,dn);l.append(r);
+  });
+  openModal('orderModal');
+}
+function moveCat(i,d){
+  const cs=orderedCats().map(c=>c[0]),j=i+d;if(j<0||j>=cs.length)return;
+  [cs[i],cs[j]]=[cs[j],cs[i]];localStorage.setItem('catOrder',JSON.stringify(cs));openOrder();render();
+}
+const getFreq=()=>{try{return JSON.parse(localStorage.getItem('freq')||'{}')}catch(e){return{}}};
+function bumpFreq(it){const f=getFreq(),k=norm(it.text),e=f[k]||{n:0};f[k]={n:e.n+1,text:it.text,icon:it.icon,cat:it.cat};localStorage.setItem('freq',JSON.stringify(f))}
+function renderQuick(){
+  const q=$('quick');q.textContent='';
+  const act=new Set(lastItems.filter(i=>i.status==='active').map(i=>norm(i.text||'')));
+  Object.entries(getFreq()).filter(([k])=>!act.has(k)).sort((a,b)=>b[1].n-a[1].n).slice(0,8).forEach(([k,e])=>{
+    const b=document.createElement('button');b.className='qchip';b.append(iconEl(e.icon,'s'),document.createTextNode(e.text));
+    b.onclick=()=>quickAdd(e);q.append(b);
+  });
+}
+function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 init();
 </script>
 </body>
