@@ -150,6 +150,11 @@ body[data-size=l]{--b:calc((100% - 8px)/2)}
 .cat-row .tile.open-menu .action-circle{width:42px;height:42px;font-size:18px}
 body[data-size=s] .cat-row .tile.open-menu .action-circle{width:36px;height:36px;font-size:15px}
 body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px;font-size:20px}
+body[data-size] .cat-row .tile.open-menu{flex:0 0 calc(var(--b)*2 + 8px);min-height:96px;z-index:2}
+body[data-size] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:5px;padding:4px}
+body[data-size] .cat-row .tile.open-menu .action-circle{width:42px;height:42px;font-size:18px}
+body[data-size=s] .cat-row .tile.open-menu .action-circle{width:36px;height:36px;font-size:15px}
+body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px;font-size:20px}
 </style>
 </head>
 <body>
@@ -484,9 +489,13 @@ function confetti(){
   document.body.append(c);setTimeout(()=>c.remove(),4800);
 }
 let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
+let hapL=null;
 function haptic(){
   if(navigator.vibrate){navigator.vibrate(35);return}
-  try{const l=document.createElement('label');l.style.cssText='position:fixed;left:-99px;top:0;opacity:0;pointer-events:none';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');l.append(i);document.body.append(l);l.click();setTimeout(()=>l.remove(),80)}catch(e){}
+  try{
+    if(!hapL){hapL=document.createElement('label');hapL.setAttribute('aria-hidden','true');hapL.style.display='none';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');hapL.append(i);document.head.append(hapL)}
+    hapL.click();
+  }catch(e){}
 }
 function pop(t,fn){haptic();t.classList.add('pop');setTimeout(fn,330)}
 function renderProg(){
