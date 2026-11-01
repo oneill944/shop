@@ -232,6 +232,8 @@ body[data-size=s] .cat-row .tile-note{display:block;font-size:8px;line-height:1.
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
+  <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
+  <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
   <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <div id="ordList"></div>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
@@ -248,7 +250,7 @@ body[data-size=s] .cat-row .tile-note{display:block;font-size:8px;line-height:1.
 <h4>🧺 A lista felépítése</h4>
 <p>A tételek kategóriánként, külön színű sorokban látszanak. A kategória neve mellett zárójelben a tételek száma áll. Egy sorban egyszerre annyi csempe látszik, amennyit a csempeméret megad (kicsi: 4, közepes: 3, nagy: 2), a többit oldalra húzva éred el. A kategória címére koppintva a sor összecsukódik, újabb koppintásra kinyílik.</p>
 <h4>👆 Egy tétel kezelése</h4>
-<p>Koppints egy csempére, és fölötte megjelenik egy kártya 2,5 másodpercre:</p>
+<p>Koppints egy csempére, és fölötte megjelenik egy kártya. Alapból 2,5 másodpercig látszik, majd magától eltűnik (ezt a beállításokban átállíthatod):</p>
 <ul>
 <li><b>✓</b> megvan: a tétel a „Pipálva" részbe kerül.</li>
 <li><b>✖</b> hiányzik: a tétel a „Hiányzik" részbe kerül (pl. nem volt a boltban).</li>
@@ -271,6 +273,7 @@ body[data-size=s] .cat-row .tile-note{display:block;font-size:8px;line-height:1.
 <li><b>Szoba:</b> a lista egy 4 jegyű kódhoz (szobához) tartozik. Akik ugyanazt a kódot adják meg, ugyanazt a listát látják és szerkesztik valós időben. Váltáshoz koppints a „Szoba … – váltás" gombra, és írd be az új kódot.</li>
 <li><b>Valósághű ételfotók:</b> ki-be kapcsolja az internetről hozott ételfotókat. Kikapcsolva a 3D ikonok látszanak.</li>
 <li><b>Csempeméret:</b> kicsi, közepes vagy nagy.</li>
+<li><b>Kártya megjelenési ideje:</b> a csúszkával 1 és 10 másodperc között állíthatod, mennyi ideig maradjon látható a tételre koppintáskor megjelenő kártya (alapérték: 2,5 mp). A beállítást az app megjegyzi, és minden telefonon külön érvényes.</li>
 <li><b>Bolti sorrend:</b> a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
@@ -609,6 +612,9 @@ function confetti(){
   document.body.append(c);setTimeout(()=>c.remove(),4800);
 }
 let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
+const getPopSec=()=>{const v=parseFloat(localStorage.getItem('popSec'));return v>=1&&v<=10?v:2.5};
+function popLabel(v){return String(parseFloat(v)).replace('.',',')+' mp'}
+function setPopSec(v){localStorage.setItem('popSec',v);$('popVal').textContent=popLabel(v)}
 let popEl=null,popT=null;
 function closePop(){if(popEl){popEl.remove();popEl=null}clearTimeout(popT)}
 function showPop(t,it){
@@ -632,7 +638,7 @@ function showPop(t,it){
   let top=r.bottom-c.offsetHeight;if(top<70)top=r.top;
   top=Math.min(top,innerHeight-110-c.offsetHeight);
   c.style.top=Math.max(70,top)+'px';
-  popT=setTimeout(closePop,2500);
+  popT=setTimeout(closePop,Math.round(getPopSec()*1000));
 }
 let hapL=null;
 function haptic(){
@@ -666,6 +672,7 @@ const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]'
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
   $('realChk').checked=localStorage.getItem('realPics')!=='0';
+  $('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
     const r=document.createElement('div');r.className='ordrow';
