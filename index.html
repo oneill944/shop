@@ -166,14 +166,16 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .pop-btns .action-circle{width:48px;height:48px;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;border:none;border-radius:50%;color:#fff;cursor:pointer}
 .pop-card{background:var(--card-bg);background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:2px solid color-mix(in srgb,var(--c) 50%,transparent);box-shadow:0 18px 44px color-mix(in srgb,var(--c) 30%,rgba(0,0,0,.35))}
 .pop-card{background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 62%,transparent)}
+.setbtn{width:100%;padding:12px 14px;border-radius:14px;border:none;background:var(--grey);color:var(--text);font-weight:700;font-size:14px;margin-top:8px;cursor:pointer;text-align:left}
 </style>
 </head>
 <body>
 <div class="app-container">
   <div class="header">
-    <button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button>
-    <div><button class="ibtn" onclick="openOrder()">⚙️</button><button class="ibtn" onclick="enableNotif()">🔔</button><button class="ibtn" onclick="toggleMode()">🌓</button><button class="ibtn" onclick="clearAllItems()">🗑️</button></div>
+    <div style="display:flex;align-items:center;gap:8px"><button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button><button class="ibtn" onclick="toggleSearch()">🔍</button></div>
+    <div><button class="ibtn" onclick="openOrder()">⚙️</button></div>
   </div>
+  <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6">...</div>
   <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
@@ -219,6 +221,9 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
   <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <div id="ordList"></div>
+  <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
+  <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
+  <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
@@ -316,7 +321,7 @@ function render(){
   const groups={};let active=0;
   items.forEach(it=>{
     const g=guess(it.text||'');it._icon=it.icon||g.icon;it._cat=it.cat||g.cat;
-    if(it.status==='active'){active++;(groups[it._cat]=groups[it._cat]||[]).push(it)}
+    if(it.status==='active'){active++;if(!searchQ||norm((it.text||'')+' '+(it.note||'')).includes(searchQ))(groups[it._cat]=groups[it._cat]||[]).push(it)}
     else{
       const t=document.createElement('div');t.className='mini-tag mini';
       const ic=iconEl(it._icon,'s');const s=document.createElement('span');s.textContent=it.text;
@@ -336,7 +341,7 @@ function render(){
   hadActive=!!active;
   orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode((COL.has(cid)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className='cat-row'+(COL.has(cid)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(((COL.has(cid)&&!searchQ)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className='cat-row'+((COL.has(cid)&&!searchQ)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
     arr.forEach(it=>{
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
@@ -348,6 +353,7 @@ function render(){
     });
     row.scrollLeft=sl[cid]||0;
   });
+  if(searchQ&&!Object.keys(groups).length){const e=document.createElement('div');e.className='empty';e.textContent='Nincs találat';grid.append(e)}
   renderProg();window.scrollTo(0,y);renderQuick();
 }
 
@@ -487,6 +493,13 @@ function restoreAll(st){
   const n=Object.keys(u).length;if(!n)return;
   listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
 }
+let searchQ='';
+function toggleSearch(){
+  const b=$('searchBar'),open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  if(open)$('searchInput').focus();else{searchQ='';$('searchInput').value='';render()}
+}
+$('searchInput').addEventListener('input',e=>{searchQ=norm(e.target.value);render()});
 let hadActive=false;
 function confetti(){
   if(navigator.vibrate)navigator.vibrate([40,40,40]);
