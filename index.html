@@ -142,6 +142,14 @@ body[data-size=l] .cat-row .action-circle{width:36px;height:36px;font-size:15px}
 body[data-size=l] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:6px}
 .cat-row .action-circle{padding:0;margin:0;display:flex;align-items:center;justify-content:center;line-height:1}
 body[data-size=s] .cat-row .action-circle{width:26px;height:26px;font-size:12px}
+body{--b:calc((100% - 16px)/3)}
+body[data-size=s]{--b:calc((100% - 24px)/4)}
+body[data-size=l]{--b:calc((100% - 8px)/2)}
+.cat-row .tile.open-menu{flex-basis:calc(var(--b)*2 + 8px);min-height:92px;z-index:2}
+.cat-row .tile.open-menu .tile-actions,body[data-size=l] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:5px}
+.cat-row .tile.open-menu .action-circle{width:42px;height:42px;font-size:18px}
+body[data-size=s] .cat-row .tile.open-menu .action-circle{width:36px;height:36px;font-size:15px}
+body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px;font-size:20px}
 </style>
 </head>
 <body>
@@ -323,7 +331,7 @@ function render(){
       a.append(btn('✓','var(--primary-dark)',()=>pop(t,()=>setStatus(it.id,'done'))),btn('✖','var(--danger)',()=>pop(t,()=>setStatus(it.id,'x'))),
         btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>openDetail(it.id)),btn('🗑️','#b2bec3',()=>delItem(it.id)));
       t.append(a);
-      t.onclick=()=>{const was=t.classList.contains('open-menu');document.querySelectorAll('.tile.open-menu').forEach(x=>x.classList.remove('open-menu'));openId=null;if(!was){t.classList.add('open-menu');openId=it.id;const id=it.id;setTimeout(()=>{if(openId===id){t.classList.remove('open-menu');openId=null}},4000)}};
+      t.onclick=()=>{const was=t.classList.contains('open-menu');document.querySelectorAll('.tile.open-menu').forEach(x=>x.classList.remove('open-menu'));openId=null;if(!was){t.classList.add('open-menu');openId=it.id;requestAnimationFrame(()=>{const r=t.parentElement,a=t.getBoundingClientRect(),b=r.getBoundingClientRect();if(a.right>b.right-2)r.scrollBy({left:a.right-b.right+6,behavior:'smooth'});else if(a.left<b.left)r.scrollBy({left:a.left-b.left-6,behavior:'smooth'})});const id=it.id;setTimeout(()=>{if(openId===id){t.classList.remove('open-menu');openId=null}},4000)}};
       row.append(t);
     });
     row.scrollLeft=sl[cid]||0;
@@ -476,7 +484,11 @@ function confetti(){
   document.body.append(c);setTimeout(()=>c.remove(),4800);
 }
 let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
-function pop(t,fn){if(navigator.vibrate)navigator.vibrate(30);t.classList.add('pop');setTimeout(fn,330)}
+function haptic(){
+  if(navigator.vibrate){navigator.vibrate(35);return}
+  try{const l=document.createElement('label');l.style.cssText='position:fixed;left:-99px;top:0;opacity:0;pointer-events:none';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');l.append(i);document.body.append(l);l.click();setTimeout(()=>l.remove(),80)}catch(e){}
+}
+function pop(t,fn){haptic();t.classList.add('pop');setTimeout(fn,330)}
 function renderProg(){
   const tot=lastItems.length,dn=lastItems.filter(i=>i.status==='done').length;
   $('prog').style.display=tot?'flex':'none';
