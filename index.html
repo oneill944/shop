@@ -169,6 +169,8 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .setbtn{width:100%;padding:12px 14px;border-radius:14px;border:none;background:var(--grey);color:var(--text);font-weight:700;font-size:14px;margin-top:8px;cursor:pointer;text-align:left}
 .custom-modal,.modal-content{overscroll-behavior:contain}
 .modal-content{-webkit-overflow-scrolling:touch}
+.custom-modal{inset:auto;left:0;right:0;top:var(--vt,0px);height:var(--vh,100dvh);padding:14px}
+.modal-content{max-height:calc(var(--vh,100dvh) - 28px);overflow-y:auto}
 </style>
 </head>
 <body>
@@ -438,7 +440,9 @@ function syncLock(){
   if(any&&!locked){lockY=window.scrollY;b.position='fixed';b.top='-'+lockY+'px';b.left='0';b.right='0';locked=true}
   else if(!any&&locked){b.position='';b.top='';b.left='';b.right='';locked=false;window.scrollTo(0,lockY)}
 }
-function openModal(id){$(id).style.display='flex';syncLock()}
+function fitVV(){const v=window.visualViewport,r=document.documentElement.style;r.setProperty('--vh',(v?v.height:innerHeight)+'px');r.setProperty('--vt',(v?v.offsetTop:0)+'px')}
+fitVV();addEventListener('resize',fitVV);if(window.visualViewport){visualViewport.addEventListener('resize',fitVV);visualViewport.addEventListener('scroll',fitVV)}
+function openModal(id){fitVV();$(id).style.display='flex';const c=$(id).querySelector('.modal-content');if(c)c.scrollTop=0;syncLock()}
 function closeModal(id){$(id).style.display='none';syncLock()}
 function joinByCode(){const c=$('joinCodeInput').value.trim();if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}}
 
