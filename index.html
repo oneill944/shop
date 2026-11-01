@@ -164,6 +164,7 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .pop-name{font-weight:800;font-size:15px;word-break:break-word}
 .pop-btns{display:flex;justify-content:space-between;gap:8px}
 .pop-btns .action-circle{width:48px;height:48px;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;border:none;border-radius:50%;color:#fff;cursor:pointer}
+.pop-card{background:var(--card-bg);background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:2px solid color-mix(in srgb,var(--c) 50%,transparent);box-shadow:0 18px 44px color-mix(in srgb,var(--c) 30%,rgba(0,0,0,.35))}
 </style>
 </head>
 <body>
@@ -512,12 +513,12 @@ function showPop(t,it){
     btn('🗑️','#b2bec3',()=>{closePop();delItem(it.id)}));
   c.append(hd,row);bd.append(c);document.body.append(bd);popEl=bd;
   const r=t.getBoundingClientRect(),w=Math.min(250,innerWidth-16),h=c.offsetHeight;
-  c.style.width=w+'px';
+  c.style.width=w+'px';c.style.setProperty('--c',(getComputedStyle(t).getPropertyValue('--c')||'#8a94a6').trim());
   c.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';
   let top=r.bottom-c.offsetHeight;if(top<70)top=r.top;
   top=Math.min(top,innerHeight-110-c.offsetHeight);
   c.style.top=Math.max(70,top)+'px';
-  popT=setTimeout(closePop,4500);
+  popT=setTimeout(closePop,3000);
 }
 let hapL=null;
 function haptic(){
