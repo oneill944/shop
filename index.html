@@ -165,6 +165,7 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .pop-btns{display:flex;justify-content:space-between;gap:8px}
 .pop-btns .action-circle{width:48px;height:48px;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;border:none;border-radius:50%;color:#fff;cursor:pointer}
 .pop-card{background:var(--card-bg);background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:2px solid color-mix(in srgb,var(--c) 50%,transparent);box-shadow:0 18px 44px color-mix(in srgb,var(--c) 30%,rgba(0,0,0,.35))}
+.pop-card{background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 62%,transparent)}
 </style>
 </head>
 <body>
@@ -213,10 +214,10 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Beállítások</h3>
-  <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
+  <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <div id="ordList"></div>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
 </div></div>
@@ -512,13 +513,13 @@ function showPop(t,it){
     btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>{closePop();openDetail(it.id)}),
     btn('🗑️','#b2bec3',()=>{closePop();delItem(it.id)}));
   c.append(hd,row);bd.append(c);document.body.append(bd);popEl=bd;
-  const r=t.getBoundingClientRect(),w=Math.min(250,innerWidth-16),h=c.offsetHeight;
+  const r=t.getBoundingClientRect(),rr=t.parentElement.getBoundingClientRect(),w=Math.min(250,innerWidth-16),h=c.offsetHeight;
   c.style.width=w+'px';c.style.setProperty('--c',(getComputedStyle(t).getPropertyValue('--c')||'#8a94a6').trim());
-  c.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';
+  c.style.left=Math.max(8,Math.min(innerWidth-w-8,rr.left+rr.width/2-w/2))+'px';
   let top=r.bottom-c.offsetHeight;if(top<70)top=r.top;
   top=Math.min(top,innerHeight-110-c.offsetHeight);
   c.style.top=Math.max(70,top)+'px';
-  popT=setTimeout(closePop,3000);
+  popT=setTimeout(closePop,2500);
 }
 let hapL=null;
 function haptic(){
