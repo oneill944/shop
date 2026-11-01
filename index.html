@@ -182,7 +182,8 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
     <div><button class="ibtn" onclick="openOrder()">⚙️</button></div>
   </div>
   <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
-  <div id="userCount" style="font-size:14px;font-weight:800;text-align:center;margin-bottom:14px;opacity:.85"></div>
+  <div id="roomLine" style="font-size:15px;font-weight:800;text-align:center;margin-bottom:2px;opacity:.9"></div>
+  <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6"></div>
   <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
@@ -315,7 +316,7 @@ function init(){
   db.ref('.info/connected').on('value',s=>{clearTimeout(offT);if(s.val())$('offBanner').style.display='none';else offT=setTimeout(()=>{$('offBanner').style.display='block'},2500)});
   const pRef=db.ref('presence/'+currentListId);
   const myP=pRef.push(true);myP.onDisconnect().remove();
-  $('userCount').textContent='🏠 '+currentListId;
+  $('roomLine').textContent='🏠 '+currentListId;pRef.on('value',s=>{$('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
 }
 function btn(label,bg,fn){
   const b=document.createElement('button');b.className='action-circle';b.style.background=bg;b.textContent=label;
