@@ -182,6 +182,12 @@ body[data-size=s] .cat-row .tile-note{display:block;font-size:8px;line-height:1.
 .tile-price{font-size:9px;font-weight:800;margin-top:2px;color:var(--c);opacity:.95}
 body[data-size=s] .tile-price{display:none}
 .pop-price{font-size:11px;font-weight:700;opacity:.8;margin-top:2px}
+.totalline{cursor:pointer}
+.cmprow{display:flex;align-items:center;gap:8px;padding:11px 10px;border-radius:14px;margin-bottom:6px;background:var(--grey);cursor:pointer}
+.cmprow.sel{outline:2px solid var(--primary-dark)}
+.cmprow .n{flex:1;font-weight:800;font-size:14px}
+.cmprow .p{font-weight:800;font-size:14px}
+.cmprow .df{font-size:11px;opacity:.75;min-width:92px;text-align:right}
 </style>
 </head>
 <body>
@@ -194,7 +200,7 @@ body[data-size=s] .tile-price{display:none}
   <div id="roomLine" style="font-size:15px;font-weight:800;text-align:center;margin-bottom:2px;opacity:.9"></div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6"></div>
   <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" style="font-size:18px;display:none">📤</button></div>
-  <div id="totalLine" class="totalline"></div>
+  <div id="totalLine" class="totalline" onclick="openCompare()"></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
@@ -237,12 +243,16 @@ body[data-size=s] .tile-price{display:none}
   <button class="setbtn" style="margin:0 0 12px" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="priceChk" style="width:auto;margin:0" onchange="setPriceShow(this.checked)"> Árbecslés mutatása</label>
+  <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
+  <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
+  <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
   <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <div id="ordList"></div>
+  <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
   <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
@@ -274,7 +284,9 @@ body[data-size=s] .tile-price{display:none}
 <h4>💰 Árbecslés</h4>
 <p>Az app minden tételhez megbecsüli az árat, a végén pedig összesíti a várható végösszeget a haladássáv alatt. <b>Fontos:</b> a becslés az appba épített, átlagos magyarországi árakból számol, <b>nem</b> a friss akciós újságokból, ezért csak tájékoztató jellegű.</p>
 <p>A mennyiséget a <b>megjegyzésből</b> olvassa ki: például <i>4 kg</i>, <i>20 dkg</i>, <i>500 g</i>, <i>3 db</i>, <i>1 zsugor</i> (6 db), <i>egy tálca</i>, <i>2 karton</i>. Szóval is érti (egy, két, három, fél). Ha nincs mennyiség megadva, 1 egységgel számol: 1 kg a kilóra árult termékeknél (pl. krumpli, csirkemell), 1 db a darabra árultaknál (pl. tej, tojás, sör).</p>
-<p>Ha a becslés nem stimmel, a részletek ablakban megadhatsz egy <b>saját árat</b> forintban (az egész tételre), ez felülírja a becslést. A tétel csempéjén és a lebegő kártyán is látszik az ár. Azt, hogy mi legyen az ár alapján, a Beállításokban az <b>Árbecslés mutatása</b> jelölőnégyzettel kapcsolhatod ki. A megosztott összefoglaló is tartalmazza a várható összeget.</p>
+<p><b>Az árak állapota:</b> a beépített árak 2026. októberi átlagárak. Az alapvető élelmiszerek egy részénél (csirkemell, csirkecomb, sertéskaraj, sertéscomb, trappista sajt, tej, tojás, napraforgóolaj, liszt, cukor, burgonya, margarin, kenyér) a KSH és a GVH Árfigyelő hivatalos átlagáraiból számol, a többi termék ára becslés. A tételeket a nevük és a megjegyzésük együtt alapján különbözteti meg (pl. <i>Hús – csirkemell</i>, <i>Hús – darált</i>, <i>sertéskaraj</i>).</p>
+<p>Ha a becslés nem stimmel, a részletek ablakban megadhatsz egy <b>saját árat</b> forintban (az egész tételre), ez felülírja a becslést, és az app megjegyzi az adott termék egységárát, így legközelebb már azzal számol (a Beállításokban törölhető). A tétel csempéjén és a lebegő kártyán is látszik az ár. Azt, hogy mi legyen az ár alapján, a Beállításokban az <b>Árbecslés mutatása</b> jelölőnégyzettel kapcsolhatod ki. A megosztott összefoglaló is tartalmazza a várható összeget.</p>
+<p><b>Boltok:</b> a Beállításokban kiválaszthatod, melyik boltra számoljon az app (Lidl, Aldi, Interspar, Tesco, Milano Market, vagy országos átlag). A boltok között közelítő árarányokkal számol, amelyek a legutóbbi nyilvános kosárteszteken alapulnak, nem a konkrét termékek aktuális akciós árain. A <b>Boltok összehasonlítása</b> gombbal (vagy a végösszeg sorra koppintva) látod, melyik bolt lenne a legolcsóbb a mostani listádhoz. A saját árakat az app boltonként külön jegyzi meg.</p>
 <h4>📊 Haladássáv és Kész képernyő</h4>
 <p>A lista tetején a sáv mutatja, hány tétel van már megpipálva az összesből. Ha elfogy az utolsó aktív tétel is, megjelenik a „Kész a bevásárlás!" üzenet konfettivel.</p>
 <h4>🔍 Keresés</h4>
@@ -297,6 +309,13 @@ body[data-size=s] .tile-price{display:none}
 <h4>🏠 A fejléc</h4>
 <p>Középen a szoba száma és az látszik, hányan szerkesztik épp a listát.</p>
 <button class="cancel" onclick="closeModal('helpModal')">Bezárás</button>
+</div></div>
+<div id="compareModal" class="custom-modal"><div class="modal-content">
+<h3 style="margin:0 0 6px">📊 Boltok összehasonlítása</h3>
+<div style="font-size:12px;opacity:.7;margin-bottom:8px">A mostani lista várható összege boltonként. Koppints egy boltra a kiválasztásához.</div>
+<div id="cmpList"></div>
+<div style="font-size:11px;opacity:.65;margin-top:10px;line-height:1.4">A különbségek közelítő boltszintű arányokon alapulnak (2026 októberi kosárteszteken), nem az egyes termékek aktuális, akciós árain. A Milano Marketről nincs árarány-adatom, ott az országos átlaggal számol.</div>
+<button class="cancel" onclick="closeModal('compareModal')">Bezárás</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
@@ -492,7 +511,8 @@ function openDetail(id){
   openModal('detailModal');
 }
 function saveDetail(){
-  if(detailId)listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value,price:parseFloat($('dPrice').value)||null});
+  if(detailId){const pv=parseFloat($('dPrice').value),cur=lastItems.find(i=>i.id===detailId);if(pv>0&&cur)learnPrice({...cur,text:$('dName').value.trim()||cur.text,note:$('dNote').value.trim()},pv)}
+  listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value,price:parseFloat($('dPrice').value)||null});
   closeModal('detailModal');detailId=null;
 }
 function setStatus(id,s){listRef.child(id).update({status:s})}
@@ -575,7 +595,7 @@ function restoreAll(st){
   const n=Object.keys(u).length;if(!n)return;
   listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
 }
-const PRT=`csirke mell,csirkemell,mell|kg|2900|1;darahus,daralt|kg|3000|0.5;csirke,comb,szarny|kg|1500|1.5;sertes,karaj,tarja|kg|2500|1;marha|kg|4500|0.5;szalami|kg|6500|0.2;sonka|kg|3800|0.2;virsli|kg|2500|0.4;kolbasz|kg|3000|0.5;szalonna|kg|2800|0.3;lazac|kg|7500|0.4;hal,tonhal|kg|3500|0.4;hus|kg|2800|1;tej|db|520|1;tejfol,tejszin|db|480|1;joghurt,kefir|db|220|1;vaj|db|1500|1;margarin|db|700|1;sajt,trappista,mozzarella|kg|3800|0.3;turo|db|700|1;tojas|db|85|10|30;kenyer|db|850|1;zsemle,kifli|db|60|5;pogacsa|db|120|5;krumpli,burgonya|kg|400|1;hagyma|kg|400|1;fokhagyma|kg|2500|0.1;sargarepa,repa|kg|450|1;paradicsom|kg|1400|0.8;paprika|kg|1600|0.5;uborka|kg|900|0.5;kaposzta|kg|450|1.5;salata|db|450|1;alma|kg|600|1;banan|kg|650|1;narancs,mandarin|kg|800|1;citrom|kg|1200|0.3;szolo|kg|1400|0.5;eper,malna|kg|2800|0.5;gomba|kg|1800|0.5;brokkoli,karfiol|kg|1200|0.7;cukkini,padlizsan|kg|1100|0.7;liszt|db|420|1;cukor|db|480|1;so|db|150|1;rizs|db|700|1;teszta,spagetti,tarhonya|db|480|1;olaj,olivaolaj|db|1000|1;ecet|db|300|1;kave|db|1900|1;tea|db|700|1;konzerv,leves|db|500|1;bab,lencse|db|450|1;csoki,csokolade|db|600|1;keksz|db|450|1;chips|db|850|1;gumicukor,cukorka|db|500|1;torta|db|3500|1;viz,asvanyviz|db|150|1;cola,fanta,udito,szoda|db|600|1;sor|db|330|1|24;bor|db|1800|1;narancsle,gyumolcsle|db|450|1;wc,zsebkendo|db|1400|1;mosopor,oblito|db|2500|1;mosogato,szappan|db|600|1;samp,tusfurdo|db|1200|1;fogkrem|db|700|1;pelenka|db|4500|1`.split(';').map(r=>{const[k,t,p,d,tr]=r.split('|');return[k.split(',').map(norm),t,+p,+d,tr?+tr:0]});
+const PRT=`csirke mell,csirkemell,mell,csirkemellfile|kg|2250|1;csirkecomb,csirke comb,alsocomb,felsocomb|kg|1150|1;szarny,csirkeszarny|kg|1200|1;daralt csirke|kg|2500|0.5;csirke,egesz csirke|kg|1300|1.5;daralt sertes|kg|2300|0.5;daralt marha|kg|4800|0.5;darahus,daralt|kg|2900|0.5;sertes karaj,serteskaraj,karaj|kg|2390|1;sertes comb,sertescomb|kg|1890|1;tarja,nyak|kg|2400|1;oldalas|kg|2500|1;sertes,sertes hus|kg|2300|1;marha,marhahus|kg|4800|0.5;pulyka|kg|3500|1;kacsa|kg|2200|1.5;szalami|kg|6500|0.2;sonka|kg|3800|0.2;parizer|kg|1700|0.3;virsli|kg|2500|0.4;kolbasz|kg|3000|0.5;szalonna|kg|2800|0.3;lazac|kg|7500|0.4;pisztrang|kg|3800|0.4;hal|kg|3500|0.4;tonhal|db|750|1;hus|kg|2500|1;uht tej,uht|db|350|1;tej|db|420|1;tejfol|db|450|1;tejszin|db|500|1;joghurt|db|220|1;kefir|db|380|1;vaj|db|1500|1;margarin|db|690|1;trappista|kg|2950|0.3;sajt|kg|3300|0.3;mozzarella|db|450|1;turo|db|700|1;tojas|db|69|10|30;kenyer,feher kenyer|db|905|1;zsemle,kifli|db|60|5;pogacsa|db|120|5;croissant|db|190|1;krumpli,burgonya|kg|380|1;hagyma|kg|400|1;fokhagyma|kg|2500|0.1;sargarepa,repa|kg|450|1;paradicsom|kg|1400|0.8;paprika|kg|1600|0.5;uborka|kg|900|0.5;kaposzta|kg|450|1.5;salata|db|450|1;alma|kg|600|1;banan|kg|650|1;narancs,mandarin|kg|800|1;citrom|kg|1200|0.3;szolo|kg|1400|0.5;eper,malna|kg|2800|0.5;gomba|kg|1800|0.5;brokkoli,karfiol|kg|1200|0.7;cukkini,padlizsan|kg|1100|0.7;liszt|db|230|1;cukor|db|390|1;so|db|150|1;rizs|db|700|1;teszta,spagetti,tarhonya|db|480|1;olivaolaj|db|2800|1;olaj|db|680|1;ecet|db|300|1;kave|db|1900|1;tea|db|700|1;konzerv,leves|db|500|1;bab,lencse|db|450|1;csoki,csokolade|db|600|1;keksz|db|450|1;chips|db|850|1;gumicukor,cukorka|db|500|1;torta|db|3500|1;viz,asvanyviz|db|150|1;cola,fanta,udito,szoda|db|600|1;sor|db|330|1|24;bor|db|1800|1;narancsle,gyumolcsle|db|450|1;wc,zsebkendo|db|1400|1;mosopor,oblito|db|2500|1;mosogato,szappan|db|600|1;samp,tusfurdo|db|1200|1;fogkrem|db|700|1;pelenka|db|4500|1`.split(';').map(r=>{const[k,t,p,d,tr]=r.split('|');return[k.split(',').map(norm),t,+p,+d,tr?+tr:0]});
 const NW={egy:1,ket:2,ketto:2,harom:3,negy:4,ot:5,hat:6,het:7,nyolc:8,kilenc:9,tiz:10};
 const FAC={kg:1,l:1,liter:1,dkg:.01,dag:.01,g:.001,gr:.001,dl:.1,ml:.001};
 const fmt=n=>(Math.round(n/10)*10).toLocaleString('hu-HU')+' Ft';
@@ -592,35 +612,66 @@ function findPrice(text){
   PRT.forEach(r=>r[0].forEach(k=>{if(!k)return;const hit=k.length<4?w.includes(k):n.includes(k);if(hit&&k.length>bl){best=r;bl=k.length}}));
   return best;
 }
-function estimate(it){
-  if(it.price>0)return{ft:it.price,lab:'saját ár'};
-  const row=findPrice(it.text||'');if(!row)return null;
-  const[,t,pr,def,tray]=row;
+const getMP=()=>{try{return JSON.parse(localStorage.getItem('myPrices')||'{}')}catch(e){return{}}};
+function calcQ(it,t,def,tray){
   const tq=parseQ(norm(it.text||'')),m=parseQ(norm(it.note||''))||(tq&&tq.u?tq:null);
-  let q=1;
-  if(m){
-    const{n,u}=m;
-    if(FAC[u]!==undefined)q=t==='kg'?n*FAC[u]:n*FAC[u];
-    else if(u==='talca')q=n*(tray||(t==='kg'?0.8:12));
-    else if(u==='zsugor')q=n*(t==='kg'?def:6);
-    else if(u==='karton')q=n*(t==='kg'?def:12);
-    else if(u==='lada')q=n*(t==='kg'?def:20);
-    else if(u==='csomag'||u==='doboz')q=t==='kg'?n*0.5:n;
-    else if(u==='db'||u==='darab'||u==='uveg')q=t==='kg'?n*def:n;
-    else q=n;
-  }
-  q=Math.round(q*100)/100;
-  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmt(pr)};
+  if(!m)return 1;
+  const{n,u}=m;
+  if(FAC[u]!==undefined)return n*FAC[u];
+  if(u==='talca')return n*(tray||(t==='kg'?0.8:12));
+  if(u==='zsugor')return n*(t==='kg'?def:6);
+  if(u==='karton')return n*(t==='kg'?def:12);
+  if(u==='lada')return n*(t==='kg'?def:20);
+  if(u==='csomag'||u==='doboz')return t==='kg'?n*0.5:n;
+  if(u==='db'||u==='darab'||u==='uveg')return t==='kg'?n*def:n;
+  return n;
 }
-function totalEst(){
+const rowOf=it=>findPrice((it.text||'')+' '+(it.note||''));
+const pKey=it=>{const r=rowOf(it);return r?r[0][0]:norm(it.text||'')};
+const STORES=[['atlag','Országos átlag',1],['lidl','Lidl',0.95],['aldi','Aldi',0.97],['interspar','Interspar',1],['tesco','Tesco',1.09],['milano','Milano Market',1]];
+const getStore=()=>{const v=localStorage.getItem('store');return STORES.some(x=>x[0]===v)?v:'atlag'};
+const storeName=id=>(STORES.find(x=>x[0]===id)||STORES[0])[1];
+const storeF=id=>(STORES.find(x=>x[0]===id)||STORES[0])[2];
+const storeTag=()=>getStore()==='atlag'?'':' ('+storeName(getStore())+')';
+function setStore(v){localStorage.setItem('store',v);render()}
+function estimate(it,sid){
+  sid=sid||getStore();
+  if(it.price>0)return{ft:it.price,lab:'saját ár'};
+  const row=rowOf(it),mp=getMP()[sid+'|'+pKey(it)];
+  if(!row&&!mp)return null;
+  const t=mp?mp.t:row[1],pr=mp?mp.p:row[2]*storeF(sid),def=row?row[3]:1,tray=row?row[4]:0;
+  const q=Math.round(calcQ(it,t,def,tray)*100)/100;
+  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmt(pr)+(mp?' (saját)':'')};
+}
+function learnPrice(it,total){
+  const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0);
+  if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};localStorage.setItem('myPrices',JSON.stringify(mp))}
+}
+function clearMP(){localStorage.removeItem('myPrices');toast('A tanult árak törölve');render()}
+function totalEst(sid){
   let sum=0,priced=0,n=0;
-  lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i);if(e){sum+=e.ft;priced++}});
+  lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i,sid);if(e){sum+=e.ft;priced++}});
   return{sum,priced,n};
 }
 function renderTotal(){
   const el=$('totalLine'),T=totalEst(),on=localStorage.getItem('showPrice')!=='0'&&T.sum>0;
   el.style.display=on?'block':'none';
-  if(on)el.textContent='💰 Várható összeg: ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva';
+  if(on)el.textContent='💰 Várható összeg'+storeTag()+': ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva';
+}
+function openCompare(){
+  if(!lastItems.some(i=>i.status!=='x'))return toast('Még nincs tétel a listán');
+  const l=$('cmpList');l.textContent='';
+  const rows=STORES.filter(x=>x[0]!=='atlag').map(([id,n])=>({id,n,sum:totalEst(id).sum})).sort((a,b)=>a.sum-b.sum);
+  const best=rows[0].sum;
+  rows.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='cmprow'+(r.id===getStore()?' sel':'');
+    const a=document.createElement('span');a.className='n';a.textContent=(i===0?'🏆 ':'')+r.n+(r.id==='milano'?' (nincs adat)':'');
+    const b=document.createElement('span');b.className='p';b.textContent='~'+fmt(r.sum);
+    const c=document.createElement('span');c.className='df';c.textContent=i===0?'legolcsóbb':'+'+fmt(r.sum-best)+' (+'+Math.round((r.sum/best-1)*100)+'%)';
+    d.append(a,b,c);d.onclick=()=>{setStore(r.id);closeModal('compareModal');toast('Bolt: '+r.n)};
+    l.append(d);
+  });
+  openModal('compareModal');
 }
 function priceLine(it,t){
   const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;
@@ -650,8 +701,8 @@ async function shareSummary(){
     });
     y+=10;
   });
-  if(TOT.sum){g.fillStyle='#3a2e2a';g.font='800 26px '+F;g.fillText('💰 Várható összeg: ~'+fmt(TOT.sum),P,y+34)}
-  const totTxt=TOT.sum?'\n\n💰 Várható összeg: ~'+fmt(TOT.sum):'';
+  if(TOT.sum){g.fillStyle='#3a2e2a';g.font='800 26px '+F;g.fillText('💰 Várható összeg'+storeTag()+': ~'+fmt(TOT.sum),P,y+34)}
+  const totTxt=TOT.sum?'\n\n💰 Várható összeg'+storeTag()+': ~'+fmt(TOT.sum):'';
   const text='🛒 Bevásárlás – '+date+'\n'+secs.map(([t,arr])=>'\n'+t+':\n'+arr.map(i=>'• '+i.text+(i.note?' ('+i.note+')':'')).join('\n')).join('\n');
   try{
     const blob=await new Promise(r=>c.toBlob(r,'image/png'));
@@ -739,7 +790,7 @@ const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]'
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
   $('realChk').checked=localStorage.getItem('realPics')!=='0';
-  $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
+  $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
     const r=document.createElement('div');r.className='ordrow';
