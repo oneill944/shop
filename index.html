@@ -123,6 +123,21 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .win-emoji{font-size:56px}
 .win-t{font-size:20px;font-weight:800;margin-top:6px}
 .win-s{font-size:13px;opacity:.7;margin-top:4px}
+.seg{display:flex;gap:6px;margin-bottom:12px}
+.seg button{flex:1;padding:9px 4px;border-radius:12px;border:2px solid var(--grey);background:none;color:var(--text);font-weight:700;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+body[data-size=s] .cat-row .tile{flex-basis:calc((100% - 24px)/4);min-height:64px;padding:5px 2px;border-radius:16px}
+body[data-size=s] .cat-row .ico{width:26px;height:26px;line-height:26px;font-size:20px}
+body[data-size=s] .cat-row .thumb{width:30px;height:30px}
+body[data-size=s] .cat-row .tile-text{font-size:9.5px}
+body[data-size=s] .cat-row .tile-note{display:none}
+body[data-size=s] .cat-row .action-circle{width:22px;height:22px;font-size:10px}
+body[data-size=l] .cat-row .tile{flex-basis:calc((100% - 8px)/2);min-height:104px;padding:10px 6px}
+body[data-size=l] .cat-row .ico{width:48px;height:48px;line-height:48px;font-size:38px}
+body[data-size=l] .cat-row .thumb{width:58px;height:58px}
+body[data-size=l] .cat-row .tile-text{font-size:13px}
+body[data-size=l] .cat-row .tile-note{font-size:10px}
+body[data-size=l] .cat-row .action-circle{width:36px;height:36px;font-size:15px}
 </style>
 </head>
 <body>
@@ -173,6 +188,8 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
   <h3 style="margin-top:0">Bolti sorrend</h3>
   <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
+  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
+  <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
   <div id="ordList"></div>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
 </div></div>
@@ -439,6 +456,8 @@ let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}cat
 const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
 function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
 db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
+function setSize(v){localStorage.setItem('tileSize',v);document.body.dataset.size=v;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===v))}
+setSize(localStorage.getItem('tileSize')||'m');
 function restoreAll(st){
   const u={};lastItems.filter(i=>i.status===st).forEach(i=>{u[i.id+'/status']='active'});
   const n=Object.keys(u).length;if(!n)return;
