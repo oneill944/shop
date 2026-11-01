@@ -167,12 +167,14 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .pop-card{background:var(--card-bg);background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:2px solid color-mix(in srgb,var(--c) 50%,transparent);box-shadow:0 18px 44px color-mix(in srgb,var(--c) 30%,rgba(0,0,0,.35))}
 .pop-card{background:color-mix(in srgb,color-mix(in srgb,var(--c) 24%,var(--card-bg)) 62%,transparent)}
 .setbtn{width:100%;padding:12px 14px;border-radius:14px;border:none;background:var(--grey);color:var(--text);font-weight:700;font-size:14px;margin-top:8px;cursor:pointer;text-align:left}
+.custom-modal,.modal-content{overscroll-behavior:contain}
+.modal-content{-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
 <div class="app-container">
   <div class="header">
-    <div style="display:flex;align-items:center;gap:8px"><button class="room-chip" onclick="openModal('listModal')">🏠 <span id="roomNum">----</span></button><button class="ibtn" onclick="toggleSearch()">🔍</button></div>
+    <div><button class="ibtn" onclick="toggleSearch()">🔍</button></div>
     <div><button class="ibtn" onclick="openOrder()">⚙️</button></div>
   </div>
   <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
@@ -216,6 +218,7 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Beállítások</h3>
+  <button class="setbtn" style="margin:0 0 12px" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
@@ -429,8 +432,14 @@ function clearStatus(s){
 }
 function clearAllItems(){if(confirm('Mindent törölsz?')){listRef.remove();db.ref('photos/'+currentListId).remove()}}
 function toggleMode(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0')}
-function openModal(id){$(id).style.display='flex'}
-function closeModal(id){$(id).style.display='none'}
+let lockY=0,locked=false;
+function syncLock(){
+  const any=[...document.querySelectorAll('.custom-modal')].some(m=>m.style.display==='flex'),b=document.body.style;
+  if(any&&!locked){lockY=window.scrollY;b.position='fixed';b.top='-'+lockY+'px';b.left='0';b.right='0';locked=true}
+  else if(!any&&locked){b.position='';b.top='';b.left='';b.right='';locked=false;window.scrollTo(0,lockY)}
+}
+function openModal(id){$(id).style.display='flex';syncLock()}
+function closeModal(id){$(id).style.display='none';syncLock()}
 function joinByCode(){const c=$('joinCodeInput').value.trim();if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}}
 
 /* ---------- Ikonválasztó ---------- */
