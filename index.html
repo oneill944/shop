@@ -176,6 +176,8 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .help h4{margin:16px 0 4px;font-size:15px}
 .help p,.help li{font-size:13px;line-height:1.5;opacity:.92;margin:4px 0}
 .help ul{padding-left:20px;margin:4px 0}
+.sharebtn{margin-top:14px;padding:12px 22px;border-radius:16px;border:none;background:linear-gradient(135deg,#12b886,#8b5cf6);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+body[data-size=s] .cat-row .tile-note{display:block;font-size:8px;line-height:1.15;margin-top:2px}
 </style>
 </head>
 <body>
@@ -187,7 +189,7 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
   <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
   <div id="roomLine" style="font-size:15px;font-weight:800;text-align:center;margin-bottom:2px;opacity:.9"></div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6"></div>
-  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span></div>
+  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" style="font-size:18px;display:none">📤</button></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
@@ -390,6 +392,7 @@ function render(){
     if(lastItems.length){
       e.classList.add('win');
       [['win-emoji','🎉'],['win-t','Kész a bevásárlás!'],['win-s','Minden tétel el van intézve.']].forEach(([c,t])=>{const d=document.createElement('div');d.className=c;d.textContent=t;e.append(d)});
+      const sb=document.createElement('button');sb.className='sharebtn';sb.textContent='📤 Összefoglaló megosztása';sb.onclick=shareSummary;e.append(sb);
       if(hadActive)confetti();
     }else e.textContent='Még nincs tétel – koppints a + gombra';
     grid.append(e);
@@ -557,6 +560,38 @@ function restoreAll(st){
   const n=Object.keys(u).length;if(!n)return;
   listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
 }
+async function shareSummary(){
+  const ic=i=>i.icon||(typeof guess==='function'?guess(i.text||'').icon:'')||'🛒';
+  const by=st=>lastItems.filter(i=>i.status===st);
+  const secs=[['✓ Megvan',by('done'),'#12b886'],['✖ Nem találtam',by('x'),'#e8575a'],['… Még hátra',by('active'),'#8a94a6']].filter(x=>x[1].length);
+  if(!secs.length)return toast('Még nincs mit megosztani');
+  const date=new Date().toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric'});
+  const W=720,P=40,LH=48;
+  const H=P*2+90+secs.reduce((n,x)=>n+66+x[1].length*LH,0);
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const g=c.getContext('2d'),F='system-ui,-apple-system,"Segoe UI",sans-serif';
+  g.fillStyle='#fff7ee';g.fillRect(0,0,W,H);
+  g.fillStyle='#3a2e2a';g.font='800 34px '+F;g.fillText('🛒 Bevásárlás',P,P+34);
+  g.font='500 22px '+F;g.fillStyle='#8a7f78';g.fillText(date,P,P+68);
+  let y=P+110;
+  secs.forEach(([t,arr,col])=>{
+    g.fillStyle=col;g.font='800 26px '+F;g.fillText(t+' ('+arr.length+')',P,y+26);y+=56;
+    arr.forEach(i=>{
+      g.fillStyle='#3a2e2a';g.font='600 26px '+F;g.fillText(ic(i)+'  '+(i.text||''),P+10,y+22);
+      if(i.note){const w=g.measureText(ic(i)+'  '+(i.text||'')).width;g.fillStyle='#8a7f78';g.font='500 20px '+F;g.fillText(i.note,P+10+w+14,y+22)}
+      y+=LH;
+    });
+    y+=10;
+  });
+  const text='🛒 Bevásárlás – '+date+'\n'+secs.map(([t,arr])=>'\n'+t+':\n'+arr.map(i=>'• '+i.text+(i.note?' ('+i.note+')':'')).join('\n')).join('\n');
+  try{
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    const f=new File([blob],'bevasarlas.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Bevásárlás'});return}
+    if(navigator.share){await navigator.share({title:'Bevásárlás',text});return}
+    await navigator.clipboard.writeText(text);toast('Az összefoglaló a vágólapra másolva');
+  }catch(e){if(e&&e.name!=='AbortError')toast('A megosztás nem sikerült')}
+}
 let searchQ='';
 function closeSearch(){if($('searchBar').style.display!=='none')toggleSearch()}
 function toggleSearch(){
@@ -613,6 +648,7 @@ function renderProg(){
   $('prog').style.display=tot?'flex':'none';
   $('pfill').style.width=(tot?Math.round(dn/tot*100):0)+'%';
   $('ptxt').textContent=dn+'/'+tot+' megvan';
+  $('shareBtn').style.display=lastItems.some(i=>i.status==='done'||i.status==='x')?'inline-block':'none';
 }
 const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
 let ready=false,toastT=null;
