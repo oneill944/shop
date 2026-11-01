@@ -494,6 +494,7 @@ function restoreAll(st){
   listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
 }
 let searchQ='';
+function closeSearch(){if($('searchBar').style.display!=='none')toggleSearch()}
 function toggleSearch(){
   const b=$('searchBar'),open=b.style.display==='none';
   b.style.display=open?'block':'none';
@@ -521,8 +522,8 @@ function showPop(t,it){
   const nm=document.createElement('div');nm.className='pop-name';nm.textContent=it.text;hd.append(nm);
   const row=document.createElement('div');row.className='pop-btns';
   row.append(
-    btn('✓','var(--primary-dark)',()=>{closePop();pop(t,()=>setStatus(it.id,'done'))}),
-    btn('✖','var(--danger)',()=>{closePop();pop(t,()=>setStatus(it.id,'x'))}),
+    btn('✓','var(--primary-dark)',()=>{closePop();pop(t,()=>{setStatus(it.id,'done');closeSearch()})}),
+    btn('✖','var(--danger)',()=>{closePop();pop(t,()=>{setStatus(it.id,'x');closeSearch()})}),
     btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>{closePop();openDetail(it.id)}),
     btn('🗑️','#b2bec3',()=>{closePop();delItem(it.id)}));
   c.append(hd,row);bd.append(c);document.body.append(bd);popEl=bd;
