@@ -173,6 +173,9 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 .modal-content{max-height:calc(var(--vh,100dvh) - 28px);overflow-y:auto}
 .cancel{display:block;width:auto;margin:14px auto 0;padding:9px 28px;border:none;border-radius:14px;background:var(--grey);color:var(--text);opacity:.9;font-size:14px;font-weight:700;cursor:pointer}
 .cancel:active{transform:scale(.96)}
+.help h4{margin:16px 0 4px;font-size:15px}
+.help p,.help li{font-size:13px;line-height:1.5;opacity:.92;margin:4px 0}
+.help ul{padding-left:20px;margin:4px 0}
 </style>
 </head>
 <body>
@@ -222,7 +225,7 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
 
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
-  <h3 style="margin-top:0">Beállítások</h3>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3 style="margin:0">Beállítások</h3><button class="ibtn" onclick="openModal('helpModal')">❓</button></div>
   <button class="setbtn" style="margin:0 0 12px" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
@@ -233,6 +236,51 @@ body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px
   <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
+</div></div>
+<div id="helpModal" class="custom-modal"><div class="modal-content help">
+<h3 style="margin:0 0 6px">❓ Súgó</h3>
+<h4>➕ Tétel hozzáadása</h4>
+<p>Koppints a jobb alsó <b>+</b> gombra. Írd be a tétel nevét, az app magától ikont és kategóriát választ hozzá. Ha az ikon nem tetszik, koppints rá a név mellett, és válassz másikat. A kategóriát is átállíthatod a legördülő listában.</p>
+<p><b>Több tétel egyszerre:</b> vesszővel elválasztva írd be őket (pl. <i>tej, kenyér, sajt</i>), az app külön tételekre bontja. Ilyenkor a megjegyzés és a kép nem kerül fel, azt egyesével lehet megadni.</p>
+<p><b>Gyakori tételek:</b> a leggyakrabban felvett tételek gombként megjelennek az ablak tetején. Egy koppintással felkerülnek a listára.</p>
+<h4>🧺 A lista felépítése</h4>
+<p>A tételek kategóriánként, külön színű sorokban látszanak. A kategória neve mellett zárójelben a tételek száma áll. Egy sorban egyszerre annyi csempe látszik, amennyit a csempeméret megad (kicsi: 4, közepes: 3, nagy: 2), a többit oldalra húzva éred el. A kategória címére koppintva a sor összecsukódik, újabb koppintásra kinyílik.</p>
+<h4>👆 Egy tétel kezelése</h4>
+<p>Koppints egy csempére, és fölötte megjelenik egy kártya 2,5 másodpercre:</p>
+<ul>
+<li><b>✓</b> megvan: a tétel a „Pipálva" részbe kerül.</li>
+<li><b>✖</b> hiányzik: a tétel a „Hiányzik" részbe kerül (pl. nem volt a boltban).</li>
+<li><b>ℹ️ / 🖼️</b> részletek megnyitása.</li>
+<li><b>🗑️</b> a tétel törlése.</li>
+</ul>
+<p>A ✓ és ✖ megnyomásakor a csempe eltűnik, és (ha a telefon támogatja) egy rövid rezgés jelzi.</p>
+<h4>📝 Részletek ablak</h4>
+<p>Itt átírhatod a tétel nevét, megjegyzést írhatsz hozzá, módosíthatod a kategóriát és az ikont, és képet adhatsz hozzá, cserélhetsz vagy törölhetsz. A <b>Mentés</b> gombbal mented a változtatásokat.</p>
+<h4>📷 Képek</h4>
+<p>A tételekhez az app alapból ételfotót vagy 3D ikont választ (ezt a beállításokban ki lehet kapcsolni). Saját képet is csatolhatsz: ilyenkor az jelenik meg a csempén. A saját képet az app a tétel nevéhez menti, így minden azonos nevű tétel ugyanazt a képet kapja, a családtagoknál is.</p>
+<h4>✅ Pipálva és Hiányzik</h4>
+<p>A lista alatt két rész van. A <b>↺</b> egy tételt visszatesz a listára, a <b>↺ Mind vissza</b> az összeset. A <b>Törlés</b> az adott rész összes tételét véglegesen törli.</p>
+<h4>📊 Haladássáv és Kész képernyő</h4>
+<p>A lista tetején a sáv mutatja, hány tétel van már megpipálva az összesből. Ha elfogy az utolsó aktív tétel is, megjelenik a „Kész a bevásárlás!" üzenet konfettivel.</p>
+<h4>🔍 Keresés</h4>
+<p>A bal felső 🔍 gombbal megnyílik a kereső. Gépelés közben csak a találatok látszanak (ékezet nélkül is működik). Ha megpipálsz egy találatot, a kereső bezárul.</p>
+<h4>⚙️ Beállítások</h4>
+<ul>
+<li><b>Szoba:</b> a lista egy 4 jegyű kódhoz (szobához) tartozik. Akik ugyanazt a kódot adják meg, ugyanazt a listát látják és szerkesztik valós időben. Váltáshoz koppints a „Szoba … – váltás" gombra, és írd be az új kódot.</li>
+<li><b>Valósághű ételfotók:</b> ki-be kapcsolja az internetről hozott ételfotókat. Kikapcsolva a 3D ikonok látszanak.</li>
+<li><b>Csempeméret:</b> kicsi, közepes vagy nagy.</li>
+<li><b>Bolti sorrend:</b> a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
+<li><b>Sötét / világos mód:</b> témaváltás.</li>
+<li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
+<li><b>Minden tétel törlése:</b> az egész lista törlése megerősítés után.</li>
+</ul>
+<h4>🔔 Értesítések</h4>
+<p>Ha valaki más ad hozzá egy tételt, miközben az app nyitva van, felül egy kis üzenet jelenik meg. Ha az app a háttérben fut, rendszerértesítés is jöhet, amit a beállításokban kell engedélyezni. iPhone-on ehhez az appot a főképernyőre kell tenni (Safari: Megosztás → Főképernyőhöz adás), és onnan megnyitni. Teljesen bezárt appnál nem érkezik értesítés.</p>
+<h4>📴 Net nélkül</h4>
+<p>Ha elmegy a net, egy sárga sáv jelzi. Az app az utolsó ismert listát megmutatja. A net nélkül végzett módosítások akkor szinkronizálódnak, amikor visszatér a térerő, de csak ha közben az app nyitva marad.</p>
+<h4>🏠 A fejléc</h4>
+<p>Középen a szoba száma és az látszik, hányan szerkesztik épp a listát.</p>
+<button class="cancel" onclick="closeModal('helpModal')">Bezárás</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
