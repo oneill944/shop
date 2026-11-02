@@ -258,6 +258,8 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
   <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="ksh">KSH átlagár (hivatalos)</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
   <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
+  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Ikonstílus</div>
+  <div class="seg" id="segIcon"><button data-i="3d" onclick="setIconStyle('3d')">3D ikon</button><button data-i="emoji" onclick="setIconStyle('emoji')">Emoji</button><button data-i="text" onclick="setIconStyle('text')">Szöveg</button></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Nézet</div>
   <div class="seg" id="segView"><button data-v="tile" onclick="setView('tile')">Csempék</button><button data-v="list" onclick="setView('list')">Lista</button></div>
   <div id="sizeBox"><div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
@@ -267,6 +269,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
   <div id="ordList"></div>
   <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
+  <button class="setbtn" onclick="clearCM()">🧹 Tanult kategóriák törlése</button>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
   <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
@@ -291,9 +294,10 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 </ul>
 <p>A ✓ és ✖ megnyomásakor a csempe eltűnik, és (ha a telefon támogatja) egy rövid rezgés jelzi.</p>
 <h4>📝 Részletek ablak</h4>
-<p>Itt átírhatod a tétel nevét, megjegyzést írhatsz hozzá, módosíthatod a kategóriát és az ikont, és képet adhatsz hozzá, cserélhetsz vagy törölhetsz. A <b>Mentés</b> gombbal mented a változtatásokat.</p>
+<p>Itt átírhatod a tétel nevét, megjegyzést írhatsz hozzá, módosíthatod a kategóriát és az ikont, és képet adhatsz hozzá, cserélhetsz vagy törölhetsz. A <b>Mentés</b> gombbal mented a változtatásokat. Ha átállítod a kategóriát, az app megjegyzi az adott névhez, és legközelebb már oda teszi az ilyen nevű tételt (a Beállításokban a „Tanult kategóriák törlése” gombbal törölhető).</p>
 <h4>📷 Képek</h4>
 <p>A tételekhez az app alapból ételfotót vagy 3D ikont választ (ezt a beállításokban ki lehet kapcsolni). Saját képet is csatolhatsz: ilyenkor az jelenik meg a csempén. A saját képet az app a tétel nevéhez menti, így minden azonos nevű tétel ugyanazt a képet kapja, a családtagoknál is.</p>
+<p><b>Ikonstílus:</b> a Beállításokban választhatsz a <b>3D ikonok</b>, a sima <b>emojik</b> és a <b>csak szöveg</b> között. A sima emoji gyorsabban betöltődik, és kevesebb adatot használ, a „Szöveg” módban pedig nincsenek ikonok és internetről hozott fotók (a saját képeid megmaradnak).</p>
 <h4>✅ Pipálva és Hiányzik</h4>
 <p>A lista alatt két rész van. A <b>↺</b> egy tételt visszatesz a listára, a <b>↺ Mind vissza</b> az összeset. A <b>Törlés</b> az adott rész összes tételét véglegesen törli. A rész címére koppintva összecsukhatod (▾ / ▸), így nem foglal helyet a lista alatt. Az app megjegyzi, melyik rész van összecsukva.</p>
 <h4>💰 Árbecslés</h4>
@@ -372,6 +376,8 @@ function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u030
 const DICT=[];
 DATA.split('\n').forEach(line=>{const[c,rest]=line.split('|');rest.split(';').forEach(p=>{const[e,k]=p.split(':');DICT.push([e,k.split(',').map(norm),c])})});
 const getMem=()=>{try{return JSON.parse(localStorage.getItem('iconMem')||'{}')}catch(e){return{}}};
+const getCatMem=()=>{try{return JSON.parse(localStorage.getItem('catMem')||'{}')}catch(e){return{}}};
+function clearCM(){localStorage.removeItem('catMem');toast('A tanult kategóriák törölve');render()}
 function guess(text){
   const n=norm(text),words=n.split(/[^a-z0-9]+/).filter(Boolean);
   let best={icon:'🛒',cat:'egyeb'},bl=0;
@@ -380,19 +386,22 @@ function guess(text){
     if(hit&&k.length>bl){best={icon:e,cat:c};bl=k.length}
   }
   const m=getMem()[n];if(m)best.icon=m;
+  const cm=getCatMem()[n];if(cm)best.cat=cm;
   return best;
 }
 const PICK=Array.from('🛒🥛🍞🥩🍗🐟🥚🧀🍨🍺🍷🥤☕🥦🍅🥕🥔🧅🍎🍌🍊🍇🍓🍉🍫🍪🍬🍿🍰🍝🍚🌾🫒🧂🍯🥫🧻🧼🧴🪥🧽🍕🍔🐶🐱🍼💊🔋💡🌸🎁📝🧦🥑🥬🍄🌽🧊🍋');
 
 /* ---------- Realisztikus (3D) ikonok, tartalék: Noto, végül natív emoji ---------- */
-function iconEl(e,cls){
+function iconEl(e,cls,force){
+  let st=localStorage.getItem('iconStyle')||'3d';if(force&&st==='text')st='emoji';
+  if(st!=='3d'){const sp=document.createElement('span');sp.className='ico '+(cls||'');if(st==='emoji')sp.textContent=e;else sp.style.display='none';return sp}
   const code=Array.from(e).map(c=>c.codePointAt(0).toString(16)).filter(c=>c!=='fe0f').join('-');
   const srcs=[`https://cdn.jsdelivr.net/npm/@lobehub/fluent-emoji-3d@1.1.0/assets/${code}.webp`,`https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u${code.replace(/-/g,'_')}.png`];
   const img=new Image();img.className='ico '+(cls||'');img.alt=e;img.loading='lazy';let i=0;img.src=srcs[0];
   img.onerror=()=>{i++;if(i<srcs.length)img.src=srcs[i];else{const s=document.createElement('span');s.className='ico '+(cls||'');s.textContent=e;img.replaceWith(s)}};
   return img;
 }
-const setIcon=(el,e,cls)=>el.replaceChildren(iconEl(e,cls));
+const setIcon=(el,e,cls)=>el.replaceChildren(iconEl(e,cls,true));
 
 /* ---------- Init ---------- */
 $('newCat').add(new Option('Kategória: automatikus',''));
@@ -514,6 +523,7 @@ function addItem(){
     toast('✓ '+parts.length+' tétel hozzáadva');closeModal('inputModal');return;
   }
   const g=guess(val),ref=listRef.push();
+  if($('newCat').value){const cm=getCatMem();cm[norm(val)]=$('newCat').value;localStorage.setItem('catMem',JSON.stringify(cm))}
   const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
   if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull);savePM(val,pendingThumb)}
   item.by=DEV;ref.set(item);bumpFreq(item);closeModal('inputModal');
@@ -528,6 +538,7 @@ function openDetail(id){
 }
 function saveDetail(){
   if(detailId){const pv=parseFloat($('dPrice').value),cur=lastItems.find(i=>i.id===detailId);if(cur){const ni={...cur,text:$('dName').value.trim()||cur.text,note:$('dNote').value.trim()};if(pv>0)learnPrice(ni,pv);else if(cur.price>0)forgetPrice(ni)}}
+  {const c2=lastItems.find(i=>i.id===detailId),nn=$('dName').value.trim()||(c2||{}).text||'',nc=$('dCat').value;if(c2&&nc&&nn&&nc!==c2._cat){const cm=getCatMem();cm[norm(nn)]=nc;localStorage.setItem('catMem',JSON.stringify(cm))}}
   listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value,price:parseFloat($('dPrice').value)||null});
   closeModal('detailModal');detailId=null;
 }
@@ -554,7 +565,7 @@ function joinByCode(){const c=$('joinCodeInput').value.trim();if(/^\d{4}$/.test(
 /* ---------- Ikonválasztó ---------- */
 function openPicker(target){
   pickTarget=target;const g=$('pickerGrid');g.textContent='';
-  PICK.forEach(e=>{const b=document.createElement('button');b.append(iconEl(e));b.onclick=()=>pickIcon(e);g.append(b)});
+  PICK.forEach(e=>{const b=document.createElement('button');b.append(iconEl(e,'',true));b.onclick=()=>pickIcon(e);g.append(b)});
   openModal('pickerModal');
 }
 function pickIcon(e){
@@ -590,7 +601,7 @@ function wikiPic(it,n,w){
   return null;
 }
 function realPic(it){
-  if(localStorage.getItem('realPics')==='0'||it.icon!==guess(it.text||'').icon)return null;
+  if(localStorage.getItem('realPics')==='0'||(localStorage.getItem('iconStyle')||'3d')==='text'||it.icon!==guess(it.text||'').icon)return null;
   const n=norm(it.text||''),w=n.split(/[^a-z0-9]+/);
   const hit=EK.find(([k])=>k.length<4?w.includes(k):n.includes(k));
   if(!hit)return wikiPic(it,n,w);
@@ -709,6 +720,8 @@ function makeListRow(it){
   t.onclick=()=>showPop(t,it);
   return t;
 }
+function syncIconSeg(){const v=localStorage.getItem('iconStyle')||'3d';document.querySelectorAll('#segIcon button').forEach(b=>b.classList.toggle('on',b.dataset.i===v))}
+function setIconStyle(v){localStorage.setItem('iconStyle',v);syncIconSeg();render()}
 function syncSizeBox(){$('sizeBox').style.display=localStorage.getItem('viewMode')==='list'?'none':''}
 function setView(v){
   localStorage.setItem('viewMode',v);syncSizeBox();
@@ -840,7 +853,7 @@ function enableNotif(){
 const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
-  $('realChk').checked=localStorage.getItem('realPics')!=='0';syncSizeBox();
+  $('realChk').checked=localStorage.getItem('realPics')!=='0';syncSizeBox();syncIconSeg();
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(localStorage.getItem('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   const l=$('ordList');l.textContent='';
