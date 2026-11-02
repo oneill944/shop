@@ -251,7 +251,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3 style="margin:0">Beállítások</h3><button class="ibtn" onclick="openModal('helpModal')">❓</button></div>
+  <h3 style="margin:0 0 10px">Beállítások</h3>
   <button class="setbtn" style="margin:0 0 12px" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="priceChk" style="width:auto;margin:0" onchange="setPriceShow(this.checked)"> Árbecslés mutatása</label>
@@ -266,13 +266,13 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
-  <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
-  <div id="ordList"></div>
+  <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="openCatOrder()">↕️ Bolti sorrend beállítása</button>
   <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
   <button class="setbtn" onclick="clearCM()">🧹 Tanult kategóriák törlése</button>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
   <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
+  <button class="setbtn" onclick="openModal('helpModal')">❓ Súgó</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
 </div></div>
 <div id="helpModal" class="custom-modal"><div class="modal-content help">
@@ -316,7 +316,8 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Valósághű ételfotók:</b> ki-be kapcsolja az internetről hozott ételfotókat. Kikapcsolva a 3D ikonok látszanak.</li>
 <li><b>Csempeméret:</b> kicsi, közepes vagy nagy.</li>
 <li><b>Kártya megjelenési ideje:</b> a csúszkával 1 és 10 másodperc között állíthatod, mennyi ideig maradjon látható a tételre koppintáskor megjelenő kártya (alapérték: 2,5 mp). A beállítást az app megjegyzi, és minden telefonon külön érvényes.</li>
-<li><b>Bolti sorrend:</b> a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
+<li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
+<li><b>Súgó:</b> a Beállítások ablak alján található.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
 <li><b>Minden tétel törlése:</b> az egész lista törlése megerősítés után.</li>
@@ -335,6 +336,12 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <div id="cmpList"></div>
 <div style="font-size:11px;opacity:.65;margin-top:10px;line-height:1.4">A különbségek közelítő boltszintű arányokon alapulnak (2026 októberi kosárteszteken), nem az egyes termékek aktuális, akciós árain. A Milano Marketről nincs árarány-adatom, ott az országos átlaggal számol.</div>
 <button class="cancel" onclick="closeModal('compareModal')">Bezárás</button>
+</div></div>
+<div id="catOrderModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin:0 0 6px">↕️ Bolti sorrend</h3>
+  <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt a sorrendet követi.</div>
+  <div id="ordList"></div>
+  <button class="primary-btn" style="margin-top:12px" onclick="closeModal('catOrderModal')">Kész</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
@@ -856,19 +863,22 @@ function openOrder(){
   $('realChk').checked=localStorage.getItem('realPics')!=='0';syncSizeBox();syncIconSeg();
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(localStorage.getItem('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
+  openModal('orderModal');
+}
+function renderOrd(){
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
     const r=document.createElement('div');r.className='ordrow';
     const n=document.createElement('span');n.className='n';n.textContent=label;
     const up=document.createElement('button');up.textContent='↑';up.onclick=()=>moveCat(i,-1);
     const dn=document.createElement('button');dn.textContent='↓';dn.onclick=()=>moveCat(i,1);
-    r.append(iconEl(emo,'s'),n,up,dn);l.append(r);
+    r.append(iconEl(emo,'s',true),n,up,dn);l.append(r);
   });
-  openModal('orderModal');
 }
+function openCatOrder(){renderOrd();openModal('catOrderModal')}
 function moveCat(i,d){
   const cs=orderedCats().map(c=>c[0]),j=i+d;if(j<0||j>=cs.length)return;
-  [cs[i],cs[j]]=[cs[j],cs[i]];localStorage.setItem('catOrder',JSON.stringify(cs));openOrder();render();
+  [cs[i],cs[j]]=[cs[j],cs[i]];localStorage.setItem('catOrder',JSON.stringify(cs));renderOrd();render();
 }
 const getFreq=()=>{try{return JSON.parse(localStorage.getItem('freq')||'{}')}catch(e){return{}}};
 function bumpFreq(it){const f=getFreq(),k=norm(it.text),e=f[k]||{n:0};f[k]={n:e.n+1,text:it.text,icon:it.icon,cat:it.cat};localStorage.setItem('freq',JSON.stringify(f))}
