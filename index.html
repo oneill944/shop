@@ -245,7 +245,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="priceChk" style="width:auto;margin:0" onchange="setPriceShow(this.checked)"> Árbecslés mutatása</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
-  <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
+  <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="ksh">KSH átlagár (hivatalos)</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
   <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
@@ -287,7 +287,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <p>A mennyiséget a <b>megjegyzésből</b> olvassa ki: például <i>4 kg</i>, <i>20 dkg</i>, <i>500 g</i>, <i>3 db</i>, <i>1 zsugor</i> (6 db), <i>egy tálca</i>, <i>2 karton</i>. Szóval is érti (egy, két, három, fél). Ha nincs mennyiség megadva, 1 egységgel számol: 1 kg a kilóra árult termékeknél (pl. krumpli, csirkemell), 1 db a darabra árultaknál (pl. tej, tojás, sör).</p>
 <p><b>Az árak állapota:</b> a beépített árak 2026. októberi átlagárak. Az alapvető élelmiszerek egy részénél (csirkemell, csirkecomb, sertéskaraj, sertéscomb, trappista sajt, tej, tojás, napraforgóolaj, liszt, cukor, burgonya, margarin, kenyér) a KSH és a GVH Árfigyelő hivatalos átlagáraiból számol, a többi termék ára becslés. A tételeket a nevük és a megjegyzésük együtt alapján különbözteti meg (pl. <i>Hús – csirkemell</i>, <i>Hús – darált</i>, <i>sertéskaraj</i>).</p>
 <p>Ha a becslés nem stimmel, a részletek ablakban megadhatsz egy <b>saját árat</b> forintban (az egész tételre), ez felülírja a becslést, és az app megjegyzi az adott termék egységárát, így legközelebb már azzal számol (a Beállításokban törölhető). A tétel csempéjén és a lebegő kártyán is látszik az ár. Azt, hogy mi legyen az ár alapján, a Beállításokban az <b>Árbecslés mutatása</b> jelölőnégyzettel kapcsolhatod ki. A megosztott összefoglaló is tartalmazza a várható összeget.</p>
-<p><b>Boltok:</b> a Beállításokban kiválaszthatod, melyik boltra számoljon az app (Lidl, Aldi, Interspar, Tesco, Milano Market, vagy országos átlag). A boltok között közelítő árarányokkal számol, amelyek a legutóbbi nyilvános kosárteszteken alapulnak, nem a konkrét termékek aktuális akciós árain. A <b>Boltok összehasonlítása</b> gombbal (vagy a végösszeg sorra koppintva) látod, melyik bolt lenne a legolcsóbb a mostani listádhoz. A saját árakat az app boltonként külön jegyzi meg.</p>
+<p><b>Boltok:</b> a Beállításokban kiválaszthatod, melyik boltra számoljon az app (Lidl, Aldi, Interspar, Tesco, Milano Market, országos átlag vagy KSH átlagár). A <b>KSH átlagár</b> opció a KSH 2026. szeptemberi hivatalos átlagárait használja, ahol van adata (kb. 45 gyakori termékre: hús, felvágottak, tej, tojás, kenyér, zöldség, gyümölcs, liszt, cukor, olaj, víz, sör stb.). A KSH nem követ minden terméket, ezért ahol nincs KSH-adat, az app a beépített becslésével számol, és ezt a lebegő kártyán „(becslés)” felirat jelzi. A boltok között közelítő árarányokkal számol, amelyek a legutóbbi nyilvános kosárteszteken alapulnak, nem a konkrét termékek aktuális akciós árain. A <b>Boltok összehasonlítása</b> gombbal (vagy a végösszeg sorra koppintva) látod, melyik bolt lenne a legolcsóbb a mostani listádhoz. A saját árakat az app boltonként külön jegyzi meg.</p>
 <h4>📊 Haladássáv és Kész képernyő</h4>
 <p>A lista tetején a sáv mutatja, hány tétel van már megpipálva az összesből. Ha elfogy az utolsó aktív tétel is, megjelenik a „Kész a bevásárlás!" üzenet konfettivel.</p>
 <h4>🔍 Keresés</h4>
@@ -596,10 +596,11 @@ function restoreAll(st){
   const n=Object.keys(u).length;if(!n)return;
   listRef.update(u);toast('↺ '+n+' tétel visszakerült a listára');
 }
-const PRT=`csirke mell,csirkemell,mell,csirkemellfile|kg|2250|1;csirkecomb,csirke comb,alsocomb,felsocomb|kg|1150|1;szarny,csirkeszarny|kg|1200|1;daralt csirke|kg|2500|0.5;csirke,egesz csirke|kg|1300|1.5;daralt sertes|kg|2300|0.5;daralt marha|kg|4800|0.5;darahus,daralt|kg|2900|0.5;sertes karaj,serteskaraj,karaj|kg|2390|1;sertes comb,sertescomb|kg|1890|1;tarja,nyak|kg|2400|1;oldalas|kg|2500|1;sertes,sertes hus|kg|2300|1;marha,marhahus|kg|4800|0.5;pulyka|kg|3500|1;kacsa|kg|2200|1.5;szalami|kg|6500|0.2;sonka|kg|3800|0.2;parizer|kg|1700|0.3;virsli|kg|2500|0.4;kolbasz|kg|3000|0.5;szalonna|kg|2800|0.3;lazac|kg|7500|0.4;pisztrang|kg|3800|0.4;hal|kg|3500|0.4;tonhal|db|750|1;hus|kg|2500|1;uht tej,uht|db|350|1;tej|db|420|1;tejfol|db|450|1;tejszin|db|500|1;joghurt|db|220|1;kefir|db|380|1;vaj|db|1500|1;margarin|db|690|1;trappista|kg|2950|0.3;sajt|kg|3300|0.3;mozzarella|db|450|1;turo|db|700|1;tojas|db|69|10|30;kenyer,feher kenyer|db|905|1;zsemle,kifli|db|60|5;pogacsa|db|120|5;croissant|db|190|1;krumpli,burgonya|kg|380|1;hagyma|kg|400|1;fokhagyma|kg|2500|0.1;sargarepa,repa|kg|450|1;paradicsom|kg|1400|0.8;paprika|kg|1600|0.5;uborka|kg|900|0.5;kaposzta|kg|450|1.5;salata|db|450|1;alma|kg|600|1;banan|kg|650|1;narancs,mandarin|kg|800|1;citrom|kg|1200|0.3;szolo|kg|1400|0.5;eper,malna|kg|2800|0.5;gomba|kg|1800|0.5;brokkoli,karfiol|kg|1200|0.7;cukkini,padlizsan|kg|1100|0.7;liszt|db|230|1;cukor|db|390|1;so|db|150|1;rizs|db|700|1;teszta,spagetti,tarhonya|db|480|1;olivaolaj|db|2800|1;olaj|db|680|1;ecet|db|300|1;kave|db|1900|1;tea|db|700|1;konzerv,leves|db|500|1;bab,lencse|db|450|1;csoki,csokolade|db|600|1;keksz|db|450|1;chips|db|850|1;gumicukor,cukorka|db|500|1;torta|db|3500|1;viz,asvanyviz|db|150|1;cola,fanta,udito,szoda|db|600|1;sor|db|330|1|24;bor|db|1800|1;narancsle,gyumolcsle|db|450|1;wc,zsebkendo|db|1400|1;mosopor,oblito|db|2500|1;mosogato,szappan|db|600|1;samp,tusfurdo|db|1200|1;fogkrem|db|700|1;pelenka|db|4500|1`.split(';').map(r=>{const[k,t,p,d,tr]=r.split('|');return[k.split(',').map(norm),t,+p,+d,tr?+tr:0]});
+const PRT=`csirke mell,csirkemell,mell,csirkemellfile|kg|2250|1;csirkecomb,csirke comb,alsocomb,felsocomb|kg|1150|1;szarny,csirkeszarny|kg|1200|1;daralt csirke|kg|2500|0.5;csirke,egesz csirke|kg|1300|1.5;daralt sertes|kg|2300|0.5;daralt marha|kg|4800|0.5;darahus,daralt|kg|2900|0.5;sertes karaj,serteskaraj,karaj|kg|2390|1;sertes comb,sertescomb|kg|1890|1;tarja,nyak|kg|2400|1;oldalas|kg|2500|1;sertes,sertes hus|kg|2300|1;marha,marhahus|kg|4800|0.5;pulyka|kg|3500|1;kacsa|kg|2200|1.5;szalami|kg|6500|0.2;sonka|kg|3800|0.2;parizer|kg|1700|0.3;virsli|kg|2500|0.4;kolbasz|kg|3000|0.5;szalonna|kg|2800|0.3;lazac|kg|7500|0.4;pisztrang|kg|3800|0.4;hal|kg|3500|0.4;tonhal|db|750|1;hus|kg|2500|1;uht tej,uht|db|350|1;tej|db|420|1;tejfol|db|450|1;tejszin|db|500|1;joghurt|db|220|1;kefir|db|380|1;vaj|db|1500|1;margarin|db|690|1;trappista|kg|2950|0.3;sajt|kg|3300|0.3;mozzarella|db|450|1;turo|db|700|1;tojas|db|69|10|30;kenyer,feher kenyer|db|905|1;zsemle,kifli|db|60|5;pogacsa|db|120|5;croissant|db|190|1;krumpli,burgonya|kg|380|1;hagyma|kg|400|1;fokhagyma|kg|2500|0.1;sargarepa,repa|kg|450|1;paradicsom|kg|1400|0.8;paprika|kg|1600|0.5;uborka|kg|900|0.5;kaposzta|kg|450|1.5;salata|db|450|1;alma|kg|600|1;banan|kg|650|1;narancs,mandarin|kg|800|1;citrom|kg|1200|0.3;szolo|kg|1400|0.5;eper,malna|kg|2800|0.5;gomba|kg|1800|0.5;brokkoli,karfiol|kg|1200|0.7;cukkini,padlizsan|kg|1100|0.7;liszt|db|230|1;cukor|db|325|1;so|db|150|1;rizs|db|700|1;teszta,spagetti,tarhonya|db|480|1;olivaolaj|db|2800|1;olaj|db|680|1;ecet|db|300|1;kave|db|1620|1;tea|db|700|1;konzerv,leves|db|500|1;bab,lencse|db|450|1;csoki,csokolade|db|600|1;keksz|db|450|1;chips|db|850|1;gumicukor,cukorka|db|500|1;torta|db|3500|1;viz,asvanyviz|db|150|1;cola,fanta,udito,szoda|db|600|1;sor|db|330|1|24;bor|db|1800|1;narancsle,gyumolcsle|db|450|1;wc,zsebkendo|db|1400|1;mosopor,oblito|db|2500|1;mosogato,szappan|db|600|1;samp,tusfurdo|db|1200|1;fogkrem|db|700|1;pelenka|db|4500|1`.split(';').map(r=>{const[k,t,p,d,tr]=r.split('|');return[k.split(',').map(norm),t,+p,+d,tr?+tr:0]});
 const NW={egy:1,ket:2,ketto:2,harom:3,negy:4,ot:5,hat:6,het:7,nyolc:8,kilenc:9,tiz:10};
 const FAC={kg:1,l:1,liter:1,dkg:.01,dag:.01,g:.001,gr:.001,dl:.1,ml:.001};
 const fmt=n=>(Math.round(n/10)*10).toLocaleString('hu-HU')+' Ft';
+const fmtU=n=>n<100?Math.round(n)+' Ft':fmt(n);
 function parseQ(s){
   if(!s)return null;
   s=s.replace(/\b(egy|ket|ketto|harom|negy|ot|hat|het|nyolc|kilenc|tiz)\b/g,w=>NW[w]).replace(/\bfel\b/g,'0.5');
@@ -629,7 +630,8 @@ function calcQ(it,t,def,tray){
 }
 const rowOf=it=>findPrice((it.text||'')+' '+(it.note||''));
 const pKey=it=>{const r=rowOf(it);return r?r[0][0]:norm(it.text||'')};
-const STORES=[['atlag','Országos átlag',1],['lidl','Lidl',0.95],['aldi','Aldi',0.97],['interspar','Interspar',1],['tesco','Tesco',1.09],['milano','Milano Market',1]];
+const STORES=[['atlag','Országos átlag',1],['ksh','KSH átlagár',1],['lidl','Lidl',0.95],['aldi','Aldi',0.97],['interspar','Interspar',1],['tesco','Tesco',1.09],['milano','Milano Market',1]];
+const KSHP={'csirke mell':2460,'csirkecomb':1070,'szarny':1020,'csirke':1310,'sertes karaj':2070,'sertes comb':1670,'marha':5900,'pulyka':3280,'szalami':10060,'parizer':1990,'virsli':3200,'kolbasz':5830,'szalonna':3240,'hal':4710,'tej':349,'uht tej':346,'joghurt':148,'trappista':2660,'tojas':81.4,'kenyer':905,'zsemle':70,'sargarepa':535,'hagyma':332,'kaposzta':375,'paradicsom':956,'paprika':917,'uborka':1110,'gomba':1900,'alma':600,'banan':739,'narancs':894,'citrom':1300,'liszt':232,'cukor':324,'rizs':676,'teszta':607,'olaj':874,'kave':1620,'csoki':711,'viz':189,'cola':645,'sor':391,'bor':620,'narancsle':1050,'fogkrem':895};
 const getStore=()=>{const v=localStorage.getItem('store');return STORES.some(x=>x[0]===v)?v:'atlag'};
 const storeName=id=>(STORES.find(x=>x[0]===id)||STORES[0])[1];
 const storeF=id=>(STORES.find(x=>x[0]===id)||STORES[0])[2];
@@ -640,9 +642,9 @@ function estimate(it,sid){
   if(it.price>0)return{ft:it.price,lab:'saját ár'};
   const row=rowOf(it),mp=getMP()[sid+'|'+pKey(it)];
   if(!row&&!mp)return null;
-  const t=mp?mp.t:row[1],pr=mp?mp.p:row[2]*storeF(sid),def=row?row[3]:1,tray=row?row[4]:0;
+  const t=mp?mp.t:row[1],kp=(!mp&&sid==='ksh'&&row)?KSHP[row[0][0]]:undefined,pr=mp?mp.p:(kp!==undefined?kp:row[2]*storeF(sid)),def=row?row[3]:1,tray=row?row[4]:0;
   const q=Math.round(calcQ(it,t,def,tray)*100)/100;
-  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmt(pr)+(mp?' (saját)':'')};
+  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmtU(pr)+(mp?' (saját)':(sid==='ksh'?(kp!==undefined?' (KSH)':' (becslés)'):'')),k:kp!==undefined};
 }
 function learnPrice(it,total){
   const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0);
@@ -650,19 +652,19 @@ function learnPrice(it,total){
 }
 function clearMP(){localStorage.removeItem('myPrices');toast('A tanult árak törölve');render()}
 function totalEst(sid){
-  let sum=0,priced=0,n=0;
-  lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i,sid);if(e){sum+=e.ft;priced++}});
-  return{sum,priced,n};
+  let sum=0,priced=0,n=0,ksh=0;
+  lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i,sid);if(e){sum+=e.ft;priced++;if(e.k)ksh++}});
+  return{sum,priced,n,ksh};
 }
 function renderTotal(){
   const el=$('totalLine'),T=totalEst(),on=localStorage.getItem('showPrice')!=='0'&&T.sum>0;
   el.style.display=on?'block':'none';
-  if(on)el.textContent='💰 Várható összeg'+storeTag()+': ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva';
+  if(on)el.textContent='💰 Várható összeg'+storeTag()+': ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva'+(getStore()==='ksh'?' ('+T.ksh+' KSH-adattal)':'');
 }
 function openCompare(){
   if(!lastItems.some(i=>i.status!=='x'))return toast('Még nincs tétel a listán');
   const l=$('cmpList');l.textContent='';
-  const rows=STORES.filter(x=>x[0]!=='atlag').map(([id,n])=>({id,n,sum:totalEst(id).sum})).sort((a,b)=>a.sum-b.sum);
+  const rows=STORES.filter(x=>x[0]!=='atlag'&&x[0]!=='ksh').map(([id,n])=>({id,n,sum:totalEst(id).sum})).sort((a,b)=>a.sum-b.sum);
   const best=rows[0].sum;
   rows.forEach((r,i)=>{
     const d=document.createElement('div');d.className='cmprow'+(r.id===getStore()?' sel':'');
