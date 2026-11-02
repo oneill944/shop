@@ -189,6 +189,17 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 .cmprow .p{font-weight:800;font-size:14px}
 .cmprow .df{font-size:11px;opacity:.75;min-width:92px;text-align:right}
 .sectog{cursor:pointer;flex:1}
+.cat-list{display:flex;flex-direction:column;gap:6px;padding:6px 0 10px}
+.cat-list.collapsed{display:none}
+.lrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:16px;background:var(--card-bg);background:color-mix(in srgb,var(--c) 13%,var(--card-bg));border:2px solid color-mix(in srgb,var(--c) 26%,transparent);cursor:pointer;transition:transform .15s}
+.lrow:active{transform:scale(.98)}
+.lrow .ico{width:30px;height:30px;line-height:30px;font-size:24px;margin:0;flex:none;padding:0;background:none}
+.lrow .thumb{width:34px;height:34px;border-radius:8px;object-fit:contain;margin:0;flex:none}
+.lmid{flex:1;min-width:0}
+.ltext{font-weight:700;font-size:14px;word-break:break-word}
+.lnote{font-size:11px;opacity:.65;margin-top:1px;word-break:break-word}
+.lprice{font-weight:800;font-size:12px;color:var(--c);white-space:nowrap}
+.lrow.pop{animation:pop .33s ease-in forwards}
 </style>
 </head>
 <body>
@@ -247,7 +258,9 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
   <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="ksh">KSH átlagár (hivatalos)</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
   <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
-  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
+  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Nézet</div>
+  <div class="seg" id="segView"><button data-v="tile" onclick="setView('tile')">Csempék</button><button data-v="list" onclick="setView('list')">Lista</button></div>
+  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret (csempés nézetben)</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
@@ -267,6 +280,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <p><b>Gyakori tételek:</b> a leggyakrabban felvett tételek gombként megjelennek az ablak tetején. Egy koppintással felkerülnek a listára.</p>
 <h4>🧺 A lista felépítése</h4>
 <p>A tételek kategóriánként, külön színű sorokban látszanak. A kategória neve mellett zárójelben a tételek száma áll. Egy sorban egyszerre annyi csempe látszik, amennyit a csempeméret megad (kicsi: 4, közepes: 3, nagy: 2), a többit oldalra húzva éred el. A kategória címére koppintva a sor összecsukódik, újabb koppintásra kinyílik.</p>
+<p><b>Kompakt listanézet:</b> a Beállításokban a <b>Nézet</b> gombbal átválthatsz csempékről egy soronkénti listára. Ott minden tétel egy sorban látszik: ikon, név, megjegyzés és a becsült ár. Hosszú listáknál kevesebbet kell görgetni. A tételre koppintva ugyanúgy megjelenik a lebegő kártya. A csempeméret csak a csempés nézetre vonatkozik.</p>
 <h4>👆 Egy tétel kezelése</h4>
 <p>Koppints egy csempére, és fölötte megjelenik egy kártya. Alapból 2,5 másodpercig látszik, majd magától eltűnik (ezt a beállításokban átállíthatod):</p>
 <ul>
@@ -410,7 +424,7 @@ function render(){
   const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
   const y=window.scrollY;const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
-  const groups={};let active=0;
+  const groups={};let active=0;const LIST=localStorage.getItem('viewMode')==='list';
   items.forEach(it=>{
     const g=guess(it.text||'');it._icon=it.icon||g.icon;it._cat=it.cat||g.cat;
     if(it.status==='active'){active++;if(!searchQ||norm((it.text||'')+' '+(it.note||'')).includes(searchQ))(groups[it._cat]=groups[it._cat]||[]).push(it)}
@@ -434,8 +448,9 @@ function render(){
   hadActive=!!active;
   orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(((COL.has(cid)&&!searchQ)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className='cat-row'+((COL.has(cid)&&!searchQ)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(((COL.has(cid)&&!searchQ)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className=(LIST?'cat-list':'cat-row')+((COL.has(cid)&&!searchQ)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
     arr.forEach(it=>{
+      if(LIST){row.append(makeListRow(it));return}
       const t=document.createElement('div');
       t.className='tile'+(openId===it.id?' open-menu':'');
       const th=it.thumb||(PM[pmKey(it.text)]||{}).t;if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
@@ -681,6 +696,24 @@ function openCompare(){
   });
   openModal('compareModal');
 }
+function makeListRow(it){
+  const t=document.createElement('div');t.className='lrow';
+  const th=it.thumb||(PM[pmKey(it.text)]||{}).t;
+  if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
+  const mid=document.createElement('div');mid.className='lmid';
+  const x=document.createElement('div');x.className='ltext';x.textContent=it.text;mid.append(x);
+  if(it.note){const n=document.createElement('div');n.className='lnote';n.textContent=it.note;mid.append(n)}
+  t.append(mid);
+  const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;
+  if(e){const p=document.createElement('div');p.className='lprice';p.textContent='~'+fmt(e.ft);t.append(p)}
+  t.onclick=()=>showPop(t,it);
+  return t;
+}
+function setView(v){
+  localStorage.setItem('viewMode',v);
+  document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  render();
+}
 function priceLine(it,t){
   const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;
   if(e){const d=document.createElement('div');d.className='tile-price';d.textContent='~'+fmt(e.ft);t.append(d)}
@@ -807,6 +840,7 @@ const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]'
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
   $('realChk').checked=localStorage.getItem('realPics')!=='0';
+  document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(localStorage.getItem('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
