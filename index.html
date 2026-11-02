@@ -260,8 +260,8 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Nézet</div>
   <div class="seg" id="segView"><button data-v="tile" onclick="setView('tile')">Csempék</button><button data-v="list" onclick="setView('list')">Lista</button></div>
-  <div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret (csempés nézetben)</div>
-  <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div>
+  <div id="sizeBox"><div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
+  <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
   <div style="font-size:12px;opacity:.7;margin:4px 0 6px">Bolti sorrend – told fel/le a kategóriákat úgy, ahogy a boltban haladsz.</div>
@@ -280,7 +280,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <p><b>Gyakori tételek:</b> a leggyakrabban felvett tételek gombként megjelennek az ablak tetején. Egy koppintással felkerülnek a listára.</p>
 <h4>🧺 A lista felépítése</h4>
 <p>A tételek kategóriánként, külön színű sorokban látszanak. A kategória neve mellett zárójelben a tételek száma áll. Egy sorban egyszerre annyi csempe látszik, amennyit a csempeméret megad (kicsi: 4, közepes: 3, nagy: 2), a többit oldalra húzva éred el. A kategória címére koppintva a sor összecsukódik, újabb koppintásra kinyílik.</p>
-<p><b>Kompakt listanézet:</b> a Beállításokban a <b>Nézet</b> gombbal átválthatsz csempékről egy soronkénti listára. Ott minden tétel egy sorban látszik: ikon, név, megjegyzés és a becsült ár. Hosszú listáknál kevesebbet kell görgetni. A tételre koppintva ugyanúgy megjelenik a lebegő kártya. A csempeméret csak a csempés nézetre vonatkozik.</p>
+<p><b>Kompakt listanézet:</b> a Beállításokban a <b>Nézet</b> gombbal átválthatsz csempékről egy soronkénti listára. Ott minden tétel egy sorban látszik: ikon, név, megjegyzés és a becsült ár. Hosszú listáknál kevesebbet kell görgetni. A tételre koppintva ugyanúgy megjelenik a lebegő kártya. A csempeméret-választó listanézetben nem látszik, mert csak a csempéket érinti.</p>
 <h4>👆 Egy tétel kezelése</h4>
 <p>Koppints egy csempére, és fölötte megjelenik egy kártya. Alapból 2,5 másodpercig látszik, majd magától eltűnik (ezt a beállításokban átállíthatod):</p>
 <ul>
@@ -709,8 +709,9 @@ function makeListRow(it){
   t.onclick=()=>showPop(t,it);
   return t;
 }
+function syncSizeBox(){$('sizeBox').style.display=localStorage.getItem('viewMode')==='list'?'none':''}
 function setView(v){
-  localStorage.setItem('viewMode',v);
+  localStorage.setItem('viewMode',v);syncSizeBox();
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   render();
 }
@@ -839,7 +840,7 @@ function enableNotif(){
 const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
-  $('realChk').checked=localStorage.getItem('realPics')!=='0';
+  $('realChk').checked=localStorage.getItem('realPics')!=='0';syncSizeBox();
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(localStorage.getItem('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   const l=$('ordList');l.textContent='';
