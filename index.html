@@ -188,6 +188,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 .cmprow .n{flex:1;font-weight:800;font-size:14px}
 .cmprow .p{font-weight:800;font-size:14px}
 .cmprow .df{font-size:11px;opacity:.75;min-width:92px;text-align:right}
+.sectog{cursor:pointer;flex:1}
 </style>
 </head>
 <body>
@@ -203,8 +204,8 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div id="totalLine" class="totalline" onclick="openCompare()"></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
-  <div class="status-section"><div class="section-title"><span>Pipálva ✓</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
-  <div class="status-section"><div class="section-title"><span>Hiányzik ✖</span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('x')">↺ Mind vissza</button><button onclick="clearStatus('x')">Törlés</button></span></div><div class="mini-list" id="missingList"></div></div>
+  <div class="status-section"><div class="section-title"><span id="doneTitle" class="sectog" onclick="toggleSec('done')"></span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
+  <div class="status-section"><div class="section-title"><span id="missTitle" class="sectog" onclick="toggleSec('x')"></span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('x')">↺ Mind vissza</button><button onclick="clearStatus('x')">Törlés</button></span></div><div class="mini-list" id="missingList"></div></div>
 </div>
 <button class="fab" onclick="openAdd()">+</button>
 
@@ -280,7 +281,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <h4>📷 Képek</h4>
 <p>A tételekhez az app alapból ételfotót vagy 3D ikont választ (ezt a beállításokban ki lehet kapcsolni). Saját képet is csatolhatsz: ilyenkor az jelenik meg a csempén. A saját képet az app a tétel nevéhez menti, így minden azonos nevű tétel ugyanazt a képet kapja, a családtagoknál is.</p>
 <h4>✅ Pipálva és Hiányzik</h4>
-<p>A lista alatt két rész van. A <b>↺</b> egy tételt visszatesz a listára, a <b>↺ Mind vissza</b> az összeset. A <b>Törlés</b> az adott rész összes tételét véglegesen törli.</p>
+<p>A lista alatt két rész van. A <b>↺</b> egy tételt visszatesz a listára, a <b>↺ Mind vissza</b> az összeset. A <b>Törlés</b> az adott rész összes tételét véglegesen törli. A rész címére koppintva összecsukhatod (▾ / ▸), így nem foglal helyet a lista alatt. Az app megjegyzi, melyik rész van összecsukva.</p>
 <h4>💰 Árbecslés</h4>
 <p>Az app minden tételhez megbecsüli az árat, a végén pedig összesíti a várható végösszeget a haladássáv alatt. <b>Fontos:</b> a becslés az appba épített, átlagos magyarországi árakból számol, <b>nem</b> a friss akciós újságokból, ezért csak tájékoztató jellegű.</p>
 <p>A mennyiséget a <b>megjegyzésből</b> olvassa ki: például <i>4 kg</i>, <i>20 dkg</i>, <i>500 g</i>, <i>3 db</i>, <i>1 zsugor</i> (6 db), <i>egy tálca</i>, <i>2 karton</i>. Szóval is érti (egy, két, három, fél). Ha nincs mennyiség megadva, 1 egységgel számol: 1 kg a kilóra árult termékeknél (pl. krumpli, csirkemell), 1 db a darabra árultaknál (pl. tej, tojás, sör).</p>
@@ -447,7 +448,7 @@ function render(){
     row.scrollLeft=sl[cid]||0;
   });
   if(searchQ&&!Object.keys(groups).length){const e=document.createElement('div');e.className='empty';e.textContent='Nincs találat';grid.append(e)}
-  renderProg();window.scrollTo(0,y);renderQuick();
+  renderProg();renderSec();window.scrollTo(0,y);renderQuick();
 }
 
 /* ---------- Képek ---------- */
@@ -727,6 +728,15 @@ function confetti(){
   const cols=['#12b886','#8b5cf6','#ec4899','#f0a04b','#4aa8ff','#ffd43b'];
   for(let i=0;i<46;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=cols[i%cols.length];p.style.animationDuration=(2+Math.random()*2)+'s';p.style.animationDelay=(Math.random()*.6)+'s';c.append(p)}
   document.body.append(c);setTimeout(()=>c.remove(),4800);
+}
+let SEC={};try{SEC=JSON.parse(localStorage.getItem('secCol')||'{}')}catch(e){}
+function toggleSec(k){SEC[k]=!SEC[k];localStorage.setItem('secCol',JSON.stringify(SEC));renderSec()}
+function renderSec(){
+  [['done','doneTitle','doneList','Pipálva ✓'],['x','missTitle','missingList','Hiányzik ✖']].forEach(([k,t,l,name])=>{
+    const n=lastItems.filter(i=>i.status===k).length;
+    $(t).textContent=(SEC[k]?'▸ ':'▾ ')+name+' ('+n+')';
+    $(l).style.display=SEC[k]?'none':'';
+  });
 }
 let COL=new Set();try{COL=new Set(JSON.parse(localStorage.getItem('collapsed')||'[]'))}catch(e){}
 const getPopSec=()=>{const v=parseFloat(localStorage.getItem('popSec'));return v>=1&&v<=10?v:2.5};
