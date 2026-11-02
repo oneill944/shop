@@ -512,7 +512,7 @@ function openDetail(id){
   openModal('detailModal');
 }
 function saveDetail(){
-  if(detailId){const pv=parseFloat($('dPrice').value),cur=lastItems.find(i=>i.id===detailId);if(pv>0&&cur)learnPrice({...cur,text:$('dName').value.trim()||cur.text,note:$('dNote').value.trim()},pv)}
+  if(detailId){const pv=parseFloat($('dPrice').value),cur=lastItems.find(i=>i.id===detailId);if(cur){const ni={...cur,text:$('dName').value.trim()||cur.text,note:$('dNote').value.trim()};if(pv>0)learnPrice(ni,pv);else if(cur.price>0)forgetPrice(ni)}}
   listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value,price:parseFloat($('dPrice').value)||null});
   closeModal('detailModal');detailId=null;
 }
@@ -649,6 +649,11 @@ function estimate(it,sid){
 function learnPrice(it,total){
   const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0);
   if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};localStorage.setItem('myPrices',JSON.stringify(mp))}
+}
+function forgetPrice(it){
+  const mp=getMP(),pk=pKey(it);
+  Object.keys(mp).filter(k=>k.endsWith('|'+pk)).forEach(k=>delete mp[k]);
+  localStorage.setItem('myPrices',JSON.stringify(mp));
 }
 function clearMP(){localStorage.removeItem('myPrices');toast('A tanult árak törölve');render()}
 function totalEst(sid){
