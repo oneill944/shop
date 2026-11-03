@@ -369,7 +369,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Súgó:</b> a Beállítások ablak alján található.</li>
 <li><b>Újrakezdés:</b> törli az app minden helyi adatát ezen a telefonon (beállítások, tanult ikonok és árak, szoba, mentett példányok), majd újratölt, és újra az üdvözlő képernyő fogad. A közös lista a szobában megmarad.</li>
-<li><b>Hibabejelentés:</b> a Beállítások alján található. Leírhatod a problémát, megadhatod a neved, e-mail címed és telefonszámod (ezek nem kötelezők), és képet is csatolhatsz. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak, a lista tartalma nem. A bejelentés e-mailben jut el a fejlesztőhöz.</li>
+<li><b>Hibabejelentés:</b> a Beállítások alján található. Leírhatod a problémát, megadhatod a neved, e-mail címed és telefonszámod (ezek nem kötelezők), és képet is csatolhatsz. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak, a lista tartalma nem. A bejelentés a fejlesztő Discord-csatornájára kerül.</li>
 <li><b>Üdvözlő képernyő:</b> az első megnyitáskor ez fogad (rövid bemutató és szobaválasztó). A Beállításokból bármikor újra megnézheted.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
@@ -408,8 +408,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div id="rInfo" style="font-size:11px;opacity:.6;margin:2px 0 10px;line-height:1.4"></div>
   <button class="primary-btn" id="rSend" onclick="sendReport()">Küldés</button>
   <div id="rMsg" style="font-size:12px;text-align:center;min-height:16px;margin-top:4px;line-height:1.4"></div>
-  <div style="text-align:center;font-size:11px;opacity:.6;margin-top:4px"><a href="#" id="rMail" onclick="mailReport();return false" style="color:inherit">Inkább e-mail alkalmazással küldöm</a></div>
-  <div style="font-size:10.5px;opacity:.5;margin-top:8px;line-height:1.4;text-align:center">A bejelentés a FormSubmit szolgáltatáson keresztül jut el a fejlesztőhöz.</div>
+  <div style="font-size:10.5px;opacity:.5;margin-top:8px;line-height:1.4;text-align:center">A bejelentés a fejlesztő Discord-csatornájára kerül, a megadott név és elérhetőség is.</div>
   <button class="cancel" onclick="closeModal('reportModal')">Bezárás</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
@@ -965,8 +964,7 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03d – hibabejelentéssel';$('appVer').textContent=APP_VER;
-const REPORT_TO='haidel1994@gmail.com';
+const APP_VER='2026.11.03e – Discordos hibabejelentés';$('appVer').textContent=APP_VER;
 let rImg=null;
 function reportInfo(){
   const n=navigator;
@@ -984,34 +982,45 @@ $('rFile').onchange=async e=>{
   try{rImg=await shrink(f,1200,.75);$('rFileBtn').textContent='✓ Kép csatolva (koppints a cseréhez)'}catch(x){$('rMsg').textContent='A képet nem sikerült beolvasni.'}
   e.target.value='';
 };
-function reportText(){
-  const i=reportInfo();
-  return 'Hiba leírása:\n'+$('rText').value.trim()+'\n\nNév: '+($('rName').value.trim()||'-')+'\nE-mail: '+($('rEmail').value.trim()||'-')+'\nTelefon: '+($('rPhone').value.trim()||'-')+'\n\n'+Object.entries(i).map(([k,v])=>k+': '+v).join('\n');
-}
-function mailReport(){
-  if(!$('rText').value.trim()){$('rMsg').textContent='Írd le röviden a problémát.';return}
-  location.href='mailto:'+REPORT_TO+'?subject='+encodeURIComponent('Bevásárló lista – hibabejelentés (szoba '+currentListId+')')+'&body='+encodeURIComponent(reportText());
-}
+const REPORT_HOOK='https://discord.com/api/webhooks/1097304257084018688/9uXJHFAgg4U19P4QOxuNIFzatGbfGjJmQntZqTp6qf9F4nlC_U7rlffLowivrcNu6_rM';
+const trunc=(v,n)=>{v=String(v);return v.length>n?v.slice(0,n-1)+'…':v};
 async function sendReport(){
   const txt=$('rText').value.trim(),mail=$('rEmail').value.trim(),msg=$('rMsg'),b=$('rSend');
   if(!txt){msg.textContent='Írd le röviden a problémát.';return}
   if(mail&&!/^\S+@\S+\.\S+$/.test(mail)){msg.textContent='Az e-mail cím formátuma nem jó.';return}
+  if(Date.now()-(+localStorage.getItem('lastReport')||0)<30000){msg.textContent='Kérlek várj egy kicsit a következő bejelentés előtt.';return}
   b.disabled=true;msg.textContent='Küldés…';
-  const fd=new FormData();
-  fd.append('_subject','Bevásárló lista – hibabejelentés (szoba '+currentListId+')');
-  fd.append('_captcha','false');fd.append('_template','table');fd.append('_honey','');
-  fd.append('Hiba',txt);
-  fd.append('Nev',$('rName').value.trim()||'-');
-  if(mail)fd.append('email',mail);
-  fd.append('Telefon',$('rPhone').value.trim()||'-');
-  Object.entries(reportInfo()).forEach(([k,v])=>fd.append(k,String(v)));
-  if(rImg){try{const bl=await(await fetch(rImg)).blob();fd.append('attachment',bl,'kep.jpg')}catch(e){}}
+  const i=reportInfo(),f=(n,v,inl)=>({name:n,value:trunc(v||'-',1000),inline:!!inl});
+  const embed={
+    title:'🐞 Hibabejelentés – szoba '+currentListId,
+    description:trunc(txt,3500),
+    color:0xe8575a,
+    fields:[
+      f('👤 Név',$('rName').value.trim(),true),f('✉️ E-mail',mail,true),f('📞 Telefon',$('rPhone').value.trim(),true),
+      f('📱 Eszköz',i.Eszkoz,false),
+      f('🔖 Verzió',i.Verzio,true),f('🖥️ Képernyő',i.Kepernyo,true),f('🏠 Főképernyős app',i.FoKepernyosApp,true),
+      f('🎨 Nézet',i.Nezet+' · '+i.Csempemeret+' · '+i.Ikonstilus,true),f('🏬 Bolt',i.Bolt,true),f('🧾 Tételek',i.TetelekSzama,true)
+    ],
+    footer:{text:'Bevásárló lista · '+i.Ido},
+    timestamp:new Date().toISOString()
+  };
+  if(rImg)embed.image={url:'attachment://kep.jpg'};
+  const payload={username:'Bevásárló lista – hibák',allowed_mentions:{parse:[]},embeds:[embed]};
   try{
-    await fetch('https://formsubmit.co/'+REPORT_TO,{method:'POST',body:fd,mode:'no-cors'});
+    let res;
+    if(rImg){
+      const bl=await(await fetch(rImg)).blob(),fd=new FormData();
+      fd.append('payload_json',JSON.stringify(payload));fd.append('files[0]',bl,'kep.jpg');
+      res=await fetch(REPORT_HOOK,{method:'POST',body:fd});
+    }else{
+      res=await fetch(REPORT_HOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    localStorage.setItem('lastReport',String(Date.now()));
     msg.textContent='✓ Köszönöm! A bejelentést elküldtem.';
     setTimeout(()=>{closeModal('reportModal');toast('🐞 Hibabejelentés elküldve')},1600);
   }catch(e){
-    msg.textContent='Nem sikerült elküldeni (nincs net?). Próbáld újra, vagy használd az e-mail alkalmazásos küldést.';
+    msg.textContent='Nem sikerült elküldeni ('+(e.message||'hiba')+'). Próbáld újra később.';
     b.disabled=false;
   }
 }
