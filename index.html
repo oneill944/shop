@@ -211,6 +211,11 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 #wCode{text-align:center;font-size:22px;letter-spacing:6px;font-weight:800}
 .wor{text-align:center;font-size:12px;opacity:.6;margin:2px 0 8px}
 #wErr{color:var(--danger);font-size:12px;min-height:14px;margin-top:6px;text-align:center}
+.sech{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:.55;margin:20px 0 8px}
+.sech.first{margin-top:8px}
+.sech.danger{color:var(--danger);opacity:.9}
+.sgroup{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;opacity:.55;margin:20px 0 8px}
+.sgroup.red{color:var(--danger);opacity:.85}
 </style>
 </head>
 <body>
@@ -283,13 +288,17 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 </div></div>
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
-  <h3 style="margin:0 0 10px">Beállítások</h3>
-  <button class="setbtn" style="margin:0 0 12px" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
+  <h3 style="margin:0 0 4px">Beállítások</h3>
+
+  <div class="sgroup" style="margin-top:12px">Általános</div>
+  <button class="setbtn" style="margin-top:0" onclick="openModal('listModal')">🏠 Szoba: <span id="roomNum">----</span> – váltás</button>
+  <button class="setbtn" onclick="openCatOrder()">↕️ Bolti sorrend beállítása</button>
+  <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
+  <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
+  <button class="setbtn" onclick="closeModal('orderModal');showWelcome(true)">👋 Üdvözlő képernyő</button>
+
+  <div class="sgroup">Megjelenés</div>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
-  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="priceChk" style="width:auto;margin:0" onchange="setPriceShow(this.checked)"> Árbecslés mutatása</label>
-  <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
-  <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="ksh">KSH átlagár (hivatalos)</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
-  <button class="setbtn" style="margin-top:0;margin-bottom:12px" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Ikonstílus</div>
   <div class="seg" id="segIcon"><button data-i="3d" onclick="setIconStyle('3d')">3D ikon</button><button data-i="emoji" onclick="setIconStyle('emoji')">Emoji</button><button data-i="text" onclick="setIconStyle('text')">Szöveg</button></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Nézet</div>
@@ -297,16 +306,21 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div id="sizeBox"><div style="font-size:12px;opacity:.7;margin-bottom:6px">Csempeméret</div>
   <div class="seg" id="seg"><button data-s="s" onclick="setSize('s')">Kicsi</button><button data-s="m" onclick="setSize('m')">Közepes</button><button data-s="l" onclick="setSize('l')">Nagy</button></div></div>
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
-  <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
-  <button class="setbtn" style="margin-top:0;margin-bottom:0" onclick="openCatOrder()">↕️ Bolti sorrend beállítása</button>
-  <button class="setbtn" onclick="closeModal('orderModal');showWelcome(true)">👋 Üdvözlő képernyő</button>
-  <button class="setbtn" style="color:var(--danger)" onclick="resetApp()">♻️ Újrakezdés (helyi adatok törlése)</button>
-  <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
+  <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 4px;accent-color:#12b886">
+
+  <div class="sgroup">Árak</div>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="priceChk" style="width:auto;margin:0" onchange="setPriceShow(this.checked)"> Árbecslés mutatása</label>
+  <div style="font-size:12px;opacity:.7;margin-bottom:4px">Bolt az árbecsléshez</div>
+  <select id="storeSel" onchange="setStore(this.value)" style="margin-bottom:8px"><option value="atlag">Országos átlag</option><option value="ksh">KSH átlagár (hivatalos)</option><option value="lidl">Lidl</option><option value="aldi">Aldi</option><option value="interspar">Interspar</option><option value="tesco">Tesco</option><option value="milano">Milano Market</option></select>
+  <button class="setbtn" style="margin-top:0" onclick="closeModal('orderModal');openCompare()">📊 Boltok összehasonlítása</button>
+
+  <div class="sgroup red">Törlés</div>
+  <button class="setbtn" style="margin-top:0" onclick="clearMP()">🧹 Tanult árak törlése</button>
   <button class="setbtn" onclick="clearCM()">🧹 Tanult kategóriák törlése</button>
-  <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
-  <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
+  <button class="setbtn" style="color:var(--danger)" onclick="resetApp()">♻️ Újrakezdés (helyi adatok törlése)</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
-  <button class="setbtn" onclick="openModal('helpModal')">❓ Súgó</button>
+
+  <button class="setbtn" style="margin-top:22px" onclick="openModal('helpModal')">❓ Súgó</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
   <div style="text-align:center;font-size:11px;opacity:.5;margin-top:10px">Verzió: <span id="appVer"></span></div>
 </div></div>
@@ -933,7 +947,7 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03b – újrakezdés gombbal';$('appVer').textContent=APP_VER;
+const APP_VER='2026.11.03c – rendezett beállítások';$('appVer').textContent=APP_VER;
 async function resetApp(){
   if(!confirm('Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.'))return;
   try{db.goOffline()}catch(e){}
