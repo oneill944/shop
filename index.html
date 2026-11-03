@@ -307,6 +307,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
   <button class="setbtn" onclick="openModal('helpModal')">❓ Súgó</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
+  <div style="text-align:center;font-size:11px;opacity:.5;margin-top:10px">Verzió: <span id="appVer"></span></div>
 </div></div>
 <div id="helpModal" class="custom-modal"><div class="modal-content help">
 <h3 style="margin:0 0 6px">❓ Súgó</h3>
@@ -930,6 +931,7 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+const APP_VER='2026.11.03 – üdvözlő képernyővel';$('appVer').textContent=APP_VER;
 function showWelcome(manual){$('wClose').style.display=manual?'block':'none';$('wErr').textContent='';$('welcome').style.display='flex';document.body.style.overflow='hidden';fitVV();$('welcome').scrollTop=0}
 function hideWelcome(){$('welcome').style.display='none';document.body.style.overflow=''}
 function wFinish(code){localStorage.setItem('currentListId',code);localStorage.setItem('welcomed','1');location.reload()}
