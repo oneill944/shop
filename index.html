@@ -300,6 +300,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
   <button class="setbtn" style="margin-top:0;margin-bottom:0" onclick="openCatOrder()">↕️ Bolti sorrend beállítása</button>
   <button class="setbtn" onclick="closeModal('orderModal');showWelcome(true)">👋 Üdvözlő képernyő</button>
+  <button class="setbtn" style="color:var(--danger)" onclick="resetApp()">♻️ Újrakezdés (helyi adatok törlése)</button>
   <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
   <button class="setbtn" onclick="clearCM()">🧹 Tanult kategóriák törlése</button>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
@@ -352,6 +353,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Kártya megjelenési ideje:</b> a csúszkával 1 és 10 másodperc között állíthatod, mennyi ideig maradjon látható a tételre koppintáskor megjelenő kártya (alapérték: 2,5 mp). A beállítást az app megjegyzi, és minden telefonon külön érvényes.</li>
 <li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Súgó:</b> a Beállítások ablak alján található.</li>
+<li><b>Újrakezdés:</b> törli az app minden helyi adatát ezen a telefonon (beállítások, tanult ikonok és árak, szoba, mentett példányok), majd újratölt, és újra az üdvözlő képernyő fogad. A közös lista a szobában megmarad.</li>
 <li><b>Üdvözlő képernyő:</b> az első megnyitáskor ez fogad (rövid bemutató és szobaválasztó). A Beállításokból bármikor újra megnézheted.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
@@ -931,7 +933,15 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03 – üdvözlő képernyővel';$('appVer').textContent=APP_VER;
+const APP_VER='2026.11.03b – újrakezdés gombbal';$('appVer').textContent=APP_VER;
+async function resetApp(){
+  if(!confirm('Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.'))return;
+  try{db.goOffline()}catch(e){}
+  try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}
+  try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  try{localStorage.clear();sessionStorage.clear()}catch(e){}
+  location.replace(location.pathname);
+}
 function showWelcome(manual){$('wClose').style.display=manual?'block':'none';$('wErr').textContent='';$('welcome').style.display='flex';document.body.style.overflow='hidden';fitVV();$('welcome').scrollTop=0}
 function hideWelcome(){$('welcome').style.display='none';document.body.style.overflow=''}
 function wFinish(code){localStorage.setItem('currentListId',code);localStorage.setItem('welcomed','1');location.reload()}
