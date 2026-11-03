@@ -200,6 +200,17 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 .lnote{font-size:11px;opacity:.65;margin-top:1px;word-break:break-word}
 .lprice{font-weight:800;font-size:12px;color:var(--c);white-space:nowrap}
 .lrow.pop{animation:pop .33s ease-in forwards}
+#welcome{display:none;position:fixed;left:0;right:0;top:var(--vt,0px);height:var(--vh,100dvh);z-index:3000;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 50%),radial-gradient(circle at 100% 0,color-mix(in srgb,#ff9f43 22%,transparent),transparent 45%),var(--bg);padding:max(22px,env(safe-area-inset-top)) 20px 30px}
+.wbox{width:100%;max-width:400px;margin:auto;text-align:center}
+.wlogo{font-size:64px}
+.wbox h2{margin:6px 0 8px;font-size:24px}
+.wbox p{font-size:14px;opacity:.85;line-height:1.5;margin:0}
+.wfeat{display:flex;flex-direction:column;gap:8px;margin:16px 0;text-align:left}
+.wfeat div{background:var(--card-bg);padding:10px 14px;border-radius:16px;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.wroom{background:var(--card-bg);border-radius:24px;padding:16px;text-align:left;box-shadow:0 6px 20px rgba(80,50,20,.08)}
+#wCode{text-align:center;font-size:22px;letter-spacing:6px;font-weight:800}
+.wor{text-align:center;font-size:12px;opacity:.6;margin:2px 0 8px}
+#wErr{color:var(--danger);font-size:12px;min-height:14px;margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
@@ -249,6 +260,27 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <button class="cancel" onclick="closeModal('detailModal')">Bezárás</button>
 </div></div>
 
+<div id="welcome"><div class="wbox">
+  <div class="wlogo">🛒</div>
+  <h2>Üdv a Bevásárló listában!</h2>
+  <p>Közös, valós idejű bevásárlólista a családnak. Amit az egyik telefonon felveszel, a másikon azonnal megjelenik.</p>
+  <div class="wfeat">
+    <div>🧺 Tételek kategóriák szerint, ikonokkal és saját képekkel</div>
+    <div>👥 Közös lista, amit többen egyszerre szerkeszthettek</div>
+    <div>💰 Várható összeg, boltok összehasonlítása</div>
+    <div>📴 Net nélkül is megnyílik, és megoszthatod az eredményt</div>
+  </div>
+  <div class="wroom">
+    <div style="font-weight:800;margin-bottom:4px">Melyik szobához csatlakozol?</div>
+    <div style="font-size:12px;opacity:.7;margin-bottom:10px;line-height:1.4">A szoba egy 4 jegyű kód. Aki ugyanazt a kódot adja meg, ugyanazt a listát látja.</div>
+    <input type="text" id="wCode" inputmode="numeric" maxlength="4" placeholder="----" autocomplete="off">
+    <button class="primary-btn" onclick="wJoin()">Csatlakozás a szobához</button>
+    <div class="wor">vagy</div>
+    <button class="sec-btn" id="wNewBtn" onclick="wNew()">✨ Új szoba létrehozása</button>
+    <div id="wErr"></div>
+  </div>
+  <button class="cancel" id="wClose" style="display:none" onclick="hideWelcome()">Bezárás</button>
+</div></div>
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin:0 0 10px">Beállítások</h3>
@@ -267,6 +299,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:12px;opacity:.7;margin-bottom:4px">Kártya megjelenési ideje: <b id="popVal">2,5 mp</b> (alapértelmezett: 2,5 mp)</div>
   <input type="range" id="popRange" min="1" max="10" step="0.5" value="2.5" oninput="setPopSec(this.value)" style="padding:0;border:none;background:none;margin:0 0 14px;accent-color:#12b886">
   <button class="setbtn" style="margin-top:0;margin-bottom:0" onclick="openCatOrder()">↕️ Bolti sorrend beállítása</button>
+  <button class="setbtn" onclick="closeModal('orderModal');showWelcome(true)">👋 Üdvözlő képernyő</button>
   <button class="setbtn" onclick="clearMP()">🧹 Tanult árak törlése</button>
   <button class="setbtn" onclick="clearCM()">🧹 Tanult kategóriák törlése</button>
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
@@ -318,6 +351,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Kártya megjelenési ideje:</b> a csúszkával 1 és 10 másodperc között állíthatod, mennyi ideig maradjon látható a tételre koppintáskor megjelenő kártya (alapérték: 2,5 mp). A beállítást az app megjegyzi, és minden telefonon külön érvényes.</li>
 <li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Súgó:</b> a Beállítások ablak alján található.</li>
+<li><b>Üdvözlő képernyő:</b> az első megnyitáskor ez fogad (rövid bemutató és szobaválasztó). A Beállításokból bármikor újra megnézheted.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
 <li><b>Minden tétel törlése:</b> az egész lista törlése megerősítés után.</li>
@@ -360,7 +394,11 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 const firebaseConfig={apiKey:"AIzaSyC0fhL9VVErpN9LX6eJ8Tv5nuxF5Ea-qjE",databaseURL:"https://kozoslista-e0717-default-rtdb.europe-west1.firebasedatabase.app",projectId:"kozoslista-e0717"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
-let currentListId=localStorage.getItem('currentListId')||"2316";
+const LEGACY_KEYS=['currentListId','freq','iconMem','dark','collapsed','catOrder','secCol','myPrices','catMem','store','popSec','showPrice','realPics','viewMode','iconStyle'];
+function usedBefore(){try{return LEGACY_KEYS.some(k=>localStorage.getItem(k)!==null)||Object.keys(localStorage).some(k=>k.startsWith('cache_')&&k!=='cache_0000')}catch(e){return true}}
+const FIRST=localStorage.getItem('welcomed')===null&&!usedBefore();
+if(localStorage.getItem('welcomed')===null&&!FIRST)localStorage.setItem('welcomed','1');
+let currentListId=localStorage.getItem('currentListId')||(FIRST?'0000':'2316');
 let listRef=db.ref('shoppingLists/'+currentListId);
 const photoRef=id=>db.ref('photos/'+currentListId+'/'+id);
 let openId=null,pickTarget=null,chosenIcon=null,detailId=null,lastItems=[],pendingFull=null,pendingThumb=null;
@@ -892,7 +930,19 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-init();
+function showWelcome(manual){$('wClose').style.display=manual?'block':'none';$('wErr').textContent='';$('welcome').style.display='flex';document.body.style.overflow='hidden';fitVV();$('welcome').scrollTop=0}
+function hideWelcome(){$('welcome').style.display='none';document.body.style.overflow=''}
+function wFinish(code){localStorage.setItem('currentListId',code);localStorage.setItem('welcomed','1');location.reload()}
+function wJoin(){const c=$('wCode').value.trim();if(!/^\d{4}$/.test(c)){$('wErr').textContent='Adj meg egy 4 jegyű kódot.';return}wFinish(c)}
+async function wNew(){
+  const b=$('wNewBtn');b.disabled=true;$('wErr').textContent='';
+  try{
+    for(let i=0;i<8;i++){const c=String(1000+Math.floor(Math.random()*9000));const sn=await db.ref('shoppingLists/'+c).once('value');if(!sn.exists()){wFinish(c);return}}
+    $('wErr').textContent='Nem sikerült szabad kódot találni, próbáld újra.';
+  }catch(e){$('wErr').textContent='Nincs kapcsolat a szerverrel, próbáld újra.'}
+  b.disabled=false;
+}
+if(FIRST)showWelcome(false);else init();
 </script>
 </body>
 </html>
