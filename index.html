@@ -320,7 +320,8 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <button class="setbtn" style="color:var(--danger)" onclick="resetApp()">♻️ Újrakezdés (helyi adatok törlése)</button>
   <button class="setbtn" style="color:var(--danger)" onclick="closeModal('orderModal');clearAllItems()">🗑️ Minden tétel törlése</button>
 
-  <button class="setbtn" style="margin-top:22px" onclick="openModal('helpModal')">❓ Súgó</button>
+  <button class="setbtn" style="margin-top:22px" onclick="openReport()">🐞 Hibabejelentés</button>
+  <button class="setbtn" onclick="openModal('helpModal')">❓ Súgó</button>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('orderModal')">Kész</button>
   <div style="text-align:center;font-size:11px;opacity:.5;margin-top:10px">Verzió: <span id="appVer"></span></div>
 </div></div>
@@ -368,6 +369,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Súgó:</b> a Beállítások ablak alján található.</li>
 <li><b>Újrakezdés:</b> törli az app minden helyi adatát ezen a telefonon (beállítások, tanult ikonok és árak, szoba, mentett példányok), majd újratölt, és újra az üdvözlő képernyő fogad. A közös lista a szobában megmarad.</li>
+<li><b>Hibabejelentés:</b> a Beállítások alján található. Leírhatod a problémát, megadhatod a neved, e-mail címed és telefonszámod (ezek nem kötelezők), és képet is csatolhatsz. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak, a lista tartalma nem. A bejelentés e-mailben jut el a fejlesztőhöz.</li>
 <li><b>Üdvözlő képernyő:</b> az első megnyitáskor ez fogad (rövid bemutató és szobaválasztó). A Beállításokból bármikor újra megnézheted.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
 <li><b>Értesítések bekapcsolása:</b> lásd lent.</li>
@@ -393,6 +395,22 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:12px;opacity:.7;margin-bottom:8px">Told fel/le a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt a sorrendet követi.</div>
   <div id="ordList"></div>
   <button class="primary-btn" style="margin-top:12px" onclick="closeModal('catOrderModal')">Kész</button>
+</div></div>
+<div id="reportModal" class="custom-modal"><div class="modal-content">
+  <h3 style="margin:0 0 6px">🐞 Hibabejelentés</h3>
+  <div style="font-size:12px;opacity:.7;margin-bottom:10px;line-height:1.4">Írd le röviden, mi nem működik. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak. A név és az elérhetőség nem kötelező.</div>
+  <textarea id="rText" rows="5" placeholder="Mi a probléma? Mit csináltál, és mit vártál volna?"></textarea>
+  <input type="text" id="rName" placeholder="Neved (nem kötelező)" autocomplete="name">
+  <input type="email" id="rEmail" placeholder="E-mail címed (nem kötelező)" autocomplete="email">
+  <input type="tel" id="rPhone" placeholder="Telefonszámod (nem kötelező)" autocomplete="tel">
+  <input type="file" id="rFile" accept="image/*" hidden>
+  <button class="sec-btn" id="rFileBtn" onclick="document.getElementById('rFile').click()">📷 Kép csatolása (nem kötelező)</button>
+  <div id="rInfo" style="font-size:11px;opacity:.6;margin:2px 0 10px;line-height:1.4"></div>
+  <button class="primary-btn" id="rSend" onclick="sendReport()">Küldés</button>
+  <div id="rMsg" style="font-size:12px;text-align:center;min-height:16px;margin-top:4px;line-height:1.4"></div>
+  <div style="text-align:center;font-size:11px;opacity:.6;margin-top:4px"><a href="#" id="rMail" onclick="mailReport();return false" style="color:inherit">Inkább e-mail alkalmazással küldöm</a></div>
+  <div style="font-size:10.5px;opacity:.5;margin-top:8px;line-height:1.4;text-align:center">A bejelentés a FormSubmit szolgáltatáson keresztül jut el a fejlesztőhöz.</div>
+  <button class="cancel" onclick="closeModal('reportModal')">Bezárás</button>
 </div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
@@ -947,7 +965,56 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03c – rendezett beállítások';$('appVer').textContent=APP_VER;
+const APP_VER='2026.11.03d – hibabejelentéssel';$('appVer').textContent=APP_VER;
+const REPORT_TO='haidel1994@gmail.com';
+let rImg=null;
+function reportInfo(){
+  const n=navigator;
+  return {Szoba:currentListId,Verzio:APP_VER,Ido:new Date().toLocaleString('hu-HU'),Eszkoz:n.userAgent,Kepernyo:innerWidth+'x'+innerHeight+' @'+(devicePixelRatio||1)+'x',FoKepernyosApp:(n.standalone||matchMedia('(display-mode: standalone)').matches)?'igen':'nem',Online:n.onLine?'igen':'nem',Nezet:localStorage.getItem('viewMode')||'tile',Csempemeret:localStorage.getItem('tileSize')||'m',Ikonstilus:localStorage.getItem('iconStyle')||'3d',Bolt:getStore(),TetelekSzama:lastItems.length,Nyelv:n.language};
+}
+function openReport(){
+  closeModal('orderModal');
+  rImg=null;['rText','rName','rEmail','rPhone'].forEach(i=>$(i).value='');
+  $('rFileBtn').textContent='📷 Kép csatolása (nem kötelező)';$('rMsg').textContent='';$('rSend').disabled=false;
+  $('rInfo').textContent='Automatikusan csatolva: szoba '+currentListId+', verzió ('+APP_VER+'), eszköz- és megjelenítési adatok. A lista tartalma nem kerül elküldésre.';
+  openModal('reportModal');
+}
+$('rFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{rImg=await shrink(f,1200,.75);$('rFileBtn').textContent='✓ Kép csatolva (koppints a cseréhez)'}catch(x){$('rMsg').textContent='A képet nem sikerült beolvasni.'}
+  e.target.value='';
+};
+function reportText(){
+  const i=reportInfo();
+  return 'Hiba leírása:\n'+$('rText').value.trim()+'\n\nNév: '+($('rName').value.trim()||'-')+'\nE-mail: '+($('rEmail').value.trim()||'-')+'\nTelefon: '+($('rPhone').value.trim()||'-')+'\n\n'+Object.entries(i).map(([k,v])=>k+': '+v).join('\n');
+}
+function mailReport(){
+  if(!$('rText').value.trim()){$('rMsg').textContent='Írd le röviden a problémát.';return}
+  location.href='mailto:'+REPORT_TO+'?subject='+encodeURIComponent('Bevásárló lista – hibabejelentés (szoba '+currentListId+')')+'&body='+encodeURIComponent(reportText());
+}
+async function sendReport(){
+  const txt=$('rText').value.trim(),mail=$('rEmail').value.trim(),msg=$('rMsg'),b=$('rSend');
+  if(!txt){msg.textContent='Írd le röviden a problémát.';return}
+  if(mail&&!/^\S+@\S+\.\S+$/.test(mail)){msg.textContent='Az e-mail cím formátuma nem jó.';return}
+  b.disabled=true;msg.textContent='Küldés…';
+  const fd=new FormData();
+  fd.append('_subject','Bevásárló lista – hibabejelentés (szoba '+currentListId+')');
+  fd.append('_captcha','false');fd.append('_template','table');fd.append('_honey','');
+  fd.append('Hiba',txt);
+  fd.append('Nev',$('rName').value.trim()||'-');
+  if(mail)fd.append('email',mail);
+  fd.append('Telefon',$('rPhone').value.trim()||'-');
+  Object.entries(reportInfo()).forEach(([k,v])=>fd.append(k,String(v)));
+  if(rImg){try{const bl=await(await fetch(rImg)).blob();fd.append('attachment',bl,'kep.jpg')}catch(e){}}
+  try{
+    await fetch('https://formsubmit.co/'+REPORT_TO,{method:'POST',body:fd,mode:'no-cors'});
+    msg.textContent='✓ Köszönöm! A bejelentést elküldtem.';
+    setTimeout(()=>{closeModal('reportModal');toast('🐞 Hibabejelentés elküldve')},1600);
+  }catch(e){
+    msg.textContent='Nem sikerült elküldeni (nincs net?). Próbáld újra, vagy használd az e-mail alkalmazásos küldést.';
+    b.disabled=false;
+  }
+}
 async function resetApp(){
   if(!confirm('Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.'))return;
   try{db.goOffline()}catch(e){}
