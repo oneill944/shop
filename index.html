@@ -20,7 +20,6 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
 body{background:var(--bg);color:var(--text);margin:0;padding:15px;padding-top:max(15px,env(safe-area-inset-top));transition:.3s}
 .app-container{max-width:500px;margin:0 auto;padding-bottom:90px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.room-chip{background:var(--primary-dark);color:#fff;padding:6px 15px;border-radius:20px;font-weight:800;font-size:12px;border:none;cursor:pointer}
 .ibtn{background:none;border:none;font-size:20px;cursor:pointer}
 .grid-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-bottom:20px}
 .cat-title{grid-column:1/-1;font-size:12px;font-weight:800;letter-spacing:.5px;opacity:.7;margin-top:8px;display:flex;align-items:center;gap:6px}
@@ -31,8 +30,6 @@ body{background:var(--bg);color:var(--text);margin:0;padding:15px;padding-top:ma
 .thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;margin-bottom:5px}
 .tile-text{font-size:13px;font-weight:600;word-break:break-word;line-height:1.2}
 .tile-note{font-size:10px;opacity:.6;margin-top:3px;word-break:break-word}
-.tile-actions{position:absolute;inset:0;background:var(--card-bg);border-radius:18px;display:none;flex-wrap:wrap;gap:8px;justify-content:center;align-content:center;padding:6px}
-.tile.open-menu .tile-actions{display:flex}
 .action-circle{width:38px;height:38px;border-radius:50%;border:none;color:#fff;font-size:16px;cursor:pointer}
 .empty{grid-column:1/-1;text-align:center;opacity:.5;padding:30px 0;font-size:14px}
 .status-section{background:var(--card-bg);border-radius:20px;padding:15px;margin-top:15px}
@@ -65,21 +62,17 @@ input,textarea,select{width:100%;padding:14px;margin-bottom:12px;border-radius:1
 .cat-row .thumb{width:44px;height:44px;border-radius:10px;margin-bottom:4px}
 .cat-row .tile-text{font-size:11.5px}
 .cat-row .tile-note{font-size:9px}
-.cat-row .tile-actions{gap:4px;padding:4px;border-radius:14px}
-.cat-row .action-circle{width:30px;height:30px;font-size:13px}
 .cat-row .tile{flex:0 0 calc((100% - 16px)/3);min-height:78px;padding:6px 3px}
 .cat-row .ico{width:30px;height:30px;font-size:24px;line-height:30px;margin-bottom:3px}
 .cat-row .thumb{width:36px;height:36px;margin-bottom:3px}
 .cat-row .tile-text{font-size:10.5px}
 .cat-row .tile-note{font-size:8.5px}
-.cat-row .action-circle{width:26px;height:26px;font-size:11px}
 
 /* ===== Friss & játékos dizájn ===== */
 *{font-family:ui-rounded,'SF Pro Rounded','Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
 :root{--bg:#fff7ee;--card-bg:#ffffff;--text:#3a2e2a;--grey:#f1e6da;--primary-dark:#12b886;--accent:#8b5cf6}
 .dark{--bg:#17141f;--card-bg:#262133;--text:#f6f1ff;--grey:#352e47;--primary-dark:#20c997}
 body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 45%),radial-gradient(circle at 100% 0,color-mix(in srgb,#ff9f43 18%,transparent),transparent 40%),var(--bg);background-attachment:fixed}
-.room-chip{background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 16px rgba(139,92,246,.35);padding:8px 16px}
 .fab{background:linear-gradient(135deg,#12b886,#8b5cf6);box-shadow:0 12px 28px rgba(139,92,246,.45);transition:transform .15s}
 .fab:active{transform:scale(.9) rotate(90deg)}
 .status-section{border-radius:24px;box-shadow:0 6px 20px rgba(80,50,20,.06)}
@@ -93,7 +86,6 @@ body{background:radial-gradient(circle at 10% -10%,color-mix(in srgb,var(--accen
 .cat-row .tile:active{transform:scale(.93)}
 .cat-row .ico{background:color-mix(in srgb,var(--c) 20%,#fff);border-radius:50%;padding:4px;width:36px;height:36px;line-height:28px;text-align:center}
 .cat-row .tile-text{font-weight:700;color:var(--text)}
-.cat-row .tile-actions{background:color-mix(in srgb,var(--c) 18%,var(--card-bg));border-radius:20px}
 .cat-row .ico{background:none;border-radius:0;padding:0;width:36px;height:36px;line-height:36px}
 .big-photo{height:190px;object-fit:contain;background:var(--grey)}
 .offbar{display:none;text-align:center;font-size:12px;font-weight:700;background:#ffeaa7;color:#6b4e00;border-radius:12px;padding:6px;margin-bottom:10px}
@@ -131,30 +123,11 @@ body[data-size=s] .cat-row .ico{width:26px;height:26px;line-height:26px;font-siz
 body[data-size=s] .cat-row .thumb{width:30px;height:30px}
 body[data-size=s] .cat-row .tile-text{font-size:9.5px}
 body[data-size=s] .cat-row .tile-note{display:none}
-body[data-size=s] .cat-row .action-circle{width:22px;height:22px;font-size:10px}
 body[data-size=l] .cat-row .tile{flex-basis:calc((100% - 8px)/2);min-height:104px;padding:10px 6px}
 body[data-size=l] .cat-row .ico{width:48px;height:48px;line-height:48px;font-size:38px}
 body[data-size=l] .cat-row .thumb{width:58px;height:58px}
 body[data-size=l] .cat-row .tile-text{font-size:13px}
 body[data-size=l] .cat-row .tile-note{font-size:10px}
-body[data-size=l] .cat-row .action-circle{width:36px;height:36px;font-size:15px}
-.cat-row .tile.open-menu .tile-actions{display:grid;grid-template-columns:repeat(2,max-content);justify-content:center;align-content:center;gap:6px;padding:4px}
-body[data-size=l] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:6px}
-.cat-row .action-circle{padding:0;margin:0;display:flex;align-items:center;justify-content:center;line-height:1}
-body[data-size=s] .cat-row .action-circle{width:26px;height:26px;font-size:12px}
-body{--b:calc((100% - 16px)/3)}
-body[data-size=s]{--b:calc((100% - 24px)/4)}
-body[data-size=l]{--b:calc((100% - 8px)/2)}
-.cat-row .tile.open-menu{flex-basis:calc(var(--b)*2 + 8px);min-height:92px;z-index:2}
-.cat-row .tile.open-menu .tile-actions,body[data-size=l] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:5px}
-.cat-row .tile.open-menu .action-circle{width:42px;height:42px;font-size:18px}
-body[data-size=s] .cat-row .tile.open-menu .action-circle{width:36px;height:36px;font-size:15px}
-body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px;font-size:20px}
-body[data-size] .cat-row .tile.open-menu{flex:0 0 calc(var(--b)*2 + 8px);min-height:96px;z-index:2}
-body[data-size] .cat-row .tile.open-menu .tile-actions{grid-template-columns:repeat(4,max-content);gap:5px;padding:4px}
-body[data-size] .cat-row .tile.open-menu .action-circle{width:42px;height:42px;font-size:18px}
-body[data-size=s] .cat-row .tile.open-menu .action-circle{width:36px;height:36px;font-size:15px}
-body[data-size=l] .cat-row .tile.open-menu .action-circle{width:46px;height:46px;font-size:20px}
 .pop-wrap{position:fixed;inset:0;z-index:1800;pointer-events:none}
 .pop-card{position:fixed;pointer-events:auto;background:var(--card-bg);border-radius:22px;padding:10px 12px 12px;box-shadow:0 18px 44px rgba(0,0,0,.5);border:2px solid var(--grey);transform-origin:50% 100%;animation:pup .18s ease-out}
 @keyframes pup{from{transform:scale(.8) translateY(12px);opacity:0}to{transform:none;opacity:1}}
@@ -221,20 +194,20 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <body>
 <div class="app-container">
   <div class="header">
-    <div><button class="ibtn" onclick="toggleSearch()">🔍</button></div>
-    <div><button class="ibtn" onclick="openOrder()">⚙️</button></div>
+    <div><button class="ibtn" onclick="toggleSearch()" aria-label="Keresés">🔍</button></div>
+    <div><button class="ibtn" onclick="openOrder()" aria-label="Beállítások">⚙️</button></div>
   </div>
   <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
   <div id="roomLine" style="font-size:15px;font-weight:800;text-align:center;margin-bottom:2px;opacity:.9"></div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6"></div>
-  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" style="font-size:18px;display:none">📤</button></div>
+  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" aria-label="Összefoglaló megosztása" style="font-size:18px;display:none">📤</button></div>
   <div id="totalLine" class="totalline" onclick="openCompare()"></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
   <div class="status-section"><div class="section-title"><span id="doneTitle" class="sectog" onclick="toggleSec('done')"></span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('done')">↺ Mind vissza</button><button onclick="clearStatus('done')">Törlés</button></span></div><div class="mini-list" id="doneList"></div></div>
   <div class="status-section"><div class="section-title"><span id="missTitle" class="sectog" onclick="toggleSec('x')"></span><span><button style="color:var(--primary-dark);margin-right:10px" onclick="restoreAll('x')">↺ Mind vissza</button><button onclick="clearStatus('x')">Törlés</button></span></div><div class="mini-list" id="missingList"></div></div>
 </div>
-<button class="fab" onclick="openAdd()">+</button>
+<button class="fab" onclick="openAdd()" aria-label="Új tétel">+</button>
 
 <div id="inputModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Új tétel</h3>
@@ -435,8 +408,11 @@ if(localStorage.getItem('welcomed')===null&&!FIRST)localStorage.setItem('welcome
 let currentListId=localStorage.getItem('currentListId')||(FIRST?'0000':'2316');
 let listRef=db.ref('shoppingLists/'+currentListId);
 const photoRef=id=>db.ref('photos/'+currentListId+'/'+id);
-let openId=null,pickTarget=null,chosenIcon=null,detailId=null,lastItems=[],pendingFull=null,pendingThumb=null;
+let pickTarget=null,chosenIcon=null,detailId=null,lastItems=[],pendingFull=null,pendingThumb=null;
 const $=id=>document.getElementById(id);
+const LSC={};
+function lsg(k){if(!(k in LSC))LSC[k]=localStorage.getItem(k);return LSC[k]}
+function lss(k,v){LSC[k]=String(v);try{localStorage.setItem(k,v)}catch(e){}}
 if(localStorage.getItem('dark')==='1')document.body.classList.add('dark');
 
 /* ---------- Kategóriák (bolti sorrend) ---------- */
@@ -451,14 +427,20 @@ ital|🍺:sor,keg;🍷:bor,pezsgo,palinka,whisky,vodka,likor,rum,gin;🥤:viz,ud
 fagy|🥶:fagyasztott;🍕:pizza;🍦:fagylalt;🧊:jeg,jegkocka
 haz|🧻:wc,papir,zsebkendo,torolkozo,konyhai;🧼:szappan,tisztit,mosogato,mosopor,oblito,hipo,fertotlenito;🧴:samp,tusfurdo,krem,fogkrem,deo,balzsam,naptej;🪥:fogkefe,fogselyem;🪒:borotva;🧽:szivacs,fureszt;🗑️:szemetes,zsak;🔋:elem,akku;💡:izzo,lampa;🕯️:gyertya
 egyeb|🐶:kutya,kutyatap;🐱:macska,alom,macskatap;🍼:baba,pelenka,tapszer,popsi;💊:gyogyszer,vitamin,tabletta,tapasz;🌸:virag;🎁:ajandek;📝:fuzet,toll,ceruza;🧦:zokni,ruha,polo,nadrag;🍔:hamburger,hotdog;🌮:taco,tortilla,wrap`;
-function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
+const NC=new Map();
+function norm(s){s=String(s);let r=NC.get(s);if(r===undefined){r=s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();if(NC.size>3000)NC.clear();NC.set(s,r)}return r}
+const GCACHE=new Map(),JC={};
+function jget(k,d){if(!(k in JC)){try{JC[k]=JSON.parse(localStorage.getItem(k))}catch(e){JC[k]=null}}return JC[k]==null?d:JC[k]}
+function jset(k,v){JC[k]=v;if(k==='iconMem'||k==='catMem')GCACHE.clear();try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function jdel(k){delete JC[k];if(k==='catMem')GCACHE.clear();try{localStorage.removeItem(k)}catch(e){}}
 const DICT=[];
 DATA.split('\n').forEach(line=>{const[c,rest]=line.split('|');rest.split(';').forEach(p=>{const[e,k]=p.split(':');DICT.push([e,k.split(',').map(norm),c])})});
-const getMem=()=>{try{return JSON.parse(localStorage.getItem('iconMem')||'{}')}catch(e){return{}}};
-const getCatMem=()=>{try{return JSON.parse(localStorage.getItem('catMem')||'{}')}catch(e){return{}}};
-function clearCM(){localStorage.removeItem('catMem');toast('A tanult kategóriák törölve');render()}
+const getMem=()=>jget('iconMem',{});
+const getCatMem=()=>jget('catMem',{});
+function clearCM(){jdel('catMem');toast('A tanult kategóriák törölve');render()}
 function guess(text){
-  const n=norm(text),words=n.split(/[^a-z0-9]+/).filter(Boolean);
+  const n=norm(text);if(GCACHE.has(n))return GCACHE.get(n);
+  const words=n.split(/[^a-z0-9]+/).filter(Boolean);
   let best={icon:'🛒',cat:'egyeb'},bl=0;
   for(const[e,kws,c]of DICT)for(const k of kws){
     const hit=k.length<4?words.includes(k):n.includes(k);
@@ -466,18 +448,22 @@ function guess(text){
   }
   const m=getMem()[n];if(m)best.icon=m;
   const cm=getCatMem()[n];if(cm)best.cat=cm;
-  return best;
+  GCACHE.set(n,best);return best;
 }
 const PICK=Array.from('🛒🥛🍞🥩🍗🐟🥚🧀🍨🍺🍷🥤☕🥦🍅🥕🥔🧅🍎🍌🍊🍇🍓🍉🍫🍪🍬🍿🍰🍝🍚🌾🫒🧂🍯🥫🧻🧼🧴🪥🧽🍕🍔🐶🐱🍼💊🔋💡🌸🎁📝🧦🥑🥬🍄🌽🧊🍋');
 
 /* ---------- Realisztikus (3D) ikonok, tartalék: Noto, végül natív emoji ---------- */
+const ICF={},RPF=new Map();
 function iconEl(e,cls,force){
-  let st=localStorage.getItem('iconStyle')||'3d';if(force&&st==='text')st='emoji';
+  let st=lsg('iconStyle')||'3d';if(force&&st==='text')st='emoji';
   if(st!=='3d'){const sp=document.createElement('span');sp.className='ico '+(cls||'');if(st==='emoji')sp.textContent=e;else sp.style.display='none';return sp}
   const code=Array.from(e).map(c=>c.codePointAt(0).toString(16)).filter(c=>c!=='fe0f').join('-');
   const srcs=[`https://cdn.jsdelivr.net/npm/@lobehub/fluent-emoji-3d@1.1.0/assets/${code}.webp`,`https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u${code.replace(/-/g,'_')}.png`];
-  const img=new Image();img.className='ico '+(cls||'');img.alt=e;img.loading='lazy';let i=0;img.src=srcs[0];
-  img.onerror=()=>{i++;if(i<srcs.length)img.src=srcs[i];else{const s=document.createElement('span');s.className='ico '+(cls||'');s.textContent=e;img.replaceWith(s)}};
+  let f=ICF[code];if(f&&Date.now()-f.t>60000){delete ICF[code];f=null}
+  let i=f?f.n:0;
+  if(i>=srcs.length){const sp=document.createElement('span');sp.className='ico '+(cls||'');sp.textContent=e;return sp}
+  const img=new Image();img.className='ico '+(cls||'');img.alt=e;img.loading='lazy';img.src=srcs[i];
+  img.onerror=()=>{i++;ICF[code]={n:i,t:Date.now()};if(i<srcs.length)img.src=srcs[i];else{const s=document.createElement('span');s.className='ico '+(cls||'');s.textContent=e;img.replaceWith(s)}};
   return img;
 }
 const setIcon=(el,e,cls)=>el.replaceChildren(iconEl(e,cls,true));
@@ -487,6 +473,8 @@ $('newCat').add(new Option('Kategória: automatikus',''));
 [$('newCat'),$('dCat')].forEach((s,k)=>CATS.forEach(([id,l,e])=>s.add(new Option(e+' '+l,id))));
 setIcon($('preview'),'🛒');
 
+let cT=null,rq=false;
+function scheduleRender(){if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;render()})}
 function init(){
   $('roomNum').textContent=currentListId;
   try{lastItems=JSON.parse(localStorage.getItem('cache_'+currentListId)||'[]')}catch(e){lastItems=[]}
@@ -494,25 +482,27 @@ function init(){
   listRef.on('value',snap=>{
     const d=snap.val(),prev=new Set(lastItems.map(i=>i.id));
     lastItems=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
-    try{localStorage.setItem('cache_'+currentListId,JSON.stringify(lastItems))}catch(e){}
+    clearTimeout(cT);cT=setTimeout(()=>{try{const ser=JSON.stringify(lastItems);localStorage.setItem('cache_'+currentListId,ser.length>1500000?JSON.stringify(lastItems.map(({thumb,...r})=>r)):ser)}catch(e){}},500);
     if(ready)lastItems.filter(i=>!prev.has(i.id)&&i.by&&i.by!==DEV&&i.status==='active').forEach(notify);
-    ready=true;render();
+    ready=true;scheduleRender();
   });
-  let offT=null;
-  db.ref('.info/connected').on('value',s=>{clearTimeout(offT);if(s.val())$('offBanner').style.display='none';else offT=setTimeout(()=>{$('offBanner').style.display='block'},2500)});
-  const pRef=db.ref('presence/'+currentListId);
-  const myP=pRef.push(true);myP.onDisconnect().remove();
+  let offT=null;const pRef=db.ref('presence/'+currentListId);
+  db.ref('.info/connected').on('value',s=>{
+    clearTimeout(offT);
+    if(s.val()){$('offBanner').style.display='none';const me=pRef.push();me.onDisconnect().remove().then(()=>me.set(true)).catch(()=>{})}
+    else offT=setTimeout(()=>{$('offBanner').style.display='block'},2500);
+  });
   $('roomLine').textContent='🏠 '+currentListId;pRef.on('value',s=>{$('userCount').textContent=s.numChildren()+' ember szerkeszti épp'});
 }
-function btn(label,bg,fn){
-  const b=document.createElement('button');b.className='action-circle';b.style.background=bg;b.textContent=label;
+function btn(label,bg,fn,aria){
+  const b=document.createElement('button');b.className='action-circle';if(aria)b.setAttribute('aria-label',aria);b.style.background=bg;b.textContent=label;
   b.onclick=e=>{e.stopPropagation();fn()};return b;
 }
 function render(){
   const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
   const y=window.scrollY;const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
-  const groups={};let active=0;const LIST=localStorage.getItem('viewMode')==='list';
+  const groups={};let active=0;const LIST=lsg('viewMode')==='list';
   items.forEach(it=>{
     const g=guess(it.text||'');it._icon=it.icon||g.icon;it._cat=it.cat||g.cat;
     if(it.status==='active'){active++;if(!searchQ||norm((it.text||'')+' '+(it.note||'')).includes(searchQ))(groups[it._cat]=groups[it._cat]||[]).push(it)}
@@ -540,7 +530,7 @@ function render(){
     arr.forEach(it=>{
       if(LIST){row.append(makeListRow(it));return}
       const t=document.createElement('div');
-      t.className='tile'+(openId===it.id?' open-menu':'');
+      t.className='tile';
       const th=it.thumb||(PM[pmKey(it.text)]||{}).t;if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
       const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
@@ -551,7 +541,7 @@ function render(){
     row.scrollLeft=sl[cid]||0;
   });
   if(searchQ&&!Object.keys(groups).length){const e=document.createElement('div');e.className='empty';e.textContent='Nincs találat';grid.append(e)}
-  renderProg();renderSec();window.scrollTo(0,y);renderQuick();
+  renderProg();renderSec();window.scrollTo(0,y);
 }
 
 /* ---------- Képek ---------- */
@@ -592,7 +582,7 @@ function openAdd(){
   chosenIcon=null;pendingFull=pendingThumb=null;
   $('manualInput').value='';$('manualNote').value='';$('newCat').value='';
   $('newPhotoBtn').textContent='📷 Kép hozzáadása';setIcon($('preview'),'🛒');
-  openModal('inputModal');setTimeout(()=>$('manualInput').focus(),50);
+  renderQuick();openModal('inputModal');setTimeout(()=>$('manualInput').focus(),50);
 }
 function addItem(){
   const val=$('manualInput').value.trim();if(!val)return;
@@ -602,7 +592,7 @@ function addItem(){
     toast('✓ '+parts.length+' tétel hozzáadva');closeModal('inputModal');return;
   }
   const g=guess(val),ref=listRef.push();
-  if($('newCat').value){const cm=getCatMem();cm[norm(val)]=$('newCat').value;localStorage.setItem('catMem',JSON.stringify(cm))}
+  if($('newCat').value){const cm=getCatMem();cm[norm(val)]=$('newCat').value;jset('catMem',cm)}
   const item={text:val,note:$('manualNote').value.trim(),icon:chosenIcon||g.icon,cat:$('newCat').value||g.cat,status:'active',order:Date.now()};
   if(pendingThumb){item.thumb=pendingThumb;photoRef(ref.key).set(pendingFull);savePM(val,pendingThumb)}
   item.by=DEV;ref.set(item);bumpFreq(item);closeModal('inputModal');
@@ -612,12 +602,12 @@ function openDetail(id){
   detailId=id;setIcon($('dIcon'),it._icon);$('dName').value=it.text;$('dPrice').value=it.price||'';
   $('dNote').value=it.note||'';$('dCat').value=it._cat;
   showPhoto(it.thumb||null);
-  if(it.thumb)photoRef(id).once('value').then(s=>{if(detailId===id&&s.val())showPhoto(s.val())});
+  if(it.thumb)photoRef(id).once('value').then(s=>{if(detailId===id&&s.val())showPhoto(s.val())}).catch(()=>{});
   openModal('detailModal');
 }
 function saveDetail(){
   if(detailId){const pv=parseFloat($('dPrice').value),cur=lastItems.find(i=>i.id===detailId);if(cur){const ni={...cur,text:$('dName').value.trim()||cur.text,note:$('dNote').value.trim()};if(pv>0)learnPrice(ni,pv);else if(cur.price>0)forgetPrice(ni)}}
-  {const c2=lastItems.find(i=>i.id===detailId),nn=$('dName').value.trim()||(c2||{}).text||'',nc=$('dCat').value;if(c2&&nc&&nn&&nc!==c2._cat){const cm=getCatMem();cm[norm(nn)]=nc;localStorage.setItem('catMem',JSON.stringify(cm))}}
+  {const c2=lastItems.find(i=>i.id===detailId),nn=$('dName').value.trim()||(c2||{}).text||'',nc=$('dCat').value;if(c2&&nc&&nn&&nc!==c2._cat){const cm=getCatMem();cm[norm(nn)]=nc;jset('catMem',cm)}}
   listRef.child(detailId).update({text:$('dName').value.trim()||(lastItems.find(i=>i.id===detailId)||{}).text||'',note:$('dNote').value.trim(),cat:$('dCat').value,price:parseFloat($('dPrice').value)||null});
   closeModal('detailModal');detailId=null;
 }
@@ -636,7 +626,8 @@ function syncLock(){
   else if(!any&&locked){b.position='';b.top='';b.left='';b.right='';locked=false;window.scrollTo(0,lockY)}
 }
 function fitVV(){const v=window.visualViewport,r=document.documentElement.style;r.setProperty('--vh',(v?v.height:innerHeight)+'px');r.setProperty('--vt',(v?v.offsetTop:0)+'px')}
-fitVV();addEventListener('resize',fitVV);if(window.visualViewport){visualViewport.addEventListener('resize',fitVV);visualViewport.addEventListener('scroll',fitVV)}
+const fitVVs=()=>{if(locked||$('welcome').style.display==='flex')fitVV()};
+fitVV();addEventListener('resize',fitVVs);if(window.visualViewport){visualViewport.addEventListener('resize',fitVVs);visualViewport.addEventListener('scroll',fitVVs)}
 function openModal(id){fitVV();$(id).style.display='flex';const c=$(id).querySelector('.modal-content');if(c)c.scrollTop=0;syncLock()}
 function closeModal(id){$(id).style.display='none';syncLock()}
 function joinByCode(){const c=$('joinCodeInput').value.trim();if(/^\d{4}$/.test(c)){localStorage.setItem('currentListId',c);location.reload()}}
@@ -651,7 +642,7 @@ function pickIcon(e){
   if(pickTarget==='new'){chosenIcon=e;setIcon($('preview'),e)}
   else{
     const it=lastItems.find(i=>i.id===pickTarget);
-    if(it){listRef.child(it.id).update({icon:e});const m=getMem();m[norm(it.text)]=e;localStorage.setItem('iconMem',JSON.stringify(m));if(detailId===it.id)setIcon($('dIcon'),e)}
+    if(it){listRef.child(it.id).update({icon:e});const m=getMem();m[norm(it.text)]=e;jset('iconMem',m);if(detailId===it.id)setIcon($('dIcon'),e)}
   }
   closeModal('pickerModal');
 }
@@ -674,28 +665,29 @@ function wikiPic(it,n,w){
     wpend.add(key);
     fetch((m=>'https://'+(m?m[1]:'hu')+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent((m?m[2]:title).replace(/ /g,'_')))(/^([a-z]{2}):(.+)$/.exec(title)))
       .then(r=>r.ok?r.json():{})
-      .then(j=>{wc[key]=(j.type!=='disambiguation'&&j.thumbnail&&j.thumbnail.source)||0;try{localStorage.setItem('wikiPic',JSON.stringify(wc))}catch(e){}clearTimeout(wT);wT=setTimeout(render,300)})
+      .then(j=>{wc[key]=(j.type!=='disambiguation'&&j.thumbnail&&j.thumbnail.source)||0;try{localStorage.setItem('wikiPic',JSON.stringify(wc))}catch(e){}clearTimeout(wT);wT=setTimeout(scheduleRender,300)})
       .catch(()=>wpend.delete(key));
   }
   return null;
 }
 function realPic(it){
-  if(localStorage.getItem('realPics')==='0'||(localStorage.getItem('iconStyle')||'3d')==='text'||it.icon!==guess(it.text||'').icon)return null;
+  if(lsg('realPics')==='0'||(lsg('iconStyle')||'3d')==='text'||it.icon!==guess(it.text||'').icon)return null;
   const n=norm(it.text||''),w=n.split(/[^a-z0-9]+/);
   const hit=EK.find(([k])=>k.length<4?w.includes(k):n.includes(k));
   if(!hit)return wikiPic(it,n,w);
+  const ft=RPF.get(hit[1]);if(ft&&Date.now()-ft<60000)return null;
   const im=new Image(),base='https://www.themealdb.com/images/ingredients/'+encodeURIComponent(hit[1]);
   let st=0;im.className='ico';im.alt=it.text;im.loading='lazy';im.src=base+'-Small.png';
-  im.onerror=()=>{if(st++===0)im.src=base+'.png';else im.replaceWith(iconEl(it._icon))};
+  im.onerror=()=>{if(st++===0)im.src=base+'.png';else{RPF.set(hit[1],Date.now());im.replaceWith(iconEl(it._icon))}};
   return im;
 }
-function setReal(v){localStorage.setItem('realPics',v?'1':'0');render()}
+function setReal(v){lss('realPics',v?'1':'0');render()}
 let PM={};try{PM=JSON.parse(localStorage.getItem('pm_'+currentListId)||'{}')}catch(e){}
 const pmKey=t=>norm(t||'').replace(/[^a-z0-9]+/g,'_')||'x';
 function savePM(text,th){if(!text)return;const r=db.ref('photoMem/'+currentListId+'/'+pmKey(text));if(th)r.set({t:th});else r.remove()}
-db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{localStorage.setItem('pm_'+currentListId,JSON.stringify(PM))}catch(e){}render()});
-function setSize(v){localStorage.setItem('tileSize',v);document.body.dataset.size=v;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===v))}
-setSize(localStorage.getItem('tileSize')||'m');
+db.ref('photoMem/'+currentListId).on('value',v=>{PM=v.val()||{};try{const ser=JSON.stringify(PM);if(ser.length<1500000)localStorage.setItem('pm_'+currentListId,ser)}catch(e){}scheduleRender()});
+function setSize(v){lss('tileSize',v);document.body.dataset.size=v;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.s===v))}
+setSize(lsg('tileSize')||'m');
 function restoreAll(st){
   const u={};lastItems.filter(i=>i.status===st).forEach(i=>{u[i.id+'/status']='active'});
   const n=Object.keys(u).length;if(!n)return;
@@ -708,23 +700,27 @@ const fmt=n=>(Math.round(n/10)*10).toLocaleString('hu-HU')+' Ft';
 const fmtU=n=>n<100?Math.round(n)+' Ft':fmt(n);
 function parseQ(s){
   if(!s)return null;
+  s=s.replace(/\d+(?:[.,]\d+)?\s*%/g,' ');
   s=s.replace(/\b(egy|ket|ketto|harom|negy|ot|hat|het|nyolc|kilenc|tiz)\b/g,w=>NW[w]).replace(/\bfel\b/g,'0.5');
   let m=/(\d+(?:[.,]\d+)?)\s*(?:(kg|dkg|dag|gr|g|ml|dl|l|liter|db|darab|zsugor|talca|csomag|doboz|karton|lada|uveg)(?![a-z]))?/.exec(s);
   if(m)return{n:parseFloat(m[1].replace(',','.')),u:m[2]||''};
   m=/(?:^|\s)(zsugor|talca|karton|lada)(?![a-z])/.exec(s);
   return m?{n:1,u:m[1]}:null;
 }
+const FPC=new Map();
 function findPrice(text){
+  if(FPC.has(text))return FPC.get(text);
   const n=norm(text),w=n.split(/[^a-z0-9]+/);let best=null,bl=0;
   PRT.forEach(r=>r[0].forEach(k=>{if(!k)return;const hit=k.length<4?w.includes(k):n.includes(k);if(hit&&k.length>bl){best=r;bl=k.length}}));
-  return best;
+  if(FPC.size>2000)FPC.clear();FPC.set(text,best);return best;
 }
-const getMP=()=>{try{return JSON.parse(localStorage.getItem('myPrices')||'{}')}catch(e){return{}}};
-function calcQ(it,t,def,tray){
+const getMP=()=>jget('myPrices',{});
+const LIT=new Set(['tej','uht tej','tejszin','olaj','olivaolaj','narancsle']);
+function calcQ(it,t,def,tray,lit){
   const tq=parseQ(norm(it.text||'')),m=parseQ(norm(it.note||''))||(tq&&tq.u?tq:null);
   if(!m)return 1;
   const{n,u}=m;
-  if(FAC[u]!==undefined)return n*FAC[u];
+  if(FAC[u]!==undefined){if(t==='db'&&!lit&&(u==='l'||u==='liter'||u==='dl'||u==='ml'))return 1;return n*FAC[u]}
   if(u==='talca')return n*(tray||(t==='kg'?0.8:12));
   if(u==='zsugor')return n*(t==='kg'?def:6);
   if(u==='karton')return n*(t==='kg'?def:12);
@@ -737,37 +733,37 @@ const rowOf=it=>findPrice((it.text||'')+' '+(it.note||''));
 const pKey=it=>{const r=rowOf(it);return r?r[0][0]:norm(it.text||'')};
 const STORES=[['atlag','Országos átlag',1],['ksh','KSH átlagár',1],['lidl','Lidl',0.95],['aldi','Aldi',0.97],['interspar','Interspar',1],['tesco','Tesco',1.09],['milano','Milano Market',1]];
 const KSHP={'csirke mell':2460,'csirkecomb':1070,'szarny':1020,'csirke':1310,'sertes karaj':2070,'sertes comb':1670,'marha':5900,'pulyka':3280,'szalami':10060,'parizer':1990,'virsli':3200,'kolbasz':5830,'szalonna':3240,'hal':4710,'tej':349,'uht tej':346,'joghurt':148,'trappista':2660,'tojas':81.4,'kenyer':905,'zsemle':70,'sargarepa':535,'hagyma':332,'kaposzta':375,'paradicsom':956,'paprika':917,'uborka':1110,'gomba':1900,'alma':600,'banan':739,'narancs':894,'citrom':1300,'liszt':232,'cukor':324,'rizs':676,'teszta':607,'olaj':874,'kave':1620,'csoki':711,'viz':189,'cola':645,'sor':391,'bor':620,'narancsle':1050,'fogkrem':895};
-const getStore=()=>{const v=localStorage.getItem('store');return STORES.some(x=>x[0]===v)?v:'atlag'};
+const getStore=()=>{const v=lsg('store');return STORES.some(x=>x[0]===v)?v:'atlag'};
 const storeName=id=>(STORES.find(x=>x[0]===id)||STORES[0])[1];
 const storeF=id=>(STORES.find(x=>x[0]===id)||STORES[0])[2];
 const storeTag=()=>getStore()==='atlag'?'':' ('+storeName(getStore())+')';
-function setStore(v){localStorage.setItem('store',v);render()}
+function setStore(v){lss('store',v);render()}
 function estimate(it,sid){
   sid=sid||getStore();
   if(it.price>0)return{ft:it.price,lab:'saját ár'};
   const row=rowOf(it),mp=getMP()[sid+'|'+pKey(it)];
   if(!row&&!mp)return null;
   const t=mp?mp.t:row[1],kp=(!mp&&sid==='ksh'&&row)?KSHP[row[0][0]]:undefined,pr=mp?mp.p:(kp!==undefined?kp:row[2]*storeF(sid)),def=row?row[3]:1,tray=row?row[4]:0;
-  const q=Math.round(calcQ(it,t,def,tray)*100)/100;
+  const q=Math.round(calcQ(it,t,def,tray,row&&LIT.has(row[0][0]))*100)/100;
   return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmtU(pr)+(mp?' (saját)':(sid==='ksh'?(kp!==undefined?' (KSH)':' (becslés)'):'')),k:kp!==undefined};
 }
 function learnPrice(it,total){
-  const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0);
-  if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};localStorage.setItem('myPrices',JSON.stringify(mp))}
+  const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0,row&&LIT.has(row[0][0]));
+  if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};jset('myPrices',mp)}
 }
 function forgetPrice(it){
   const mp=getMP(),pk=pKey(it);
   Object.keys(mp).filter(k=>k.endsWith('|'+pk)).forEach(k=>delete mp[k]);
-  localStorage.setItem('myPrices',JSON.stringify(mp));
+  jset('myPrices',mp);
 }
-function clearMP(){localStorage.removeItem('myPrices');toast('A tanult árak törölve');render()}
+function clearMP(){jdel('myPrices');toast('A tanult árak törölve');render()}
 function totalEst(sid){
   let sum=0,priced=0,n=0,ksh=0;
   lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i,sid);if(e){sum+=e.ft;priced++;if(e.k)ksh++}});
   return{sum,priced,n,ksh};
 }
 function renderTotal(){
-  const el=$('totalLine'),T=totalEst(),on=localStorage.getItem('showPrice')!=='0'&&T.sum>0;
+  const el=$('totalLine'),T=totalEst(),on=lsg('showPrice')!=='0'&&T.sum>0;
   el.style.display=on?'block':'none';
   if(on)el.textContent='💰 Várható összeg'+storeTag()+': ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva'+(getStore()==='ksh'?' ('+T.ksh+' KSH-adattal)':'');
 }
@@ -780,7 +776,7 @@ function openCompare(){
     const d=document.createElement('div');d.className='cmprow'+(r.id===getStore()?' sel':'');
     const a=document.createElement('span');a.className='n';a.textContent=(i===0?'🏆 ':'')+r.n+(r.id==='milano'?' (nincs adat)':'');
     const b=document.createElement('span');b.className='p';b.textContent='~'+fmt(r.sum);
-    const c=document.createElement('span');c.className='df';c.textContent=i===0?'legolcsóbb':'+'+fmt(r.sum-best)+' (+'+Math.round((r.sum/best-1)*100)+'%)';
+    const c=document.createElement('span');c.className='df';c.textContent=i===0?'legolcsóbb':'+'+fmt(r.sum-best)+' (+'+Math.round((r.sum/(best||1)-1)*100)+'%)';
     d.append(a,b,c);d.onclick=()=>{setStore(r.id);closeModal('compareModal');toast('Bolt: '+r.n)};
     l.append(d);
   });
@@ -794,31 +790,31 @@ function makeListRow(it){
   const x=document.createElement('div');x.className='ltext';x.textContent=it.text;mid.append(x);
   if(it.note){const n=document.createElement('div');n.className='lnote';n.textContent=it.note;mid.append(n)}
   t.append(mid);
-  const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;
+  const e=lsg('showPrice')!=='0'?estimate(it):null;
   if(e){const p=document.createElement('div');p.className='lprice';p.textContent='~'+fmt(e.ft);t.append(p)}
   t.onclick=()=>showPop(t,it);
   return t;
 }
-function syncIconSeg(){const v=localStorage.getItem('iconStyle')||'3d';document.querySelectorAll('#segIcon button').forEach(b=>b.classList.toggle('on',b.dataset.i===v))}
-function setIconStyle(v){localStorage.setItem('iconStyle',v);syncIconSeg();render()}
-function syncSizeBox(){$('sizeBox').style.display=localStorage.getItem('viewMode')==='list'?'none':''}
+function syncIconSeg(){const v=lsg('iconStyle')||'3d';document.querySelectorAll('#segIcon button').forEach(b=>b.classList.toggle('on',b.dataset.i===v))}
+function setIconStyle(v){lss('iconStyle',v);syncIconSeg();render()}
+function syncSizeBox(){$('sizeBox').style.display=lsg('viewMode')==='list'?'none':''}
 function setView(v){
-  localStorage.setItem('viewMode',v);syncSizeBox();
+  lss('viewMode',v);syncSizeBox();
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   render();
 }
 function priceLine(it,t){
-  const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;
+  const e=lsg('showPrice')!=='0'?estimate(it):null;
   if(e){const d=document.createElement('div');d.className='tile-price';d.textContent='~'+fmt(e.ft);t.append(d)}
 }
-function setPriceShow(v){localStorage.setItem('showPrice',v?'1':'0');render()}
+function setPriceShow(v){lss('showPrice',v?'1':'0');render()}
 async function shareSummary(){
   const ic=i=>i.icon||(typeof guess==='function'?guess(i.text||'').icon:'')||'🛒';
   const by=st=>lastItems.filter(i=>i.status===st);
   const secs=[['✓ Megvan',by('done'),'#12b886'],['✖ Nem találtam',by('x'),'#e8575a'],['… Még hátra',by('active'),'#8a94a6']].filter(x=>x[1].length);
   if(!secs.length)return toast('Még nincs mit megosztani');
   const date=new Date().toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric'});
-  const W=720,P=40,LH=48,TOT=localStorage.getItem('showPrice')!=='0'?totalEst():{sum:0};
+  const W=720,P=40,LH=48,TOT=lsg('showPrice')!=='0'?totalEst():{sum:0};
   const H=P*2+90+secs.reduce((n,x)=>n+66+x[1].length*LH,0)+(TOT.sum?70:0);
   const c=document.createElement('canvas');c.width=W;c.height=H;
   const g=c.getContext('2d'),F='system-ui,-apple-system,"Segoe UI",sans-serif';
@@ -853,7 +849,7 @@ function toggleSearch(){
   b.style.display=open?'block':'none';
   if(open)$('searchInput').focus();else{searchQ='';$('searchInput').value='';render()}
 }
-$('searchInput').addEventListener('input',e=>{searchQ=norm(e.target.value);render()});
+$('searchInput').addEventListener('input',e=>{searchQ=norm(e.target.value);scheduleRender()});
 let hadActive=false;
 function confetti(){
   if(navigator.vibrate)navigator.vibrate([40,40,40]);
@@ -884,13 +880,13 @@ function showPop(t,it){
   const hd=document.createElement('div');hd.className='pop-head';
   const th=it.thumb||(PM[pmKey(it.text)]||{}).t;
   if(th){const im=document.createElement('img');im.className='thumb';im.src=th;hd.append(im)}else hd.append(realPic(it)||iconEl(it._icon));
-  const nm=document.createElement('div');nm.className='pop-name';nm.textContent=it.text;{const e=localStorage.getItem('showPrice')!=='0'?estimate(it):null;if(e){const pl=document.createElement('div');pl.className='pop-price';pl.textContent='~'+fmt(e.ft)+' · '+e.lab;nm.append(pl)}}hd.append(nm);
+  const nm=document.createElement('div');nm.className='pop-name';nm.textContent=it.text;{const e=lsg('showPrice')!=='0'?estimate(it):null;if(e){const pl=document.createElement('div');pl.className='pop-price';pl.textContent='~'+fmt(e.ft)+' · '+e.lab;nm.append(pl)}}hd.append(nm);
   const row=document.createElement('div');row.className='pop-btns';
   row.append(
-    btn('✓','var(--primary-dark)',()=>{closePop();pop(t,()=>{setStatus(it.id,'done');closeSearch()})}),
-    btn('✖','var(--danger)',()=>{closePop();pop(t,()=>{setStatus(it.id,'x');closeSearch()})}),
-    btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>{closePop();openDetail(it.id)}),
-    btn('🗑️','#b2bec3',()=>{closePop();delItem(it.id)}));
+    btn('✓','var(--primary-dark)',()=>{closePop();pop(t,()=>{setStatus(it.id,'done');closeSearch()})},'Megvan'),
+    btn('✖','var(--danger)',()=>{closePop();pop(t,()=>{setStatus(it.id,'x');closeSearch()})},'Hiányzik'),
+    btn(it.thumb?'🖼️':'ℹ️','#339af0',()=>{closePop();openDetail(it.id)},'Részletek'),
+    btn('🗑️','#b2bec3',()=>{closePop();delItem(it.id)},'Törlés'));
   c.append(hd,row);bd.append(c);document.body.append(bd);popEl=bd;
   const r=t.getBoundingClientRect(),rr=t.parentElement.getBoundingClientRect(),w=Math.min(250,innerWidth-16),h=c.offsetHeight;
   c.style.width=w+'px';c.style.setProperty('--c',(getComputedStyle(t).getPropertyValue('--c')||'#8a94a6').trim());
@@ -929,12 +925,12 @@ function enableNotif(){
   if(!('Notification' in window)){toastT=null;toast('iPhone-on csak a főképernyőre tett appban működik: Megosztás ⬆️ → Főképernyőhöz adás, majd onnan nyisd meg.');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('show'),7000);return}
   Notification.requestPermission().then(p=>toast(p==='granted'?'🔔 Értesítések bekapcsolva':'Az értesítés le van tiltva'));
 }
-const getOrder=()=>{try{return JSON.parse(localStorage.getItem('catOrder')||'[]')}catch(e){return[]}};
+const getOrder=()=>jget('catOrder',[]);
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
-  $('realChk').checked=localStorage.getItem('realPics')!=='0';syncSizeBox();syncIconSeg();
-  document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(localStorage.getItem('viewMode')==='list'?'list':'tile')));
-  $('priceChk').checked=localStorage.getItem('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
+  $('realChk').checked=lsg('realPics')!=='0';syncSizeBox();syncIconSeg();
+  document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(lsg('viewMode')==='list'?'list':'tile')));
+  $('priceChk').checked=lsg('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   openModal('orderModal');
 }
 function renderOrd(){
@@ -950,10 +946,10 @@ function renderOrd(){
 function openCatOrder(){renderOrd();openModal('catOrderModal')}
 function moveCat(i,d){
   const cs=orderedCats().map(c=>c[0]),j=i+d;if(j<0||j>=cs.length)return;
-  [cs[i],cs[j]]=[cs[j],cs[i]];localStorage.setItem('catOrder',JSON.stringify(cs));renderOrd();render();
+  [cs[i],cs[j]]=[cs[j],cs[i]];jset('catOrder',cs);renderOrd();render();
 }
-const getFreq=()=>{try{return JSON.parse(localStorage.getItem('freq')||'{}')}catch(e){return{}}};
-function bumpFreq(it){const f=getFreq(),k=norm(it.text),e=f[k]||{n:0};f[k]={n:e.n+1,text:it.text,icon:it.icon,cat:it.cat};localStorage.setItem('freq',JSON.stringify(f))}
+const getFreq=()=>jget('freq',{});
+function bumpFreq(it){const f=getFreq(),k=norm(it.text),e=f[k]||{n:0};f[k]={n:e.n+1,text:it.text,icon:it.icon,cat:it.cat};jset('freq',f)}
 function renderQuick(){
   const q=$('quick');q.textContent='';
   const act=new Set(lastItems.filter(i=>i.status==='active').map(i=>norm(i.text||'')));
@@ -962,13 +958,14 @@ function renderQuick(){
     b.onclick=()=>quickAdd(e);q.append(b);
   });
 }
-function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it)}
+function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it);renderQuick()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03e – Discordos hibabejelentés';$('appVer').textContent=APP_VER;
+const APP_VER='2026.11.03h – hibajavítások';
+addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();const o=[...document.querySelectorAll('.custom-modal')].filter(m=>m.style.display==='flex').pop();if(o)closeModal(o.id)}});$('appVer').textContent=APP_VER;
 let rImg=null;
 function reportInfo(){
   const n=navigator;
-  return {Szoba:currentListId,Verzio:APP_VER,Ido:new Date().toLocaleString('hu-HU'),Eszkoz:n.userAgent,Kepernyo:innerWidth+'x'+innerHeight+' @'+(devicePixelRatio||1)+'x',FoKepernyosApp:(n.standalone||matchMedia('(display-mode: standalone)').matches)?'igen':'nem',Online:n.onLine?'igen':'nem',Nezet:localStorage.getItem('viewMode')||'tile',Csempemeret:localStorage.getItem('tileSize')||'m',Ikonstilus:localStorage.getItem('iconStyle')||'3d',Bolt:getStore(),TetelekSzama:lastItems.length,Nyelv:n.language};
+  return {Szoba:currentListId,Verzio:APP_VER,Ido:new Date().toLocaleString('hu-HU'),Eszkoz:n.userAgent,Kepernyo:innerWidth+'x'+innerHeight+' @'+(devicePixelRatio||1)+'x',FoKepernyosApp:(n.standalone||matchMedia('(display-mode: standalone)').matches)?'igen':'nem',Online:n.onLine?'igen':'nem',Nezet:lsg('viewMode')||'tile',Csempemeret:lsg('tileSize')||'m',Ikonstilus:lsg('iconStyle')||'3d',Bolt:getStore(),TetelekSzama:lastItems.length,Nyelv:n.language};
 }
 function openReport(){
   closeModal('orderModal');
