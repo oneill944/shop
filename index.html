@@ -189,6 +189,21 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 .sech.danger{color:var(--danger);opacity:.9}
 .sgroup{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;opacity:.55;margin:20px 0 8px}
 .sgroup.red{color:var(--danger);opacity:.85}
+.more-b{margin-left:auto;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);padding:2px 8px;border-radius:10px}
+.cat-row.more{-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);mask-image:linear-gradient(to right,#000 86%,transparent)}
+.donut{width:170px;height:170px;border-radius:50%;margin:12px auto;position:relative}
+.donut::after{content:'';position:absolute;inset:36px;border-radius:50%;background:var(--card-bg)}
+body[data-theme]{--bg:var(--tbg)}body.dark[data-theme]{--bg:var(--tbgd)}
+body[data-theme] .primary-btn,body[data-theme] .fab,body[data-theme] .pbar i,body[data-theme] .sharebtn{background:linear-gradient(135deg,var(--primary-dark),var(--accent))}
+#decor{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+#decor span{position:absolute;top:-10vh;opacity:.55;animation:drift linear infinite}
+@keyframes drift{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(112vh) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#decor{display:none}}
+
+.errbar{display:none;position:fixed;left:12px;right:12px;bottom:max(100px,calc(env(safe-area-inset-bottom) + 90px));z-index:1900;align-items:center;gap:8px;background:#2d3436;color:#fff;padding:10px 12px;border-radius:16px;font-size:13px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.errbar span{flex:1;line-height:1.3}
+.errbar button{border:none;border-radius:12px;padding:7px 12px;font-weight:800;cursor:pointer;background:#fff;color:#2d3436}
+.errbar button:last-child{background:none;color:#fff;padding:7px}
 </style>
 </head>
 <body>
@@ -200,7 +215,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div id="searchBar" style="display:none"><input type="search" id="searchInput" placeholder="Keresés a listában..." autocomplete="off"></div>
   <div id="roomLine" style="font-size:15px;font-weight:800;text-align:center;margin-bottom:2px;opacity:.9"></div>
   <div id="userCount" style="font-size:11px;text-align:center;margin-bottom:14px;opacity:.6"></div>
-  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" aria-label="Összefoglaló megosztása" style="font-size:18px;display:none">📤</button></div>
+  <div id="prog" class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptxt"></span><button class="ibtn" id="shareBtn" onclick="shareSummary()" aria-label="Összefoglaló megosztása" style="font-size:18px;display:none">📤</button><button class="ibtn" id="chartBtn" aria-label="Költségek" onclick="openChart()" style="font-size:18px;display:none">🍩</button></div>
   <div id="totalLine" class="totalline" onclick="openCompare()"></div>
   <div id="offBanner" class="offbar">📴 Nincs net – a változások később szinkronizálódnak</div>
   <div class="grid-container" id="activeGrid"></div>
@@ -259,6 +274,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   </div>
   <button class="cancel" id="wClose" style="display:none" onclick="hideWelcome()">Bezárás</button>
 </div></div>
+<div id="errBar" class="errbar"><span>⚠️ Hiba történt az appban. Elküldöd a fejlesztőnek?</span><button id="errSend" onclick="sendErr()">Küldés</button><button onclick="document.getElementById('errBar').style.display='none'" aria-label="Bezárás">✕</button></div>
 <div id="toast"></div>
 <div id="orderModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin:0 0 4px">Beállítások</h3>
@@ -269,8 +285,15 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <button class="setbtn" onclick="toggleMode()">🌓 Sötét / világos mód</button>
   <button class="setbtn" onclick="enableNotif()">🔔 Értesítések bekapcsolása</button>
   <button class="setbtn" onclick="closeModal('orderModal');showWelcome(true)">👋 Üdvözlő képernyő</button>
+  <button class="setbtn" onclick="openModal('privacyModal')">🔒 Adatvédelem</button>
+  <div style="font-size:12px;opacity:.7;margin:12px 0 4px">Nyelv / Language</div>
+  <select id="langSel" onchange="setLang(this.value)" style="margin-bottom:8px"><option value="hu">Magyar</option><option value="en">English</option></select>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="autoErrChk" style="width:auto;margin:0" onchange="setAutoErr(this.checked)"> Hibajelzés felajánlása (egy koppintással küldhető)</label>
 
   <div class="sgroup">Megjelenés</div>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="moreChk" style="width:auto;margin:0" onchange="setMore(this.checked)"> Sor végi jelzés (+N)</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="holChk" style="width:auto;margin:0" onchange="setHol(this.checked)"> Ünnepi témák</label>
+  <button class="setbtn" id="themeBtn" style="margin-top:0;margin-bottom:10px" onclick="openTheme()">🎨 Téma</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
   <div style="font-size:12px;opacity:.7;margin-bottom:6px">Ikonstílus</div>
   <div class="seg" id="segIcon"><button data-i="3d" onclick="setIconStyle('3d')">3D ikon</button><button data-i="emoji" onclick="setIconStyle('emoji')">Emoji</button><button data-i="text" onclick="setIconStyle('text')">Szöveg</button></div>
@@ -300,6 +323,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 </div></div>
 <div id="helpModal" class="custom-modal"><div class="modal-content help">
 <h3 style="margin:0 0 6px">❓ Súgó</h3>
+<div id="helpHu" class="notr">
 <h4>➕ Tétel hozzáadása</h4>
 <p>Koppints a jobb alsó <b>+</b> gombra. Írd be a tétel nevét, az app magától ikont és kategóriát választ hozzá. Ha az ikon nem tetszik, koppints rá a név mellett, és válassz másikat. A kategóriát is átállíthatod a legördülő listában.</p>
 <p><b>Több tétel egyszerre:</b> vesszővel elválasztva írd be őket (pl. <i>tej, kenyér, sajt</i>), az app külön tételekre bontja. Ilyenkor a megjegyzés és a kép nem kerül fel, azt egyesével lehet megadni.</p>
@@ -342,6 +366,7 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <li><b>Bolti sorrend beállítása:</b> a gombra koppintva külön ablak nyílik, ahol a ↑ ↓ gombokkal sorrendbe állíthatod a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt követi.</li>
 <li><b>Súgó:</b> a Beállítások ablak alján található.</li>
 <li><b>Újrakezdés:</b> törli az app minden helyi adatát ezen a telefonon (beállítások, tanult ikonok és árak, szoba, mentett példányok), majd újratölt, és újra az üdvözlő képernyő fogad. A közös lista a szobában megmarad.</li>
+<li><b>Sor végi jelzés, ünnepi témák, költségdiagram (🍩), közös árak, automatikus hibajelentés, nyelv, adatvédelem:</b> mind a Beállításokban (vagy a lista tetején) érhető el és kapcsolható. A közös árakat a szoba minden tagja látja („közös" felirat a kártyán). Az ünnepi témákat a 🎨 Téma gombbal próbálhatod ki.</li>
 <li><b>Hibabejelentés:</b> a Beállítások alján található. Leírhatod a problémát, megadhatod a neved, e-mail címed és telefonszámod (ezek nem kötelezők), és képet is csatolhatsz. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak, a lista tartalma nem. A bejelentés a fejlesztő Discord-csatornájára kerül.</li>
 <li><b>Üdvözlő képernyő:</b> az első megnyitáskor ez fogad (rövid bemutató és szobaválasztó). A Beállításokból bármikor újra megnézheted.</li>
 <li><b>Sötét / világos mód:</b> témaváltás.</li>
@@ -354,6 +379,58 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
 <p>Ha elmegy a net, egy sárga sáv jelzi. Az app az utolsó ismert listát megmutatja. A net nélkül végzett módosítások akkor szinkronizálódnak, amikor visszatér a térerő, de csak ha közben az app nyitva marad.</p>
 <h4>🏠 A fejléc</h4>
 <p>Középen a szoba száma és az látszik, hányan szerkesztik épp a listát.</p>
+<h4>🤝 Közös árak</h4>
+<p>Ha egy tételnél megadsz egy saját árat, azt az app megosztja a szoba összes tagjával: mindenki becslése ezzel az egységárral számol, és a tétel árát „(közös)” felirat jelzi. Ha valaki más módosítja, a legfrissebb ár érvényes. A „Tanult árak törlése” gomb a közös árakat is törli a szobából (előtte rákérdez).</p>
+<h4>🥧 Részösszeg és költségdiagram</h4>
+<p>A kategóriák címe mellett a becsült részösszeg látszik (pl. „Húsok (4) · ~8 400 Ft”). A végösszeg sor mellett a 🥧 gombbal kördiagramot nyithatsz, amely megmutatja, melyik kategóriára megy a legtöbb pénz.</p>
+<h4>➡️ „+N” jelzés és ünnepi témák</h4>
+<p>Ha egy kategóriasorban több tétel van, mint amennyi látszik, a címnél „+N” jelvény mutatja a rejtett tételek számát (a Beállításokban kikapcsolható). Ünnepek idején (pl. Halloween, Mikulás, Karácsony, Húsvét, nemzeti ünnepek) az app színvilága és a lehulló díszek automatikusan megváltoznak. Ez is kikapcsolható, és a 🎨 Téma gombbal bármelyik témát kipróbálhatod.</p>
+<h4>⚠️ Hibajelzés</h4>
+<p>Ha az app hibába fut, alul egy sáv jelenik meg: egy koppintással elküldheted a hiba részleteit a fejlesztőnek (a lista tartalma nélkül). A Beállításokban kikapcsolható. A kézi „Hibabejelentés” gomb továbbra is használható, ha valami mást szeretnél jelezni.</p>
+<h4>🌐 Nyelv és adatvédelem</h4>
+<p>A Beállításokban átállíthatod a nyelvet (Magyar / English), és az Adatvédelem gombbal megnézheted, mit tárol az app.</p>
+</div>
+<div id="helpEn" class="notr" style="display:none">
+<h4>➕ Adding items</h4>
+<p>Tap the <b>+</b> button at the bottom right. Type the item name; the app picks an icon and a category automatically. Tap the icon next to the name to choose another one, and change the category in the drop-down.</p>
+<p><b>Several items at once:</b> separate them with commas (e.g. <i>milk, bread, cheese</i>). Notes and photos can only be added one item at a time.</p>
+<p><b>Frequent items:</b> your most often added items appear as buttons at the top of the window. One tap adds them.</p>
+<h4>🧺 How the list is organised</h4>
+<p>Items are grouped by category in colour-coded rows, with the number of items next to the name. A row shows as many tiles as the tile size allows (small: 4, medium: 3, large: 2); swipe sideways for the rest. Tap a category title to collapse or expand it.</p>
+<p><b>Compact list view:</b> in Settings, the <b>View</b> switch turns tiles into a one-line-per-item list showing icon, name, note and estimated price.</p>
+<h4>👆 Handling an item</h4>
+<p>Tap a tile and a card appears above it (2.5 seconds by default, adjustable in Settings):</p>
+<ul><li><b>✓</b> got it: the item moves to “Checked”.</li><li><b>✖</b> missing: the item moves to “Missing” (e.g. not in the store).</li><li><b>ℹ️ / 🖼️</b> open the details.</li><li><b>🗑️</b> delete the item.</li></ul>
+<h4>📝 Details window</h4>
+<p>Edit the name, add a note, change the category and icon, and add, replace or delete a photo. Press <b>Save</b> to keep the changes. If you change the category, the app remembers it for that name.</p>
+<h4>📷 Photos</h4>
+<p>By default the app uses a food photo or a 3D icon (switchable in Settings). You can attach your own photo; it is remembered for the item name, so every item with that name shows it, on family members’ phones too.</p>
+<h4>✅ Checked and Missing</h4>
+<p>Two sections sit below the list. <b>↺</b> puts an item back, <b>↺ Restore all</b> puts all of them back, and <b>Delete</b> removes everything in that section. Tap a section title to collapse it.</p>
+<h4>💰 Price estimate</h4>
+<p>The app estimates a price for every item and shows the expected total below the progress bar. <b>Important:</b> it uses average Hungarian prices built into the app, <b>not</b> current promotional flyers, so it is only a guide.</p>
+<p>The quantity is read from the <b>note</b>, e.g. <i>4 kg</i>, <i>20 dkg</i>, <i>3 db</i> (pieces), <i>1 zsugor</i> (6-pack), <i>egy tálca</i> (a tray). Without a quantity it counts 1 unit: 1 kg for items sold by weight, 1 piece otherwise.</p>
+<p><b>Price data:</b> the built-in prices are October 2026 averages. For some staples they come from official KSH and GVH price-monitor averages; the rest are estimates. In Settings you can pick a store (Lidl, Aldi, Interspar, Tesco, Milano Market), the national average or the KSH average; store prices use approximate ratios from public basket tests. <b>Compare stores</b> shows which store would be cheapest for your list.</p>
+<p>If an estimate is off, enter your <b>own price</b> in the details window. It overrides the estimate and is remembered as the product’s unit price (clear it in Settings).</p>
+<h4>🤝 Shared prices</h4>
+<p>A price you enter is shared with everyone in the room: all estimates use that unit price and it is marked “(shared)”. If someone changes it, the latest price wins. “Clear learned prices” also removes the shared prices from the room (it asks first).</p>
+<h4>🥧 Subtotals and cost chart</h4>
+<p>Each category title shows its estimated subtotal (e.g. “Meat (4) · ~8,400 Ft”). The 🥧 button next to the total opens a pie chart showing which category takes most of the money.</p>
+<h4>➡️ “+N” hint and holiday themes</h4>
+<p>If a category row has more items than fit, a “+N” badge shows the number of hidden items (can be switched off in Settings). Around holidays (Halloween, Santa Claus, Christmas, Easter, national holidays…) the colours and falling decorations change automatically. This can also be switched off, and the 🎨 Theme button lets you try any theme.</p>
+<h4>📊 Progress bar and the finished screen</h4>
+<p>The bar shows how many items are checked. When the last active item is done, a “Shopping done!” message appears with confetti.</p>
+<h4>🔍 Search</h4>
+<p>The 🔍 button at the top left opens search. Only matching items stay visible (accents are ignored). Checking a found item closes the search.</p>
+<h4>⚙️ Settings</h4>
+<ul><li><b>Room:</b> the list belongs to a 4-digit code. Everyone using the same code sees and edits the same list in real time.</li><li><b>Realistic food photos, icon style, view, tile size, card display time:</b> appearance options.</li><li><b>Aisle order:</b> arrange the categories the way you walk through your store.</li><li><b>Dark / light mode, notifications, welcome screen.</b></li><li><b>Language and Privacy:</b> switch between Magyar and English, and see what the app stores.</li><li><b>Delete:</b> clear learned prices or categories, start over (clears local data on this phone), or delete all items.</li><li><b>Report a bug:</b> describe a problem, optionally with your name, email, phone and a screenshot. The room number, version and device details are attached automatically, not the list contents.</li></ul>
+<h4>⚠️ Error alerts</h4>
+<p>If the app hits an error, a bar appears at the bottom: one tap sends the error details to the developer (without your list). It can be switched off in Settings. The manual “Report a bug” button is still there for anything else.</p>
+<h4>🔔 Notifications</h4>
+<p>When someone else adds an item while the app is open, a small message appears. In the background, system notifications can arrive if you allow them in Settings. On iPhone the app must be added to the Home Screen (Safari: Share → Add to Home Screen) and opened from there. A fully closed app gets no notifications.</p>
+<h4>📴 Offline</h4>
+<p>If the connection drops, a yellow bar appears and the last known list stays visible. Changes made offline sync when the connection returns, as long as the app stays open.</p>
+</div>
 <button class="cancel" onclick="closeModal('helpModal')">Bezárás</button>
 </div></div>
 <div id="compareModal" class="custom-modal"><div class="modal-content">
@@ -384,6 +461,13 @@ body[data-size=s] .tile-price{display:block;font-size:8px;line-height:1.15;margi
   <div style="font-size:10.5px;opacity:.5;margin-top:8px;line-height:1.4;text-align:center">A bejelentés a fejlesztő Discord-csatornájára kerül, a megadott név és elérhetőség is.</div>
   <button class="cancel" onclick="closeModal('reportModal')">Bezárás</button>
 </div></div>
+<div id="decor"></div>
+<div id="themeModal" class="custom-modal"><div class="modal-content"><h3 style="margin:0 0 6px">🎨 Téma</h3><div style="font-size:12px;opacity:.7;margin-bottom:8px">Próbáld ki bármelyik ünnepi témát. Az „Automatikus" a dátumhoz igazodik.</div><div id="themeList"></div><button class="cancel" onclick="closeModal('themeModal')">Bezárás</button></div></div>
+<div id="chartModal" class="custom-modal"><div class="modal-content"><h3 style="margin:0">🍩 Mire megy a pénz</h3><div class="donut" id="donut"></div><div style="text-align:center;font-weight:800;margin-bottom:10px">Összesen: <span id="chartTotal"></span></div><div id="chartList"></div><button class="cancel" onclick="closeModal('chartModal')">Bezárás</button></div></div>
+<div id="privacyModal" class="custom-modal"><div class="modal-content help"><h3 style="margin:0 0 6px">🔒 Adatvédelem</h3>
+<div id="privHu" class="notr"><p><b>Mit tárol az app?</b> A listád tételeit és képeit a Firebase adatbázisban a szobád kódja alatt. Akik ismerik a szoba 4 jegyű kódját, látják és szerkeszthetik a listát. A beállításaid csak a saját telefonodon, a böngészőben vannak.</p><p><b>Hibajelentés:</b> amit beírsz (leírás, név, e-mail, telefonszám, kép) és az eszközöd adatai a fejlesztő Discord-csatornájára kerülnek. Az automatikus hibajelentés csak a hiba szövegét, a szoba számát, a verziót és az eszköz típusát küldi, a Beállításokban kikapcsolható.</p><p><b>Külső szolgáltatások:</b> Firebase (Google), jsDelivr (ikonok), TheMealDB és Wikipedia (ételfotók), Discord (jelentések). Az app nem használ hirdetést vagy követő sütit.</p></div>
+<div id="privEn" class="notr" style="display:none"><p><b>What does the app store?</b> Your list items and photos are stored in the Firebase database under your room code. Anyone who knows the 4-digit room code can see and edit the list. Your settings stay in your own browser.</p><p><b>Bug reports:</b> what you write (description, name, email, phone, image) and your device info go to the developer's Discord channel. Automatic error reports only send the error text, room number, version and device type, and can be turned off in Settings.</p><p><b>Third-party services:</b> Firebase (Google), jsDelivr (icons), TheMealDB and Wikipedia (food photos), Discord (reports). The app uses no ads or tracking cookies.</p></div>
+<button class="cancel" onclick="closeModal('privacyModal')">Bezárás</button></div></div>
 <div id="listModal" class="custom-modal"><div class="modal-content">
   <h3 style="margin-top:0">Szobaváltás</h3>
   <input type="text" id="joinCodeInput" inputmode="numeric" maxlength="4" placeholder="4 jegyű kód">
@@ -517,16 +601,16 @@ function render(){
     const e=document.createElement('div');e.className='empty';
     if(lastItems.length){
       e.classList.add('win');
-      [['win-emoji','🎉'],['win-t','Kész a bevásárlás!'],['win-s','Minden tétel el van intézve.']].forEach(([c,t])=>{const d=document.createElement('div');d.className=c;d.textContent=t;e.append(d)});
+      [['win-emoji','🎉'],['win-t','Kész a bevásárlás!'],['win-s','Minden tétel el van intézve.']].forEach(([c,t])=>{const d=document.createElement('div');d.className=c;d.textContent=T(t);e.append(d)});
       const sb=document.createElement('button');sb.className='sharebtn';sb.textContent='📤 Összefoglaló megosztása';sb.onclick=shareSummary;e.append(sb);
       if(hadActive)confetti();
-    }else e.textContent='Még nincs tétel – koppints a + gombra';
+    }else e.textContent=T('Még nincs tétel – koppints a + gombra');
     grid.append(e);
   }
   hadActive=!!active;
   orderedCats().forEach(([cid,label,emo])=>{
     const arr=groups[cid];if(!arr)return;
-    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(((COL.has(cid)&&!searchQ)?'▸ ':'▾ ')+label+' ('+arr.length+')'));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className=(LIST?'cat-list':'cat-row')+((COL.has(cid)&&!searchQ)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);
+    const h=document.createElement('div');h.className='cat-title';h.dataset.k=cid;h.append(iconEl(emo,'s'),document.createTextNode(((COL.has(cid)&&!searchQ)?'▸ ':'▾ ')+catLabel(cid,label)+' ('+arr.length+')'+catSub(arr)));h.onclick=()=>{COL.has(cid)?COL.delete(cid):COL.add(cid);localStorage.setItem('collapsed',JSON.stringify([...COL]));render()};grid.append(h);const row=document.createElement('div');row.className=(LIST?'cat-list':'cat-row')+((COL.has(cid)&&!searchQ)?' collapsed':'');row.dataset.c=cid;row.dataset.k=cid;grid.append(row);moreHint(h,row,arr,LIST);
     arr.forEach(it=>{
       if(LIST){row.append(makeListRow(it));return}
       const t=document.createElement('div');
@@ -540,7 +624,7 @@ function render(){
     });
     row.scrollLeft=sl[cid]||0;
   });
-  if(searchQ&&!Object.keys(groups).length){const e=document.createElement('div');e.className='empty';e.textContent='Nincs találat';grid.append(e)}
+  if(searchQ&&!Object.keys(groups).length){const e=document.createElement('div');e.className='empty';e.textContent=T('Nincs találat');grid.append(e)}
   renderProg();renderSec();window.scrollTo(0,y);
 }
 
@@ -554,7 +638,7 @@ function shrink(file,max,q){return new Promise((res,rej)=>{
 });}
 $('fileNew').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{pendingFull=await shrink(f,900,.7);pendingThumb=await shrink(f,160,.6);$('newPhotoBtn').textContent='✓ Kép hozzáadva (csere)'}catch(x){alert('A képet nem sikerült beolvasni.')}
+  try{pendingFull=await shrink(f,900,.7);pendingThumb=await shrink(f,160,.6);$('newPhotoBtn').textContent='✓ Kép hozzáadva (csere)'}catch(x){alert(T('A képet nem sikerült beolvasni.'))}
   e.target.value='';
 };
 $('fileDetail').onchange=async e=>{
@@ -563,7 +647,7 @@ $('fileDetail').onchange=async e=>{
     const full=await shrink(f,900,.7),th=await shrink(f,160,.6);
     await photoRef(detailId).set(full);await listRef.child(detailId).update({thumb:th});savePM((lastItems.find(i=>i.id===detailId)||{}).text,th);
     showPhoto(full);
-  }catch(x){alert('A kép mentése nem sikerült.')}
+  }catch(x){alert(T('A kép mentése nem sikerült.'))}
   e.target.value='';
 };
 function showPhoto(src){
@@ -615,9 +699,9 @@ function setStatus(id,s){listRef.child(id).update({status:s})}
 function delItem(id){listRef.child(id).remove();photoRef(id).remove()}
 function clearStatus(s){
   const ids=lastItems.filter(i=>i.status===s).map(i=>i.id);
-  if(ids.length&&confirm('Törlöd ezeket ('+ids.length+')?'))ids.forEach(delItem);
+  if(ids.length&&confirm(T('Törlöd ezeket ('+ids.length+')?')))ids.forEach(delItem);
 }
-function clearAllItems(){if(confirm('Mindent törölsz?')){listRef.remove();db.ref('photos/'+currentListId).remove()}}
+function clearAllItems(){if(confirm(T('Mindent törölsz?'))){listRef.remove();db.ref('photos/'+currentListId).remove()}}
 function toggleMode(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0')}
 let lockY=0,locked=false;
 function syncLock(){
@@ -741,22 +825,26 @@ function setStore(v){lss('store',v);render()}
 function estimate(it,sid){
   sid=sid||getStore();
   if(it.price>0)return{ft:it.price,lab:'saját ár'};
-  const row=rowOf(it),mp=getMP()[sid+'|'+pKey(it)];
+  const row=rowOf(it),k0=sid+'|'+pKey(it),sh=SP[spKey(k0)],mp=sh||getMP()[k0];
   if(!row&&!mp)return null;
   const t=mp?mp.t:row[1],kp=(!mp&&sid==='ksh'&&row)?KSHP[row[0][0]]:undefined,pr=mp?mp.p:(kp!==undefined?kp:row[2]*storeF(sid)),def=row?row[3]:1,tray=row?row[4]:0;
   const q=Math.round(calcQ(it,t,def,tray,row&&LIT.has(row[0][0]))*100)/100;
-  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmtU(pr)+(mp?' (saját)':(sid==='ksh'?(kp!==undefined?' (KSH)':' (becslés)'):'')),k:kp!==undefined};
+  return{ft:Math.round(q*pr/10)*10,lab:String(q).replace('.',',')+(t==='kg'?' kg':' db')+' × '+fmtU(pr)+(mp?(sh&&sh.by!==DEV?' (közös)':' (saját)'):(sid==='ksh'?(kp!==undefined?' (KSH)':' (becslés)'):'')),k:kp!==undefined};
 }
 function learnPrice(it,total){
   const row=rowOf(it),t=row?row[1]:'db',q=calcQ(it,t,row?row[3]:1,row?row[4]:0,row&&LIT.has(row[0][0]));
-  if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};jset('myPrices',mp)}
+  if(q>0&&total>0){const mp=getMP();mp[getStore()+'|'+pKey(it)]={t,p:total/q};jset('myPrices',mp);try{db.ref('sharedPrices/'+currentListId+'/'+spKey(getStore()+'|'+pKey(it))).set({t,p:total/q,by:DEV})}catch(e){}}
 }
 function forgetPrice(it){
-  const mp=getMP(),pk=pKey(it);
-  Object.keys(mp).filter(k=>k.endsWith('|'+pk)).forEach(k=>delete mp[k]);
-  jset('myPrices',mp);
+  const mp=getMP(),pk='|'+pKey(it);
+  Object.keys(mp).filter(k=>k.endsWith(pk)).forEach(k=>delete mp[k]);jset('myPrices',mp);
+  const sp='|'+spKey(pKey(it));Object.keys(SP).filter(k=>k.endsWith(sp)).forEach(k=>{try{db.ref('sharedPrices/'+currentListId+'/'+k).remove()}catch(e){}});
 }
-function clearMP(){jdel('myPrices');toast('A tanult árak törölve');render()}
+function clearMP(){
+  if(!confirm(T('Törlöd a tanult árakat? A közös (családi) árakat is törli a szobából.')))return;
+  jdel('myPrices');try{db.ref('sharedPrices/'+currentListId).remove()}catch(e){}SP={};
+  toast('A tanult árak törölve');render();
+}
 function totalEst(sid){
   let sum=0,priced=0,n=0,ksh=0;
   lastItems.forEach(i=>{if(i.status==='x')return;n++;const e=estimate(i,sid);if(e){sum+=e.ft;priced++;if(e.k)ksh++}});
@@ -764,7 +852,7 @@ function totalEst(sid){
 }
 function renderTotal(){
   const el=$('totalLine'),T=totalEst(),on=lsg('showPrice')!=='0'&&T.sum>0;
-  el.style.display=on?'block':'none';
+  el.style.display=on?'block':'none';$('chartBtn').style.display=on?'inline-block':'none';
   if(on)el.textContent='💰 Várható összeg'+storeTag()+': ~'+fmt(T.sum)+' · '+T.priced+'/'+T.n+' tétel árazva'+(getStore()==='ksh'?' ('+T.ksh+' KSH-adattal)':'');
 }
 function openCompare(){
@@ -811,15 +899,15 @@ function setPriceShow(v){lss('showPrice',v?'1':'0');render()}
 async function shareSummary(){
   const ic=i=>i.icon||(typeof guess==='function'?guess(i.text||'').icon:'')||'🛒';
   const by=st=>lastItems.filter(i=>i.status===st);
-  const secs=[['✓ Megvan',by('done'),'#12b886'],['✖ Nem találtam',by('x'),'#e8575a'],['… Még hátra',by('active'),'#8a94a6']].filter(x=>x[1].length);
+  const secs=[[T('✓ Megvan'),by('done'),'#12b886'],[T('✖ Nem találtam'),by('x'),'#e8575a'],[T('… Még hátra'),by('active'),'#8a94a6']].filter(x=>x[1].length);
   if(!secs.length)return toast('Még nincs mit megosztani');
-  const date=new Date().toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric'});
+  const date=new Date().toLocaleDateString(lsg('lang')==='en'?'en-GB':'hu-HU',{year:'numeric',month:'long',day:'numeric'});
   const W=720,P=40,LH=48,TOT=lsg('showPrice')!=='0'?totalEst():{sum:0};
   const H=P*2+90+secs.reduce((n,x)=>n+66+x[1].length*LH,0)+(TOT.sum?70:0);
   const c=document.createElement('canvas');c.width=W;c.height=H;
   const g=c.getContext('2d'),F='system-ui,-apple-system,"Segoe UI",sans-serif';
   g.fillStyle='#fff7ee';g.fillRect(0,0,W,H);
-  g.fillStyle='#3a2e2a';g.font='800 34px '+F;g.fillText('🛒 Bevásárlás',P,P+34);
+  g.fillStyle='#3a2e2a';g.font='800 34px '+F;g.fillText(T('🛒 Bevásárlás'),P,P+34);
   g.font='500 22px '+F;g.fillStyle='#8a7f78';g.fillText(date,P,P+68);
   let y=P+110;
   secs.forEach(([t,arr,col])=>{
@@ -831,9 +919,9 @@ async function shareSummary(){
     });
     y+=10;
   });
-  if(TOT.sum){g.fillStyle='#3a2e2a';g.font='800 26px '+F;g.fillText('💰 Várható összeg'+storeTag()+': ~'+fmt(TOT.sum),P,y+34)}
-  const totTxt=TOT.sum?'\n\n💰 Várható összeg'+storeTag()+': ~'+fmt(TOT.sum):'';
-  const text='🛒 Bevásárlás – '+date+'\n'+secs.map(([t,arr])=>'\n'+t+':\n'+arr.map(i=>'• '+i.text+(i.note?' ('+i.note+')':'')).join('\n')).join('\n');
+  if(TOT.sum){g.fillStyle='#3a2e2a';g.font='800 26px '+F;g.fillText(T('💰 Várható összeg')+storeTag()+': ~'+fmt(TOT.sum),P,y+34)}
+  const totTxt=TOT.sum?'\n\n'+T('💰 Várható összeg')+storeTag()+': ~'+fmt(TOT.sum):'';
+  const text=T('🛒 Bevásárlás')+' – '+date+'\n'+secs.map(([t,arr])=>'\n'+t+':\n'+arr.map(i=>'• '+i.text+(i.note?' ('+i.note+')':'')).join('\n')).join('\n');
   try{
     const blob=await new Promise(r=>c.toBlob(r,'image/png'));
     const f=new File([blob],'bevasarlas.png',{type:'image/png'});
@@ -863,7 +951,7 @@ function toggleSec(k){SEC[k]=!SEC[k];localStorage.setItem('secCol',JSON.stringif
 function renderSec(){
   [['done','doneTitle','doneList','Pipálva ✓'],['x','missTitle','missingList','Hiányzik ✖']].forEach(([k,t,l,name])=>{
     const n=lastItems.filter(i=>i.status===k).length;
-    $(t).textContent=(SEC[k]?'▸ ':'▾ ')+name+' ('+n+')';
+    $(t).textContent=(SEC[k]?'▸ ':'▾ ')+T(name)+' ('+n+')';
     $(l).style.display=SEC[k]?'none':'';
   });
 }
@@ -915,7 +1003,7 @@ function renderProg(){
 }
 const DEV=localStorage.getItem('dev')||(()=>{const v=Math.random().toString(36).slice(2,10);localStorage.setItem('dev',v);return v})();
 let ready=false,toastT=null;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
+function toast(m){const t=$('toast');t.textContent=T(m);t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
 function notify(i){
   toast('➕ '+i.text+' felkerült a listára');
   if(navigator.vibrate)navigator.vibrate(120);
@@ -928,7 +1016,7 @@ function enableNotif(){
 const getOrder=()=>jget('catOrder',[]);
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
-  $('realChk').checked=lsg('realPics')!=='0';syncSizeBox();syncIconSeg();
+  $('realChk').checked=lsg('realPics')!=='0';syncSizeBox();syncIconSeg();$('moreChk').checked=lsg('moreHint')!=='0';$('holChk').checked=lsg('holThemes')!=='0';$('autoErrChk').checked=lsg('autoErr')!=='0';$('langSel').value=lsg('lang')==='en'?'en':'hu';$('themeBtn').style.display=lsg('holThemes')!=='0'?'block':'none';
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(lsg('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=lsg('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   openModal('orderModal');
@@ -937,7 +1025,7 @@ function renderOrd(){
   const l=$('ordList');l.textContent='';
   orderedCats().forEach(([id,label,emo],i)=>{
     const r=document.createElement('div');r.className='ordrow';
-    const n=document.createElement('span');n.className='n';n.textContent=label;
+    const n=document.createElement('span');n.className='n';n.textContent=catLabel(id,label);
     const up=document.createElement('button');up.textContent='↑';up.onclick=()=>moveCat(i,-1);
     const dn=document.createElement('button');dn.textContent='↓';dn.onclick=()=>moveCat(i,1);
     r.append(iconEl(emo,'s',true),n,up,dn);l.append(r);
@@ -960,7 +1048,8 @@ function renderQuick(){
 }
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it);renderQuick()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-const APP_VER='2026.11.03h – hibajavítások';
+
+const APP_VER='2026.11.05 – közös árak, költségdiagram, auto hibajelentés';
 addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();const o=[...document.querySelectorAll('.custom-modal')].filter(m=>m.style.display==='flex').pop();if(o)closeModal(o.id)}});$('appVer').textContent=APP_VER;
 let rImg=null;
 function reportInfo(){
@@ -1022,7 +1111,7 @@ async function sendReport(){
   }
 }
 async function resetApp(){
-  if(!confirm('Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.'))return;
+  if(!confirm(T('Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.')))return;
   try{db.goOffline()}catch(e){}
   try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}
   try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
@@ -1041,6 +1130,137 @@ async function wNew(){
   }catch(e){$('wErr').textContent='Nincs kapcsolat a szerverrel, próbáld újra.'}
   b.disabled=false;
 }
+
+/* ===== Új funkciók: közös árak, részösszeg + diagram, ünnepi témák, +N jelzés, nyelv, auto hibajelentés ===== */
+let SP={};
+const spKey=k=>String(k).replace(/[.$#\[\]\/]/g,'_');
+db.ref('sharedPrices/'+currentListId).on('value',v=>{SP=v.val()||{};scheduleRender()});
+const CATS_EN={zold:'Produce',pek:'Bakery',hus:'Meat & cold cuts',tej:'Dairy & eggs',szaraz:'Dry goods',edes:'Sweets & snacks',ital:'Drinks',fagy:'Frozen',haz:'Household',egyeb:'Other'};
+const catLabel=(id,l)=>lsg('lang')==='en'?(CATS_EN[id]||l):l;
+function catSub(arr){if(lsg('showPrice')==='0')return'';let t=0;arr.forEach(i=>{const e=estimate(i);if(e)t+=e.ft});return t>0?' · ~'+fmt(t):''}
+function moreHint(h,row,arr,LIST){
+  if(LIST||lsg('moreHint')==='0')return;
+  const x=arr.length-({s:4,m:3,l:2}[lsg('tileSize')||'m']||3);if(x<=0)return;
+  const b=document.createElement('span');b.className='more-b';b.textContent='+'+x;h.append(b);row.classList.add('more');
+  row.addEventListener('scroll',()=>row.classList.toggle('more',row.scrollLeft+row.clientWidth<row.scrollWidth-6),{passive:true});
+}
+function setMore(v){lss('moreHint',v?'1':'0');render()}
+function setAutoErr(v){lss('autoErr',v?'1':'0')}
+const CCOL={zold:'#2fb86b',pek:'#f0a04b',hus:'#e8575a',tej:'#4aa8ff',szaraz:'#b98a5a',edes:'#ff6fa8',ital:'#1fb5c9',fagy:'#7f8cff',haz:'#9b6bff',egyeb:'#8a94a6'};
+function openChart(){
+  const sums={};let tot=0;
+  lastItems.forEach(i=>{if(i.status==='x')return;const e=estimate(i);if(!e)return;const c=i._cat||'egyeb';sums[c]=(sums[c]||0)+e.ft;tot+=e.ft});
+  if(!tot)return toast('Még nincs árazott tétel');
+  const L=$('chartList');L.textContent='';let acc=0;const st=[];
+  orderedCats().filter(([id])=>sums[id]).forEach(([id,label])=>{
+    const v=sums[id],p=v/tot*100;st.push(CCOL[id]+' '+acc+'% '+(acc+p)+'%');acc+=p;
+    const d=document.createElement('div');d.className='cmprow';d.style.cursor='default';
+    const dot=document.createElement('span');dot.style.cssText='width:12px;height:12px;border-radius:50%;flex:none;background:'+CCOL[id];
+    const n=document.createElement('span');n.className='n';n.textContent=catLabel(id,label);
+    const pv=document.createElement('span');pv.className='p';pv.textContent='~'+fmt(v);
+    const df=document.createElement('span');df.className='df';df.style.minWidth='40px';df.textContent=Math.round(p)+'%';
+    d.append(dot,n,pv,df);L.append(d);
+  });
+  $('donut').style.background='conic-gradient('+st.join(',')+')';$('chartTotal').textContent='~'+fmt(tot);
+  openModal('chartModal');
+}
+/* ünnepi témák */
+const THEMES=[['halloween','🎃','Halloween','#fff0e0','#1b1208','#7b2cbf','#ff7a18',['🎃','🦇','👻','🕸️']],['mikulas','🎅','Mikulás','#fff1f1','#1d1014','#d62839','#2a9d8f',['🎅','⭐','🎁']],['karacsony','🎄','Karácsony','#f1fbf3','#0f1a14','#c0392b','#1e8449',['❄️','🎄','⭐','❄️']],['szilveszter','🎆','Szilveszter','#f3f0ff','#12101f','#6c5ce7','#f1c40f',['🎆','✨','🥂','🎉']],['valentin','💘','Valentin-nap','#fff0f4','#1f1015','#e84393','#ff6b81',['💖','💘','🌹']],['husvet','🐰','Húsvét','#fbfff0','#13190f','#f4a261','#8ac926',['🐰','🥚','🌷','🐣']],['nemzeti','🇭🇺','Nemzeti ünnep','#fff5f5','#14161d','#c8102e','#477050',['🇭🇺','⭐','🎆']]];
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
+function autoTheme(d){
+  const md=(d.getMonth()+1)*100+d.getDate(),y=d.getFullYear();
+  if(md>=1024||md<=101){if(md>=1024&&md<=1101)return'halloween'}
+  if(md>=1201&&md<=1206)return'mikulas';if(md>=1207&&md<=1226)return'karacsony';if(md>=1227||md<=102)return'szilveszter';
+  if(md>=210&&md<=214)return'valentin';
+  const E=easter(y),df=(d-new Date(y,d.getMonth(),d.getDate()-0))/864e5,ed=Math.round((new Date(y,d.getMonth(),d.getDate())-E)/864e5);if(ed>=-7&&ed<=1)return'husvet';
+  if((md>=312&&md<=315)||(md>=817&&md<=820)||(md>=1020&&md<=1023))return'nemzeti';
+  return'';
+}
+function applyTheme(){
+  const b=document.body;let id='';
+  if(lsg('holThemes')!=='0'){const t=lsg('theme')||'auto';id=t==='auto'?autoTheme(new Date()):(t==='none'?'':t)}
+  const T0=THEMES.find(x=>x[0]===id),D=$('decor');D.textContent='';
+  ['--tbg','--tbgd','--accent','--primary-dark'].forEach(v=>b.style.removeProperty(v));
+  if(!T0){delete b.dataset.theme;return}
+  b.dataset.theme=id;b.style.setProperty('--tbg',T0[3]);b.style.setProperty('--tbgd',T0[4]);b.style.setProperty('--accent',T0[5]);b.style.setProperty('--primary-dark',T0[6]);
+  for(let i=0;i<14;i++){const sp=document.createElement('span');sp.textContent=T0[7][i%T0[7].length];sp.style.left=(Math.random()*96)+'%';sp.style.fontSize=(14+Math.random()*16)+'px';sp.style.animationDuration=(9+Math.random()*10)+'s';sp.style.animationDelay=(-Math.random()*14)+'s';D.append(sp)}
+}
+function setHol(v){lss('holThemes',v?'1':'0');$('themeBtn').style.display=v?'block':'none';applyTheme()}
+function openTheme(){
+  const L=$('themeList'),cur=lsg('theme')||'auto';L.textContent='';
+  [['auto','🗓️','Automatikus (dátum szerint)'],['none','🚫','Nincs téma'],...THEMES.map(t=>[t[0],t[1],t[2]])].forEach(([id,e,n])=>{
+    const d=document.createElement('div');d.className='cmprow'+(cur===id?' sel':'');d.textContent=e+' '+T(n);
+    d.onclick=()=>{lss('theme',id);applyTheme();openTheme()};L.append(d);
+  });
+  openModal('themeModal');
+}
+/* nyelv */
+const EN_MAP={'Üdv a Bevásárló listában!':'Welcome to the Shopping List!','Közös, valós idejű bevásárlólista a családnak. Amit az egyik telefonon felveszel, a másikon azonnal megjelenik.':'A shared, real-time shopping list for the family. What you add on one phone appears instantly on the other.','🧺 Tételek kategóriák szerint, ikonokkal és saját képekkel':'🧺 Items by category, with icons and your own photos','👥 Közös lista, amit többen egyszerre szerkeszthettek':'👥 A shared list several people can edit at once','💰 Várható összeg, boltok összehasonlítása':'💰 Estimated total, store comparison','📴 Net nélkül is megnyílik, és megoszthatod az eredményt':'📴 Opens offline, and you can share the result','Melyik szobához csatlakozol?':'Which room are you joining?','A szoba egy 4 jegyű kód. Aki ugyanazt a kódot adja meg, ugyanazt a listát látja.':'A room is a 4-digit code. Anyone who enters the same code sees the same list.','Csatlakozás a szobához':'Join the room','vagy':'or','✨ Új szoba létrehozása':'✨ Create a new room','Bezárás':'Close','Mégse':'Cancel','Mentés':'Save','Kész':'Done','Beállítások':'Settings','Általános':'General','Megjelenés':'Appearance','Árak':'Prices','Törlés':'Delete','↕️ Bolti sorrend beállítása':'↕️ Store aisle order','🌓 Sötét / világos mód':'🌓 Dark / light mode','🔔 Értesítések bekapcsolása':'🔔 Enable notifications','👋 Üdvözlő képernyő':'👋 Welcome screen','🔒 Adatvédelem':'🔒 Privacy','Valósághű ételfotók':'Realistic food photos','Sor végi jelzés (+N)':'Row-end hint (+N)','Ünnepi témák':'Holiday themes','🎨 Téma':'🎨 Theme','Hibák automatikus jelentése':'Automatic error reports','Ikonstílus':'Icon style','Nézet':'View','Csempék':'Tiles','Lista':'List','Csempeméret':'Tile size','Kicsi':'Small','Közepes':'Medium','Nagy':'Large','Árbecslés mutatása':'Show price estimate','Bolt az árbecsléshez':'Store for price estimate','📊 Boltok összehasonlítása':'📊 Compare stores','🧹 Tanult árak törlése':'🧹 Clear learned prices','🧹 Tanult kategóriák törlése':'🧹 Clear learned categories','♻️ Újrakezdés (helyi adatok törlése)':'♻️ Reset (clear local data)','🗑️ Minden tétel törlése':'🗑️ Delete all items','🐞 Hibabejelentés':'🐞 Report a bug','❓ Súgó':'❓ Help','Új tétel':'New item','Hozzáadás a listához':'Add to list','Szobaváltás':'Switch room','Csatlakozás':'Join','Válassz ikont':'Pick an icon','🎨 Téma ':'🎨 Theme','Pipálva ✓':'Done ✓','Hiányzik ✖':'Missing ✖','Kész a bevásárlás!':'Shopping done!','Minden tétel el van intézve.':'Every item is taken care of.','Még nincs tétel – koppints a + gombra':'No items yet – tap the + button','Nincs találat':'No results','↺ Mind vissza':'↺ Restore all','Keresés a listában...':'Search the list...','Pl: tej, kenyér, sajt (vesszővel több is)':'E.g. milk, bread, cheese (comma for several)','Megjegyzés (opcionális)':'Note (optional)','4 jegyű kód':'4-digit code','Nyelv / Language':'Nyelv / Language','🍩 Mire megy a pénz':'🍩 Where the money goes','🎨 Téma':'🎨 Theme','Még nincs árazott tétel':'No priced items yet'};
+const T=s=>lsg('lang')==='en'?trTxt(s):s;
+Object.assign(EN_MAP,{"Megjegyzés":"Note","📴 Nincs net – a változások később szinkronizálódnak": "📴 No connection – changes will sync later", "📷 Kép hozzáadása": "📷 Add photo", "Kép törlése": "Delete photo", "😀 Ikon módosítása": "😀 Change icon", "🏠 Szoba:": "🏠 Room:", "– váltás": "– change", "3D ikon": "3D icon", "Szöveg": "Text", "Kártya megjelenési ideje:": "Card display time:", "(alapértelmezett: 2,5 mp)": "(default: 2.5 s)", "Országos átlag": "National average", "KSH átlagár (hivatalos)": "KSH average price (official)", "Verzió:": "Version:", "A mostani lista várható összege boltonként. Koppints egy boltra a kiválasztásához.": "The estimated total of the current list for each store. Tap a store to select it.", "A különbségek közelítő boltszintű arányokon alapulnak (2026 októberi kosárteszteken), nem az egyes termékek aktuális, akciós árain. A Milano Marketről nincs árarány-adatom, ott az országos átlaggal számol.": "The differences are based on approximate store-level ratios (from October 2026 basket tests), not on the current promotional prices of individual products. There is no ratio data for Milano Market, so it uses the national average.", "↕️ Bolti sorrend beállítása": "↕️ Aisle order", "Told fel/le a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt a sorrendet követi.": "Move the categories up/down the way you walk through the store. The list follows this order.", "Írd le röviden, mi nem működik. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak. A név és az elérhetőség nem kötelező.": "Briefly describe what is not working. The room number, version and device details are attached automatically. Name and contact details are optional.", "📷 Kép csatolása (nem kötelező)": "📷 Attach a photo (optional)", "Küldés": "Send", "A bejelentés a fejlesztő Discord-csatornájára kerül, a megadott név és elérhetőség is.": "The report goes to the developer's Discord channel, including the name and contact details you provide.", "Próbáld ki bármelyik ünnepi témát. Az „Automatikus\" a dátumhoz igazodik.": "Try any holiday theme. “Automatic” follows the date.", "Összesen:": "Total:", "Keresés": "Search", "Összefoglaló megosztása": "Share summary", "Költségek": "Costs", "Megjegyzés (opcionális)": "Note", "Saját ár Ft-ban (üresen: becslés)": "Own price in HUF (empty: estimate)", "Mi a probléma? Mit csináltál, és mit vártál volna?": "What is the problem? What did you do, and what did you expect?", "Neved (nem kötelező)": "Your name (optional)", "E-mail címed (nem kötelező)": "Your email (optional)", "Telefonszámod (nem kötelező)": "Your phone number (optional)", "⚠️ Hiba történt az appban. Elküldöd a fejlesztőnek?": "⚠️ An error occurred in the app. Send it to the developer?", "Hibajelzés felajánlása (egy koppintással küldhető)": "Offer error reporting (one tap to send)", "A tanult kategóriák törölve": "Learned categories cleared", "A tanult árak törölve": "Learned prices cleared", "Kész a bevásárlás!": "Shopping done!", "Minden tétel el van intézve.": "Everything is taken care of.", "📤 Összefoglaló megosztása": "📤 Share summary", "Még nincs tétel – koppints a + gombra": "No items yet – tap the + button", "Nincs találat": "No results", "✓ Kép hozzáadva (csere)": "✓ Photo added (tap to replace)", "A képet nem sikerült beolvasni.": "Could not read the image.", "A kép mentése nem sikerült.": "Could not save the image.", "📷 Kép cseréje": "📷 Replace photo", "Mindent törölsz?": "Delete everything?", "saját ár": "own price", "Még nincs tétel a listán": "No items on the list yet", "legolcsóbb": "cheapest", "✓ Megvan": "✓ Got it", "✖ Nem találtam": "✖ Not found", "… Még hátra": "… Still to buy", "Még nincs mit megosztani": "Nothing to share yet", "Az összefoglaló a vágólapra másolva": "Summary copied to the clipboard", "A megosztás nem sikerült": "Sharing failed", "Pipálva ✓": "Checked ✓", "Hiányzik ✖": "Missing ✖", "🛒 Bevásárlás": "🛒 Shopping", "iPhone-on csak a főképernyőre tett appban működik: Megosztás ⬆️ → Főképernyőhöz adás, majd onnan nyisd meg.": "On iPhone this only works in the app added to the Home Screen: Share ⬆️ → Add to Home Screen, then open it from there.", "🔔 Értesítések bekapcsolva": "🔔 Notifications enabled", "Az értesítés le van tiltva": "Notifications are blocked", "✓ Kép csatolva (koppints a cseréhez)": "✓ Photo attached (tap to replace)", "Írd le röviden a problémát.": "Please describe the problem briefly.", "Az e-mail cím formátuma nem jó.": "The email address format is not valid.", "Kérlek várj egy kicsit a következő bejelentés előtt.": "Please wait a moment before sending another report.", "Küldés…": "Sending…", "✓ Köszönöm! A bejelentést elküldtem.": "✓ Thank you! The report has been sent.", "🐞 Hibabejelentés elküldve": "🐞 Bug report sent", "Adj meg egy 4 jegyű kódot.": "Enter a 4-digit code.", "Nem sikerült szabad kódot találni, próbáld újra.": "Could not find a free code, please try again.", "Nincs kapcsolat a szerverrel, próbáld újra.": "No connection to the server, please try again.", "Még nincs árazott tétel": "No priced items yet", "Automatikus (dátum szerint)": "Automatic (by date)", "Nincs téma": "No theme", "Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.": "Delete this app’s local data on this phone (settings, learned icons and prices, room)? The shared list stays in the room.", "Törlöd a tanult árakat? A közös (családi) árakat is törli a szobából.": "Clear the learned prices? This also clears the shared (family) prices in the room.", "✓ A hibajelentést elküldtem, köszönöm!": "✓ Error report sent, thank you!", "Nem sikerült elküldeni, próbáld újra később.": "Could not send, please try again later.", "Hiányzik": "Missing", "Részletek": "Details", "Törlés": "Delete", "Halloween": "Halloween", "Mikulás": "Santa Claus", "Karácsony": "Christmas", "Szilveszter": "New Year’s Eve", "Valentin-nap": "Valentine’s Day", "Húsvét": "Easter", "Nemzeti ünnep": "National holiday"});
+CATS.forEach(([id,l,e])=>{EN_MAP[l]=CATS_EN[id];EN_MAP[e+' '+l]=e+' '+CATS_EN[id]});
+const EN_RX=[[/^1 ember szerkeszti épp$/,'1 person editing now'],[/^(\d+) ember szerkeszti épp$/,'$1 people editing now'],[/^✓ (\d+) tétel hozzáadva$/,'✓ $1 items added'],[/^↺ (\d+) tétel visszakerült a listára$/,'↺ $1 items restored to the list'],[/^➕ (.*) felkerült a listára$/,'➕ $1 was added to the list'],[/^(\d+)\/(\d+) megvan$/,'$1/$2 done'],[/^Törlöd ezeket \((\d+)\)\?$/,'Delete these ($1)?'],[/^Bolt: (.*)$/,'Store: $1'],[/^(\d+),(\d) mp$/,'$1.$2 s'],[/^(\d+) mp$/,'$1 s']];
+const EN_SUB=[[' (saját)',' (own)'],[' (közös)',' (shared)'],[' (becslés)',' (estimate)'],['saját ár','own price'],[' db × ',' pcs × '],[' (nincs adat)',' (no data)'],['Várható összeg','Estimated total'],[' tétel árazva',' items priced'],[' KSH-adattal',' with KSH data'],['(KSH átlagár)','(KSH average price)']];
+const EN_SKIP='.tile-text,.tile-note,.ltext,.lnote,.pop-name,.qchip';
+function trTxt(s){
+  const k=String(s).trim();if(!k)return s;
+  if(EN_MAP[k]!==undefined)return s.replace(k,EN_MAP[k]);
+  for(const [r,e] of EN_RX)if(r.test(k))return s.replace(k,k.replace(r,e));
+  if(EN_SUB.some(([h])=>k.includes(h))){let o=k;EN_SUB.forEach(([h,e])=>{o=o.split(h).join(e)});return s.replace(k,o)}
+  return s;
+}
+function trEl(n){
+  const p=n.parentNode;if(!p||p.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName)||p.matches(EN_SKIP)||p.closest('.notr')||p.closest('.mini-tag'))return;
+  const v=trTxt(n.nodeValue);if(v!==n.nodeValue){if(n._hu===undefined)n._hu=n.nodeValue;n.nodeValue=v}
+}
+function trTree(r){
+  if(r.nodeType===3){trEl(r);return}
+  if(r.nodeType!==1||(r.closest&&r.closest('.notr')))return;
+  const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())trEl(n);
+}
+let enMO=null;
+function applyLang(){
+  const en=lsg('lang')==='en';
+  if(en)trTree(document.body);
+  else{const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(n._hu!==undefined){n.nodeValue=n._hu;n._hu=undefined}}}
+  ['placeholder','aria-label'].forEach(a=>document.querySelectorAll('['+a+']').forEach(e=>{
+    const k='_o'+a,v=e.getAttribute(a);
+    if(en){const t=trTxt(v);if(t!==v){if(e[k]===undefined)e[k]=v;e.setAttribute(a,t)}}
+    else if(e[k]!==undefined){e.setAttribute(a,e[k]);e[k]=undefined}
+  }));
+  if(en&&!enMO){
+    enMO=new MutationObserver(recs=>{if(lsg('lang')!=='en')return;recs.forEach(r=>{if(r.type==='characterData')trEl(r.target);else r.addedNodes.forEach(trTree)});enMO.takeRecords()});
+    enMO.observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
+  document.documentElement.lang=en?'en':'hu';document.title=en?'Shopping list':'Bevásárló lista';
+  $('privHu').style.display=en?'none':'block';$('privEn').style.display=en?'block':'none';
+  $('helpHu').style.display=en?'none':'';$('helpEn').style.display=en?'':'none';
+  render();
+}
+function setLang(v){lss('lang',v);applyLang()}
+/* automatikus hibajelentés (a kézi hibabejelentés változatlan) */
+let errN=0,errLast=0,errPend=null;const errSeen=new Set();
+function autoReport(kind,txt,stack){
+  if(lsg('autoErr')==='0'||errN>=3||/Script error|ResizeObserver/.test(txt)||/firebase|network|fetch|load failed|offline|permission_denied|aborted/i.test(txt))return;
+  const key=kind+txt;if(errSeen.has(key)||Date.now()-errLast<20000)return;
+  errSeen.add(key);errN++;errLast=Date.now();errPend={kind,txt,stack};$('errBar').style.display='flex';
+}
+async function sendErr(){
+  if(!errPend)return;
+  const b=$('errSend');b.disabled=true;const i=reportInfo(),e=errPend;
+  const embed={title:'⚠️ Automatikus hibajelentés',description:trunc('**'+e.kind+'**\n'+e.txt+'\n```\n'+(e.stack||'-')+'\n```',3500),color:0xf0a04b,
+    fields:[{name:'🏠 Szoba',value:trunc(i.Szoba,100),inline:true},{name:'🔖 Verzió',value:trunc(i.Verzio,100),inline:true},{name:'🌐 Online',value:trunc(i.Online,20),inline:true},{name:'📱 Eszköz',value:trunc(i.Eszkoz,300),inline:false},{name:'🖥️ Képernyő',value:trunc(i.Kepernyo,100),inline:true}],
+    footer:{text:'Bevásárló lista · '+i.Verzio},timestamp:new Date().toISOString()};
+  try{
+    const r=await fetch(REPORT_HOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'Bevásárló lista – automatikus',allowed_mentions:{parse:[]},embeds:[embed]})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    $('errBar').style.display='none';errPend=null;toast('✓ A hibajelentést elküldtem, köszönöm!');
+  }catch(x){toast('Nem sikerült elküldeni, próbáld újra később.')}
+  b.disabled=false;
+}
+addEventListener('error',e=>{if(e.target&&e.target!==window)return;autoReport('Hiba',(e.message||'')+' @'+String(e.filename||'').split('/').pop()+':'+e.lineno,(e.error&&e.error.stack)||'')});
+addEventListener('unhandledrejection',e=>{const r=e.reason;autoReport('Elutasított ígéret',String((r&&r.message)||r),(r&&r.stack)||'')});
+applyTheme();applyLang();
 if(FIRST)showWelcome(false);else init();
 </script>
 </body>
