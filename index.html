@@ -204,6 +204,15 @@ body[data-theme] .primary-btn,body[data-theme] .fab,body[data-theme] .pbar i,bod
 .errbar span{flex:1;line-height:1.3}
 .errbar button{border:none;border-radius:12px;padding:7px 12px;font-weight:800;cursor:pointer;background:#fff;color:#2d3436}
 .errbar button:last-child{background:none;color:#fff;padding:7px}
+.fresh{animation:fresh .38s cubic-bezier(.2,.8,.3,1)}
+@keyframes fresh{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:none}}
+.skel{padding:6px 0;text-align:left}
+.skel .st{height:14px;width:42%;border-radius:7px;margin:14px 0 8px}
+.skel .sr{display:flex;gap:8px}
+.skel .sr i{flex:1;height:78px;border-radius:22px}
+.skel .st,.skel .sr i{background:linear-gradient(90deg,var(--grey) 25%,color-mix(in srgb,var(--grey) 55%,#fff) 50%,var(--grey) 75%);background-size:200% 100%;animation:shim 1.3s infinite linear}
+@keyframes shim{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.fresh,.skel .st,.skel .sr i{animation:none}}
 </style>
 </head>
 <body>
@@ -292,6 +301,7 @@ body[data-theme] .primary-btn,body[data-theme] .fab,body[data-theme] .pbar i,bod
 
   <div class="sgroup">Megjelenés</div>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="moreChk" style="width:auto;margin:0" onchange="setMore(this.checked)"> Sor végi jelzés (+N)</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="animChk" style="width:auto;margin:0" onchange="setAnim(this.checked)"> Finom animációk</label>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="holChk" style="width:auto;margin:0" onchange="setHol(this.checked)"> Ünnepi témák</label>
   <button class="setbtn" id="themeBtn" style="margin-top:0;margin-bottom:10px" onclick="openTheme()">🎨 Téma</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px"><input type="checkbox" id="realChk" style="width:auto;margin:0" onchange="setReal(this.checked)"> Valósághű ételfotók</label>
@@ -383,6 +393,8 @@ body[data-theme] .primary-btn,body[data-theme] .fab,body[data-theme] .pbar i,bod
 <p>Ha egy tételnél megadsz egy saját árat, azt az app megosztja a szoba összes tagjával: mindenki becslése ezzel az egységárral számol, és a tétel árát „(közös)” felirat jelzi. Ha valaki más módosítja, a legfrissebb ár érvényes. A „Tanult árak törlése” gomb a közös árakat is törli a szobából (előtte rákérdez).</p>
 <h4>🥧 Részösszeg és költségdiagram</h4>
 <p>A kategóriák címe mellett a becsült részösszeg látszik (pl. „Húsok (4) · ~8 400 Ft”). A végösszeg sor mellett a 🥧 gombbal kördiagramot nyithatsz, amely megmutatja, melyik kategóriára megy a legtöbb pénz.</p>
+<h4>✨ Finom animációk</h4>
+<p>Új tétel hozzáadásakor a csempe finoman beúszik, az első betöltéskor pedig halvány, mozgó „váz” látszik az üres lista helyett. A Beállításokban a <b>Finom animációk</b> jelölőnégyzettel kikapcsolható. Ha a telefonodon be van kapcsolva a „csökkentett mozgás” (Kisegítő lehetőségek), az app magától kihagyja ezeket.</p>
 <h4>➡️ „+N” jelzés és ünnepi témák</h4>
 <p>Ha egy kategóriasorban több tétel van, mint amennyi látszik, a címnél „+N” jelvény mutatja a rejtett tételek számát (a Beállításokban kikapcsolható). Ünnepek idején (pl. Halloween, Mikulás, Karácsony, Húsvét, nemzeti ünnepek) az app színvilága és a lehulló díszek automatikusan megváltoznak. Ez is kikapcsolható, és a 🎨 Téma gombbal bármelyik témát kipróbálhatod.</p>
 <h4>⚠️ Hibajelzés</h4>
@@ -416,6 +428,8 @@ body[data-theme] .primary-btn,body[data-theme] .fab,body[data-theme] .pbar i,bod
 <p>A price you enter is shared with everyone in the room: all estimates use that unit price and it is marked “(shared)”. If someone changes it, the latest price wins. “Clear learned prices” also removes the shared prices from the room (it asks first).</p>
 <h4>🥧 Subtotals and cost chart</h4>
 <p>Each category title shows its estimated subtotal (e.g. “Meat (4) · ~8,400 Ft”). The 🥧 button next to the total opens a pie chart showing which category takes most of the money.</p>
+<h4>✨ Smooth animations</h4>
+<p>When you add an item, its tile slides in gently, and on first load a faint moving skeleton shows instead of an empty list. You can switch it off in Settings with the <b>Smooth animations</b> checkbox. If “Reduce Motion” is on in your phone’s accessibility settings, the app skips these automatically.</p>
 <h4>➡️ “+N” hint and holiday themes</h4>
 <p>If a category row has more items than fit, a “+N” badge shows the number of hidden items (can be switched off in Settings). Around holidays (Halloween, Santa Claus, Christmas, Easter, national holidays…) the colours and falling decorations change automatically. This can also be switched off, and the 🎨 Theme button lets you try any theme.</p>
 <h4>📊 Progress bar and the finished screen</h4>
@@ -586,6 +600,7 @@ function render(){
   const grid=$('activeGrid'),done=$('doneList'),miss=$('missingList');
   const y=window.scrollY;const sl={};grid.querySelectorAll('.cat-row').forEach(r=>sl[r.dataset.c]=r.scrollLeft);grid.textContent='';done.textContent='';miss.textContent='';
   const items=[...lastItems].sort((a,b)=>(a.order||0)-(b.order||0));
+  RK=knownIds;RA=lsg('anim')!=='0'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;if(ready)knownIds=new Set(lastItems.map(i=>i.id));
   const groups={};let active=0;const LIST=lsg('viewMode')==='list';
   items.forEach(it=>{
     const g=guess(it.text||'');it._icon=it.icon||g.icon;it._cat=it.cat||g.cat;
@@ -604,7 +619,7 @@ function render(){
       [['win-emoji','🎉'],['win-t','Kész a bevásárlás!'],['win-s','Minden tétel el van intézve.']].forEach(([c,t])=>{const d=document.createElement('div');d.className=c;d.textContent=T(t);e.append(d)});
       const sb=document.createElement('button');sb.className='sharebtn';sb.textContent='📤 Összefoglaló megosztása';sb.onclick=shareSummary;e.append(sb);
       if(hadActive)confetti();
-    }else e.textContent=T('Még nincs tétel – koppints a + gombra');
+    }else if(!ready&&RA&&performance.now()<8000){e.className='skel';for(let k=0;k<3;k++){const st=document.createElement('div');st.className='st';const sr=document.createElement('div');sr.className='sr';for(let j=0;j<3;j++)sr.append(document.createElement('i'));e.append(st,sr)}}else e.textContent=T('Még nincs tétel – koppints a + gombra');
     grid.append(e);
   }
   hadActive=!!active;
@@ -614,7 +629,7 @@ function render(){
     arr.forEach(it=>{
       if(LIST){row.append(makeListRow(it));return}
       const t=document.createElement('div');
-      t.className='tile';
+      t.className='tile'+freshCls(it);
       const th=it.thumb||(PM[pmKey(it.text)]||{}).t;if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
       const x=document.createElement('div');x.className='tile-text';x.textContent=it.text;t.append(x);
       if(it.note){const n=document.createElement('div');n.className='tile-note';n.textContent=it.note;t.append(n)}
@@ -871,7 +886,7 @@ function openCompare(){
   openModal('compareModal');
 }
 function makeListRow(it){
-  const t=document.createElement('div');t.className='lrow';
+  const t=document.createElement('div');t.className='lrow'+freshCls(it);
   const th=it.thumb||(PM[pmKey(it.text)]||{}).t;
   if(th){const im=document.createElement('img');im.className='thumb';im.src=th;t.append(im)}else t.append(realPic(it)||iconEl(it._icon));
   const mid=document.createElement('div');mid.className='lmid';
@@ -1016,7 +1031,7 @@ function enableNotif(){
 const getOrder=()=>jget('catOrder',[]);
 function orderedCats(){const o=getOrder();return [...CATS].sort((a,b)=>{const i=o.indexOf(a[0]),j=o.indexOf(b[0]);return (i<0?99:i)-(j<0?99:j)||CATS.indexOf(a)-CATS.indexOf(b)})}
 function openOrder(){
-  $('realChk').checked=lsg('realPics')!=='0';syncSizeBox();syncIconSeg();$('moreChk').checked=lsg('moreHint')!=='0';$('holChk').checked=lsg('holThemes')!=='0';$('autoErrChk').checked=lsg('autoErr')!=='0';$('langSel').value=lsg('lang')==='en'?'en':'hu';$('themeBtn').style.display=lsg('holThemes')!=='0'?'block':'none';
+  $('realChk').checked=lsg('realPics')!=='0';syncSizeBox();syncIconSeg();$('moreChk').checked=lsg('moreHint')!=='0';$('animChk').checked=lsg('anim')!=='0';$('holChk').checked=lsg('holThemes')!=='0';$('autoErrChk').checked=lsg('autoErr')!=='0';$('langSel').value=lsg('lang')==='en'?'en':'hu';$('themeBtn').style.display=lsg('holThemes')!=='0'?'block':'none';
   document.querySelectorAll('#segView button').forEach(b=>b.classList.toggle('on',b.dataset.v===(lsg('viewMode')==='list'?'list':'tile')));
   $('priceChk').checked=lsg('showPrice')!=='0';$('storeSel').value=getStore();$('popRange').value=getPopSec();$('popVal').textContent=popLabel(getPopSec());
   openModal('orderModal');
@@ -1049,7 +1064,7 @@ function renderQuick(){
 function quickAdd(e){const it={text:e.text,note:'',icon:e.icon,cat:e.cat,status:'active',order:Date.now(),by:DEV};listRef.push().set(it);bumpFreq(it);renderQuick()}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
-const APP_VER='2026.11.05 – közös árak, költségdiagram, auto hibajelentés';
+const APP_VER='2026.11.05c – finom animációk';
 addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();const o=[...document.querySelectorAll('.custom-modal')].filter(m=>m.style.display==='flex').pop();if(o)closeModal(o.id)}});$('appVer').textContent=APP_VER;
 let rImg=null;
 function reportInfo(){
@@ -1144,6 +1159,9 @@ function moreHint(h,row,arr,LIST){
   const b=document.createElement('span');b.className='more-b';b.textContent='+'+x;h.append(b);row.classList.add('more');
   row.addEventListener('scroll',()=>row.classList.toggle('more',row.scrollLeft+row.clientWidth<row.scrollWidth-6),{passive:true});
 }
+let RK=null,RA=false,knownIds=null;
+const freshCls=it=>(RA&&RK&&!RK.has(it.id))?' fresh':'';
+function setAnim(v){lss('anim',v?'1':'0')}
 function setMore(v){lss('moreHint',v?'1':'0');render()}
 function setAutoErr(v){lss('autoErr',v?'1':'0')}
 const CCOL={zold:'#2fb86b',pek:'#f0a04b',hus:'#e8575a',tej:'#4aa8ff',szaraz:'#b98a5a',edes:'#ff6fa8',ital:'#1fb5c9',fagy:'#7f8cff',haz:'#9b6bff',egyeb:'#8a94a6'};
@@ -1195,7 +1213,7 @@ function openTheme(){
   openModal('themeModal');
 }
 /* nyelv */
-const EN_MAP={'Üdv a Bevásárló listában!':'Welcome to the Shopping List!','Közös, valós idejű bevásárlólista a családnak. Amit az egyik telefonon felveszel, a másikon azonnal megjelenik.':'A shared, real-time shopping list for the family. What you add on one phone appears instantly on the other.','🧺 Tételek kategóriák szerint, ikonokkal és saját képekkel':'🧺 Items by category, with icons and your own photos','👥 Közös lista, amit többen egyszerre szerkeszthettek':'👥 A shared list several people can edit at once','💰 Várható összeg, boltok összehasonlítása':'💰 Estimated total, store comparison','📴 Net nélkül is megnyílik, és megoszthatod az eredményt':'📴 Opens offline, and you can share the result','Melyik szobához csatlakozol?':'Which room are you joining?','A szoba egy 4 jegyű kód. Aki ugyanazt a kódot adja meg, ugyanazt a listát látja.':'A room is a 4-digit code. Anyone who enters the same code sees the same list.','Csatlakozás a szobához':'Join the room','vagy':'or','✨ Új szoba létrehozása':'✨ Create a new room','Bezárás':'Close','Mégse':'Cancel','Mentés':'Save','Kész':'Done','Beállítások':'Settings','Általános':'General','Megjelenés':'Appearance','Árak':'Prices','Törlés':'Delete','↕️ Bolti sorrend beállítása':'↕️ Store aisle order','🌓 Sötét / világos mód':'🌓 Dark / light mode','🔔 Értesítések bekapcsolása':'🔔 Enable notifications','👋 Üdvözlő képernyő':'👋 Welcome screen','🔒 Adatvédelem':'🔒 Privacy','Valósághű ételfotók':'Realistic food photos','Sor végi jelzés (+N)':'Row-end hint (+N)','Ünnepi témák':'Holiday themes','🎨 Téma':'🎨 Theme','Hibák automatikus jelentése':'Automatic error reports','Ikonstílus':'Icon style','Nézet':'View','Csempék':'Tiles','Lista':'List','Csempeméret':'Tile size','Kicsi':'Small','Közepes':'Medium','Nagy':'Large','Árbecslés mutatása':'Show price estimate','Bolt az árbecsléshez':'Store for price estimate','📊 Boltok összehasonlítása':'📊 Compare stores','🧹 Tanult árak törlése':'🧹 Clear learned prices','🧹 Tanult kategóriák törlése':'🧹 Clear learned categories','♻️ Újrakezdés (helyi adatok törlése)':'♻️ Reset (clear local data)','🗑️ Minden tétel törlése':'🗑️ Delete all items','🐞 Hibabejelentés':'🐞 Report a bug','❓ Súgó':'❓ Help','Új tétel':'New item','Hozzáadás a listához':'Add to list','Szobaváltás':'Switch room','Csatlakozás':'Join','Válassz ikont':'Pick an icon','🎨 Téma ':'🎨 Theme','Pipálva ✓':'Done ✓','Hiányzik ✖':'Missing ✖','Kész a bevásárlás!':'Shopping done!','Minden tétel el van intézve.':'Every item is taken care of.','Még nincs tétel – koppints a + gombra':'No items yet – tap the + button','Nincs találat':'No results','↺ Mind vissza':'↺ Restore all','Keresés a listában...':'Search the list...','Pl: tej, kenyér, sajt (vesszővel több is)':'E.g. milk, bread, cheese (comma for several)','Megjegyzés (opcionális)':'Note (optional)','4 jegyű kód':'4-digit code','Nyelv / Language':'Nyelv / Language','🍩 Mire megy a pénz':'🍩 Where the money goes','🎨 Téma':'🎨 Theme','Még nincs árazott tétel':'No priced items yet'};
+const EN_MAP={'Üdv a Bevásárló listában!':'Welcome to the Shopping List!','Közös, valós idejű bevásárlólista a családnak. Amit az egyik telefonon felveszel, a másikon azonnal megjelenik.':'A shared, real-time shopping list for the family. What you add on one phone appears instantly on the other.','🧺 Tételek kategóriák szerint, ikonokkal és saját képekkel':'🧺 Items by category, with icons and your own photos','👥 Közös lista, amit többen egyszerre szerkeszthettek':'👥 A shared list several people can edit at once','💰 Várható összeg, boltok összehasonlítása':'💰 Estimated total, store comparison','📴 Net nélkül is megnyílik, és megoszthatod az eredményt':'📴 Opens offline, and you can share the result','Melyik szobához csatlakozol?':'Which room are you joining?','A szoba egy 4 jegyű kód. Aki ugyanazt a kódot adja meg, ugyanazt a listát látja.':'A room is a 4-digit code. Anyone who enters the same code sees the same list.','Csatlakozás a szobához':'Join the room','vagy':'or','✨ Új szoba létrehozása':'✨ Create a new room','Bezárás':'Close','Mégse':'Cancel','Mentés':'Save','Kész':'Done','Beállítások':'Settings','Általános':'General','Megjelenés':'Appearance','Árak':'Prices','Törlés':'Delete','↕️ Bolti sorrend beállítása':'↕️ Store aisle order','🌓 Sötét / világos mód':'🌓 Dark / light mode','🔔 Értesítések bekapcsolása':'🔔 Enable notifications','👋 Üdvözlő képernyő':'👋 Welcome screen','🔒 Adatvédelem':'🔒 Privacy','Valósághű ételfotók':'Realistic food photos','Sor végi jelzés (+N)':'Row-end hint (+N)','Finom animációk':'Smooth animations','Ünnepi témák':'Holiday themes','🎨 Téma':'🎨 Theme','Hibák automatikus jelentése':'Automatic error reports','Ikonstílus':'Icon style','Nézet':'View','Csempék':'Tiles','Lista':'List','Csempeméret':'Tile size','Kicsi':'Small','Közepes':'Medium','Nagy':'Large','Árbecslés mutatása':'Show price estimate','Bolt az árbecsléshez':'Store for price estimate','📊 Boltok összehasonlítása':'📊 Compare stores','🧹 Tanult árak törlése':'🧹 Clear learned prices','🧹 Tanult kategóriák törlése':'🧹 Clear learned categories','♻️ Újrakezdés (helyi adatok törlése)':'♻️ Reset (clear local data)','🗑️ Minden tétel törlése':'🗑️ Delete all items','🐞 Hibabejelentés':'🐞 Report a bug','❓ Súgó':'❓ Help','Új tétel':'New item','Hozzáadás a listához':'Add to list','Szobaváltás':'Switch room','Csatlakozás':'Join','Válassz ikont':'Pick an icon','🎨 Téma ':'🎨 Theme','Pipálva ✓':'Done ✓','Hiányzik ✖':'Missing ✖','Kész a bevásárlás!':'Shopping done!','Minden tétel el van intézve.':'Every item is taken care of.','Még nincs tétel – koppints a + gombra':'No items yet – tap the + button','Nincs találat':'No results','↺ Mind vissza':'↺ Restore all','Keresés a listában...':'Search the list...','Pl: tej, kenyér, sajt (vesszővel több is)':'E.g. milk, bread, cheese (comma for several)','Megjegyzés (opcionális)':'Note (optional)','4 jegyű kód':'4-digit code','Nyelv / Language':'Nyelv / Language','🍩 Mire megy a pénz':'🍩 Where the money goes','🎨 Téma':'🎨 Theme','Még nincs árazott tétel':'No priced items yet'};
 const T=s=>lsg('lang')==='en'?trTxt(s):s;
 Object.assign(EN_MAP,{"Megjegyzés":"Note","📴 Nincs net – a változások később szinkronizálódnak": "📴 No connection – changes will sync later", "📷 Kép hozzáadása": "📷 Add photo", "Kép törlése": "Delete photo", "😀 Ikon módosítása": "😀 Change icon", "🏠 Szoba:": "🏠 Room:", "– váltás": "– change", "3D ikon": "3D icon", "Szöveg": "Text", "Kártya megjelenési ideje:": "Card display time:", "(alapértelmezett: 2,5 mp)": "(default: 2.5 s)", "Országos átlag": "National average", "KSH átlagár (hivatalos)": "KSH average price (official)", "Verzió:": "Version:", "A mostani lista várható összege boltonként. Koppints egy boltra a kiválasztásához.": "The estimated total of the current list for each store. Tap a store to select it.", "A különbségek közelítő boltszintű arányokon alapulnak (2026 októberi kosárteszteken), nem az egyes termékek aktuális, akciós árain. A Milano Marketről nincs árarány-adatom, ott az országos átlaggal számol.": "The differences are based on approximate store-level ratios (from October 2026 basket tests), not on the current promotional prices of individual products. There is no ratio data for Milano Market, so it uses the national average.", "↕️ Bolti sorrend beállítása": "↕️ Aisle order", "Told fel/le a kategóriákat úgy, ahogy a boltban haladsz. A lista ezt a sorrendet követi.": "Move the categories up/down the way you walk through the store. The list follows this order.", "Írd le röviden, mi nem működik. A szoba száma, a verzió és az eszköz adatai automatikusan csatolódnak. A név és az elérhetőség nem kötelező.": "Briefly describe what is not working. The room number, version and device details are attached automatically. Name and contact details are optional.", "📷 Kép csatolása (nem kötelező)": "📷 Attach a photo (optional)", "Küldés": "Send", "A bejelentés a fejlesztő Discord-csatornájára kerül, a megadott név és elérhetőség is.": "The report goes to the developer's Discord channel, including the name and contact details you provide.", "Próbáld ki bármelyik ünnepi témát. Az „Automatikus\" a dátumhoz igazodik.": "Try any holiday theme. “Automatic” follows the date.", "Összesen:": "Total:", "Keresés": "Search", "Összefoglaló megosztása": "Share summary", "Költségek": "Costs", "Megjegyzés (opcionális)": "Note", "Saját ár Ft-ban (üresen: becslés)": "Own price in HUF (empty: estimate)", "Mi a probléma? Mit csináltál, és mit vártál volna?": "What is the problem? What did you do, and what did you expect?", "Neved (nem kötelező)": "Your name (optional)", "E-mail címed (nem kötelező)": "Your email (optional)", "Telefonszámod (nem kötelező)": "Your phone number (optional)", "⚠️ Hiba történt az appban. Elküldöd a fejlesztőnek?": "⚠️ An error occurred in the app. Send it to the developer?", "Hibajelzés felajánlása (egy koppintással küldhető)": "Offer error reporting (one tap to send)", "A tanult kategóriák törölve": "Learned categories cleared", "A tanult árak törölve": "Learned prices cleared", "Kész a bevásárlás!": "Shopping done!", "Minden tétel el van intézve.": "Everything is taken care of.", "📤 Összefoglaló megosztása": "📤 Share summary", "Még nincs tétel – koppints a + gombra": "No items yet – tap the + button", "Nincs találat": "No results", "✓ Kép hozzáadva (csere)": "✓ Photo added (tap to replace)", "A képet nem sikerült beolvasni.": "Could not read the image.", "A kép mentése nem sikerült.": "Could not save the image.", "📷 Kép cseréje": "📷 Replace photo", "Mindent törölsz?": "Delete everything?", "saját ár": "own price", "Még nincs tétel a listán": "No items on the list yet", "legolcsóbb": "cheapest", "✓ Megvan": "✓ Got it", "✖ Nem találtam": "✖ Not found", "… Még hátra": "… Still to buy", "Még nincs mit megosztani": "Nothing to share yet", "Az összefoglaló a vágólapra másolva": "Summary copied to the clipboard", "A megosztás nem sikerült": "Sharing failed", "Pipálva ✓": "Checked ✓", "Hiányzik ✖": "Missing ✖", "🛒 Bevásárlás": "🛒 Shopping", "iPhone-on csak a főképernyőre tett appban működik: Megosztás ⬆️ → Főképernyőhöz adás, majd onnan nyisd meg.": "On iPhone this only works in the app added to the Home Screen: Share ⬆️ → Add to Home Screen, then open it from there.", "🔔 Értesítések bekapcsolva": "🔔 Notifications enabled", "Az értesítés le van tiltva": "Notifications are blocked", "✓ Kép csatolva (koppints a cseréhez)": "✓ Photo attached (tap to replace)", "Írd le röviden a problémát.": "Please describe the problem briefly.", "Az e-mail cím formátuma nem jó.": "The email address format is not valid.", "Kérlek várj egy kicsit a következő bejelentés előtt.": "Please wait a moment before sending another report.", "Küldés…": "Sending…", "✓ Köszönöm! A bejelentést elküldtem.": "✓ Thank you! The report has been sent.", "🐞 Hibabejelentés elküldve": "🐞 Bug report sent", "Adj meg egy 4 jegyű kódot.": "Enter a 4-digit code.", "Nem sikerült szabad kódot találni, próbáld újra.": "Could not find a free code, please try again.", "Nincs kapcsolat a szerverrel, próbáld újra.": "No connection to the server, please try again.", "Még nincs árazott tétel": "No priced items yet", "Automatikus (dátum szerint)": "Automatic (by date)", "Nincs téma": "No theme", "Törlöd az app helyi adatait ezen a telefonon (beállítások, tanult ikonok és árak, szoba)? A közös lista a szobában megmarad.": "Delete this app’s local data on this phone (settings, learned icons and prices, room)? The shared list stays in the room.", "Törlöd a tanult árakat? A közös (családi) árakat is törli a szobából.": "Clear the learned prices? This also clears the shared (family) prices in the room.", "✓ A hibajelentést elküldtem, köszönöm!": "✓ Error report sent, thank you!", "Nem sikerült elküldeni, próbáld újra később.": "Could not send, please try again later.", "Hiányzik": "Missing", "Részletek": "Details", "Törlés": "Delete", "Halloween": "Halloween", "Mikulás": "Santa Claus", "Karácsony": "Christmas", "Szilveszter": "New Year’s Eve", "Valentin-nap": "Valentine’s Day", "Húsvét": "Easter", "Nemzeti ünnep": "National holiday"});
 CATS.forEach(([id,l,e])=>{EN_MAP[l]=CATS_EN[id];EN_MAP[e+' '+l]=e+' '+CATS_EN[id]});
